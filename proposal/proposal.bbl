@@ -1,0 +1,273 @@
+\begin{thebibliography}{10}
+
+\bibitem{agarwal2020setstreams}
+Shivam Agarwal and Fabian Beck.
+\newblock Set streams: Visual exploration of dynamic overlapping sets.
+\newblock In {\em Computer Graphics Forum}, volume~39, pages 383--391. Wiley
+  Online Library, 2020.
+
+\bibitem{blei2006correlated}
+David Blei and John Lafferty.
+\newblock Correlated topic models.
+\newblock {\em Advances in neural information processing systems}, 18:147,
+  2006.
+
+\bibitem{blei2003LDA}
+David~M Blei, Andrew~Y Ng, and Michael~I Jordan.
+\newblock Latent dirichlet allocation.
+\newblock {\em Journal of machine Learning research}, 3(Jan):993--1022, 2003.
+
+\bibitem{cao2010facetatlas}
+Nan Cao, Jimeng Sun, Yu-Ru Lin, David Gotz, Shixia Liu, and Huamin Qu.
+\newblock Facetatlas: Multifaceted visualization for rich text corpora.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  16(6):1172--1181, 2010.
+
+\bibitem{chaney2012visualizing}
+Allison Chaney and David Blei.
+\newblock Visualizing topic models.
+\newblock In {\em Proceedings of the International AAAI Conference on Web and
+  Social Media}, volume~6, pages 419--422, 2012.
+
+\bibitem{choo2013utopian}
+Jaegul Choo, Changhyun Lee, Chandan~K Reddy, and Haesun Park.
+\newblock Utopian: User-driven topic modeling based on interactive nonnegative
+  matrix factorization.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  19(12):1992--2001, 2013.
+
+\bibitem{chuang2013topicdiagnostic}
+Jason Chuang, Sonal Gupta, Christopher Manning, and Jeffrey Heer.
+\newblock Topic model diagnostics: Assessing domain relevance via topical
+  alignment.
+\newblock In {\em International conference on machine learning}, pages
+  612--620. PMLR, 2013.
+
+\bibitem{chuang2012interpretation}
+Jason Chuang, Daniel Ramage, Christopher Manning, and Jeffrey Heer.
+\newblock Interpretation and trust: Designing model-driven visualizations for
+  text analysis.
+\newblock In {\em Proceedings of the SIGCHI conference on human factors in
+  computing systems}, pages 443--452, 2012.
+
+\bibitem{chun2006extraction}
+Hong-Woo Chun, Yoshimasa Tsuruoka, Jin-Dong Kim, Rie Shiba, Naoki Nagata,
+  Teruyoshi Hishiki, and Jun’ichi Tsujii.
+\newblock Extraction of gene-disease relations from medline using domain
+  dictionaries and machine learning.
+\newblock In {\em Biocomputing 2006}, pages 4--15. World Scientific, 2006.
+
+\bibitem{ParallelTagClouds}
+Christopher Collins, Fernanda~B. Viegas, and Martin Wattenberg.
+\newblock Parallel tag clouds to explore and analyze faceted text corpora.
+\newblock In {\em 2009 IEEE Symposium on Visual Analytics Science and
+  Technology}, pages 91--98, 2009.
+
+\bibitem{cui2010context}
+Weiwei Cui, Yingcai Wu, Shixia Liu, Furu Wei, Michelle~X Zhou, and Huamin Qu.
+\newblock Context preserving dynamic word cloud visualization.
+\newblock In {\em 2010 IEEE Pacific Visualization Symposium (PacificVis)},
+  pages 121--128. IEEE, 2010.
+
+\bibitem{el2017progressive}
+Mennatallah El-Assady, Rita Sevastjanova, Fabian Sperrle, Daniel Keim, and
+  Christopher Collins.
+\newblock Progressive learning of topic modeling parameters: A visual analytics
+  framework.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  24(1):382--391, 2017.
+
+\bibitem{fischer2020visual}
+Maximilian~T Fischer, Devanshu Arya, Dirk Streeb, Daniel Seebacher, Daniel~A
+  Keim, and Marcel Worring.
+\newblock Visual analytics for temporal hypergraph model exploration.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  27(2):550--560, 2020.
+
+\bibitem{fischer2021hypergraphsurvey}
+Maximilian~T Fischer, Alexander Frings, Daniel~A Keim, and Daniel Seebacher.
+\newblock Towards a survey on static and dynamic hypergraph visualizations.
+\newblock In {\em 2021 IEEE visualization conference (VIS)}, pages 81--85.
+  IEEE, 2021.
+
+\bibitem{EESurveyBiomed}
+Giacomo Frisoni, Gianluca Moro, and Antonella Carbonaro.
+\newblock A survey on event extraction for natural language understanding:
+  Riding the biomedical literature wave.
+\newblock {\em IEEE Access}, 9:160721--160757, 2021.
+
+\bibitem{gretarsson2012topicnets}
+Brynjar Gretarsson, John O’donovan, Svetlin Bostandjiev, Tobias H{\"o}llerer,
+  Arthur Asuncion, David Newman, and Padhraic Smyth.
+\newblock Topicnets: Visual analysis of large text corpora with topic modeling.
+\newblock {\em ACM Transactions on Intelligent Systems and Technology (TIST)},
+  3(2):1--26, 2012.
+
+\bibitem{jacobsen2020metrosets}
+Ben Jacobsen, Markus Wallinger, Stephen Kobourov, and Martin N{\"o}llenburg.
+\newblock Metrosets: Visualizing sets as metro maps.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  27(2):1257--1267, 2020.
+
+\bibitem{kapec2010visualizing}
+Peter Kapec.
+\newblock Visualizing software artifacts using hypergraphs.
+\newblock In {\em Proceedings of the 26th Spring Conference on Computer
+  Graphics}, pages 27--32, 2010.
+
+\bibitem{kerren2013radial}
+Andreas Kerren and Ilir Jusufi.
+\newblock A novel radial visualization approach for undirected hypergraphs.
+\newblock In {\em EuroVis (Short Papers)}, 2013.
+
+\bibitem{WordBridge}
+KyungTae Kim, Sungahn Ko, Niklas Elmqvist, and David~S. Ebert.
+\newblock Wordbridge: Using composite tag clouds in node-link diagrams for
+  visualizing content and relations in text corpora.
+\newblock In {\em 2011 44th Hawaii International Conference on System
+  Sciences}, pages 1--8, 2011.
+
+\bibitem{kim2016topiclens}
+Minjeong Kim, Kyeongpil Kang, Deokgun Park, Jaegul Choo, and Niklas Elmqvist.
+\newblock Topiclens: Efficient multi-level visual topic exploration of
+  large-scale document collections.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  23(1):151--160, 2016.
+
+\bibitem{PyramidTags}
+Johannes Knittel, Steffen Koch, and Thomas Ertl.
+\newblock Pyramidtags: Context-, time- and word order-aware tag maps to explore
+  large document collections.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  27(12):4455--4468, 2021.
+
+\bibitem{SparkClouds}
+Bongshin Lee, Nathalie~Henry Riche, Amy~K. Karlson, and Sheelash Carpendale.
+\newblock Sparkclouds: Visualizing trends in tag clouds.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  16(6):1182--1189, 2010.
+
+\bibitem{lee1999NMF}
+Daniel~D Lee and H~Sebastian Seung.
+\newblock Learning the parts of objects by non-negative matrix factorization.
+\newblock {\em Nature}, 401(6755):788--791, 1999.
+
+\bibitem{lee2012ivisclustering}
+Hanseung Lee, Jaeyeon Kihm, Jaegul Choo, John Stasko, and Haesun Park.
+\newblock ivisclustering: An interactive visual document clustering via topic
+  modeling.
+\newblock In {\em Computer graphics forum}, volume~31, pages 1155--1164. Wiley
+  Online Library, 2012.
+
+\bibitem{lee2017human}
+Tak~Yeon Lee, Alison Smith, Kevin Seppi, Niklas Elmqvist, Jordan Boyd-Graber,
+  and Leah Findlater.
+\newblock The human touch: How non-expert users perceive, interpret, and fix
+  topic models.
+\newblock {\em International Journal of Human-Computer Studies}, 105:28--42,
+  2017.
+
+\bibitem{li2006pachinko}
+Wei Li and Andrew McCallum.
+\newblock Pachinko allocation: Dag-structured mixture models of topic
+  correlations.
+\newblock In {\em Proceedings of the 23rd international conference on Machine
+  learning}, pages 577--584, 2006.
+
+\bibitem{lu2021text2event}
+Yaojie Lu, Hongyu Lin, Jin Xu, Xianpei Han, Jialong Tang, Annan Li, Le~Sun,
+  Meng Liao, and Shaoyi Chen.
+\newblock Text2event: Controllable sequence-to-structure generation for
+  end-to-end event extraction.
+\newblock {\em arXiv preprint arXiv:2106.09232}, 2021.
+
+\bibitem{Narechania2022VITALITY}
+Arpit Narechania, Alireza Karduni, Ryan Wesslen, and Emily Wall.
+\newblock Vitality: Promoting serendipitous discovery of academic literature
+  with transformers \& visual analytics.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  28(1):486--496, 2022.
+
+\bibitem{nguyen2016timesets}
+Phong~H Nguyen, Kai Xu, Rick Walker, and BL~William Wong.
+\newblock Timesets: Timeline visualization with set relations.
+\newblock {\em Information Visualization}, 15(3):253--269, 2016.
+
+\bibitem{ouvrard2017networks}
+Xavier Ouvrard, Jean-Marie~Le Goff, and St{\'e}phane Marchand-Maillet.
+\newblock Networks of collaborations: Hypergraph modeling and visualisation.
+\newblock {\em arXiv preprint arXiv:1707.00115}, 2017.
+
+\bibitem{paquette2011hypergraph}
+Jesse Paquette and Taku Tokuyasu.
+\newblock Hypergraph visualization and enrichment statistics: how the egan
+  paradigm facilitates organic discovery from big data.
+\newblock In {\em Human Vision and Electronic Imaging XVI}, volume 7865, pages
+  126--143. SPIE, 2011.
+
+\bibitem{park2017conceptvector}
+Deokgun Park, Seungyeon Kim, Jurim Lee, Jaegul Choo, Nicholas Diakopoulos, and
+  Niklas Elmqvist.
+\newblock Conceptvector: Text visual analytics via interactive lexicon building
+  using word embedding.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  24(1):361--370, 2017.
+
+\bibitem{SemWordification}
+Fernando~V Paulovich, Franklina~MB Toledo, Guilherme~P Telles, Rosane Minghim,
+  and Luis~Gustavo Nonato.
+\newblock Semantic wordification of document collections.
+\newblock In {\em Computer Graphics Forum}, volume~31, pages 1145--1153. Wiley
+  Online Library, 2012.
+
+\bibitem{stasko2007jigsaw}
+John Stasko, Carsten Gorg, Zhicheng Liu, and Kanupriya Singhal.
+\newblock Jigsaw: supporting investigative analysis through interactive
+  visualization.
+\newblock In {\em 2007 IEEE Symposium on Visual Analytics Science and
+  Technology}, pages 131--138. IEEE, 2007.
+
+\bibitem{streeb2019visual}
+Dirk Streeb, Devanshu Arya, Daniel~A Keim, and Marcel Worring.
+\newblock Visual analytics framework for the assessment of temporal hypergraph
+  prediction models.
+\newblock In {\em Set Visual Analytics Workshop at IEEE VIS 2019}, 2019.
+
+\bibitem{trieu2020deepeventmine}
+Hai-Long Trieu, Thy~Thy Tran, Khoa~NA Duong, Anh Nguyen, Makoto Miwa, and
+  Sophia Ananiadou.
+\newblock Deepeventmine: end-to-end neural nested event extraction from
+  biomedical texts.
+\newblock {\em Bioinformatics}, 36(19):4910--4917, 2020.
+
+\bibitem{valdivia2019analyzing}
+Paola Valdivia, Paolo Buono, Catherine Plaisant, Nicole Dufournaud, and
+  Jean-Daniel Fekete.
+\newblock Analyzing dynamic hypergraphs with parallel aggregated ordered
+  hypergraph visualization.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  27(1):1--13, 2019.
+
+\bibitem{vayansky2020topicreview}
+Ike Vayansky and Sathish~AP Kumar.
+\newblock A review of topic modeling methods.
+\newblock {\em Information Systems}, 94:101582, 2020.
+
+\bibitem{viegas2008timelines}
+Fernanda~B Vi{\'e}gas and Martin Wattenberg.
+\newblock Timelines tag clouds and the case for vernacular visualization.
+\newblock {\em interactions}, 15(4):49--52, 2008.
+
+\bibitem{wang2020Recloud}
+Ji~Wang, Jian Zhao, Sheng Guo, Chris North, and Naren Ramakrishnan.
+\newblock Recloud: semantics-based word cloud visualization of user reviews.
+\newblock In {\em Graphics Interface 2014}, pages 151--158. AK Peters/CRC
+  Press, 2020.
+
+\bibitem{SemWordCloudKLM}
+Yingcai Wu, Thomas Provan, Furu Wei, Shixia Liu, and Kwan-Liu Ma.
+\newblock Semantic-preserving word clouds by seam carving.
+\newblock In {\em Computer Graphics Forum}, volume~30, pages 741--750. Wiley
+  Online Library, 2011.
+
+\end{thebibliography}
