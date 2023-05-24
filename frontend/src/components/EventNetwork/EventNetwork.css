@@ -1,0 +1,39 @@
+.lda-graph-container {
+    width: 100%;
+    height: 100%;
+    /* overflow: visible; */
+    display: flex;
+    flex-direction: column;
+}
+.lda-graph-svg {
+    /* overflow: visible; */
+}
+.legend-background {
+    /* fill: white */
+}
+
+.lda-graph-header {
+    text-align: left;
+    padding: 0.5% 0.5% 0.5% 0.5%;
+    border-bottom: solid black 1px;
+    background: #efefef;
+    font-weight: initial;
+    font-size: 1.5rem;
+}
+
+div.tooltip {
+    box-sizing: border-box;
+    position: absolute;
+    display: none;
+    top: 0;
+    left: -100000000px;
+    padding: 8px 12px;
+    font-family: sans-serif;
+    font-size: 12px;
+    color: #333;
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1;
+  }
