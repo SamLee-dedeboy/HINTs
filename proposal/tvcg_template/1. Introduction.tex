@@ -1,4 +1,4 @@
-\section{Motivation}
+\section{Introduction}
 % summartization -> overview / text mining / transforming large collection of documents into a compact representation / visual summarization
 % compact, interactive summary, support analysis, interpretation and trust
 % existing methods: based on word co-occurrence -> inaccurate, not able to capture complex relations, not easy to reason why relation exists
@@ -32,11 +32,16 @@ and the semantic meaning of the relations are explicitly represented by the even
 By organizing events into a hyper graph, we provide a compact overview of the corpus in a graph where events and words are interconnected. 
 The graph form representation allows users to interact with the overview through common interactions such as filtering, zooming and highlighting.
 It also opens the door to incorporate hyper network analysis methods into text analysis, such as community detection and motif finding.
+A study by Antelmi et al.~\cite{antelmi2020analyzing} found that in certain scenarios where relations could exist between more than two nodes, conducting analysis on hyper networks can provide more accurate results than on regular networks.
+In the case of event hyper graphs,
+the nodes are all meaningful words (entities) connected by events, the resulting hyper graph contains diverse relations extracted from the corpus.
+Conducting hyper network analysis on such a network is something that has not been explored by the literature.
+The next step of this project is to find appropriate case studies to employ those hyper network analysis methods, and investigate the most appropriate interactions to support. 
 
 Our contributions are:
 \begin{itemize}
-    \item We propose a novel method that combines event extraction models and hyper graphs to provide a compact, interactive overview of a large collection of documents that is both interpretable and trustworthy.
-    \item We develop a system that combines the proposed overview with hyper network analysis methods for user to explore a corpus.
-    \item We present two case studies to demonstrate the effectiveness of our method.
+    \item a novel method that combines event extraction models and hyper graphs to provide a compact, interactive overview of a large collection of documents.
+    \item a system that combines the proposed overview with hyper network analysis methods for user to explore and analyze a large collection of documents.
+    \item two case studies that demonstrate the effectiveness, interpretability and trustworthiness of our method.
 \end{itemize}
 

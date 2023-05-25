@@ -37,21 +37,23 @@ When presented with common topic modeling results, users sometimes overlooked im
 Another work by Chuang et al.~\cite{chuang2012interpretation} proposes to evaluate topic modeling systems by \textit{interpretation} and \textit{trust},
 Based on this evaluation, they conducted a literature review and finds that most tools lack proper consideration of how model abstractions align with analysis tasks, thus lacking interpretability and trustworthiness
 
-\subsection{Text Patterns}
-\subsubsection{Others}
+\subsubsection{Text Patterns}
+\textbf{TBD}
+\subsubsection{Entity based methods}
 Besides the majority of works that use word clouds and topic models to provide overview at the corpus level,
 some other works also use various methods to summarize a corpus.
+
 ConceptVector~\cite{park2017conceptvector} proposes a user-steerable word-to-concept similarities model where user can define and refine concepts, which are then used to organize document corpus and conduct analysis.
 Their similarity computation is based on word-embeddings, but enhanced to compute similarity (relevance) between a concept and a document.
-Despite being intuitive, these embedding-based approaches lacks interpretability, and it is not straightforward for the user to understand why similar documents are grouped together.
 As an earlier approach, Jigsaw~\cite{stasko2007jigsaw} extracts entities mentioned in each document, and connects entities if they appear in the same document.
 It provides a list view as well as a graph view, where each document is a node and the mentioned entities are connected to the document.
-This graph visualization approach is similar to what we use in this proposal, but instead of connecting entities by documents, we connect entities by events they participate in, which is a finer granularity.
+This graph visualization approach is similar to what we use in this proposal, but instead of connecting entities by documents, we connect entities by events they participate in.
 FacteAtlas~\cite{cao2010facetatlas} also build upon the idea of organizing documents by entities.
 They first extract entities mentioned in a document along with their classes (facets), and then organize the corpus by facets. 
 The result is represented by a multi-layer graph and visualized in a novel way.
 These approaches all assumes that words co-occurring with each other have semantic meaningful relations, which is not always true as will be mentioned in~\autoref{sec:ee}.
 
+\subsubsection{Embedding based methods}
 Recent approaches, such as VITALITY~\cite{Narechania2022VITALITY}, uses document embeddings and dimensionality reduction methods to visualize the corpus in a scatter plot, where each circle represents a document.
 Despite being intuitive, these embedding-based approaches lacks interpretability, and it is not straightforward for the user to understand why similar documents are grouped together.
 
@@ -96,7 +98,7 @@ Node-link based approaches are the most intuitive and have the best support for 
 
 Timeline-based approaches targets dynamic hyper graphs, and usually treat the hyper graph visualization problem as a set membership visualization problem~\cite{agarwal2020setstreams, nguyen2016timesets, valdivia2019analyzing}.
 At each time step, each hyper edge can be seen as a subset of the set of nodes, and the goal is to visualize the membership of each node at different time steps.
-For example, Agarwal et al.used a sankey diagram to visualize dynamic hyper graphs, where each subset (hyper edge) is represented by a bar in the sankey diagram, and the nodes are represented by flows~\cite{agarwal2020setstreams,}.
+For example, Agarwal et al.used a sankey diagram to visualize dynamic hyper graphs, where each subset (hyper edge) is represented by a bar in the sankey diagram, and the nodes are represented by flows~\cite{agarwal2020setstreams}.
 
 Matrix-based approaches~\cite{streeb2019visual, fischer2020visual} put nodes and hyper edges on the rows and columns, and use the cell to encode where the node belongs to a hyper edge.
 The benefit of using a matrix-based visualization is the scalability. 
@@ -104,7 +106,6 @@ However, similar to normal graphs, the row and column ordering of the matrix vis
 Also, matrix visualization assumes that hyper edges do not have any relation, this prevents to visualize hyper graphs with nested events.
 As a result, we will focus on node-link based approaches in this project.
 
-\textbf{TODO: Investigate tasks on Hyper Graphs}
 
 
 

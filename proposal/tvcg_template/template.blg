@@ -1,0 +1,53 @@
+This is BibTeX, Version 0.99d (TeX Live 2022)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: template.aux
+The style file: abbrv-doi-hyperref.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: template.bib
+Warning--can't use both volume and number fields in agarwal2020setstreams
+Warning--can't use both volume and number fields in chaney2012visualizing
+Warning--can't use both volume and number fields in lee2012ivisclustering
+Warning--can't use both volume and number fields in SemWordification
+Warning--can't use both volume and number fields in SemWordCloudKLM
+You've used 43 entries,
+            2607 wiz_defined-function locations,
+            858 strings with 13509 characters,
+and the built_in function-call counts, 23840 in all, are:
+= -- 3325
+> -- 1023
+< -- 313
++ -- 695
+- -- 364
+* -- 1496
+:= -- 3655
+add.period$ -- 140
+call.type$ -- 43
+change.case$ -- 308
+chr.to.int$ -- 0
+cite$ -- 48
+duplicate$ -- 672
+empty$ -- 1401
+format.name$ -- 358
+if$ -- 5494
+int.to.chr$ -- 0
+int.to.str$ -- 43
+missing$ -- 43
+newline$ -- 260
+num.names$ -- 86
+pop$ -- 314
+preamble$ -- 1
+purify$ -- 265
+quote$ -- 0
+skip$ -- 499
+stack$ -- 0
+substring$ -- 1527
+swap$ -- 214
+text.length$ -- 180
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 172
+warning$ -- 5
+while$ -- 183
+width$ -- 45
+write$ -- 668
+(There were 5 warnings)
