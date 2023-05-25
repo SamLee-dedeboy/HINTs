@@ -1,0 +1,33 @@
+\backcite {viegas2008timelines}{{1}{1}{section.1}}
+\backcite {chuang2013topicdiagnostic}{{1}{1}{section.1}}
+\backcite {lee2017human}{{1}{1}{section.1}}
+\backcite {EESurveyBiomed}{{1}{1}{section.1}}
+\backcite {chun2006extraction}{{1}{1}{section.1}}
+\backcite {antelmi2020analyzing}{{1}{1}{section.1}}
+\backcite {PyramidTags,SparkClouds}{{1}{2.1.1}{subsubsection.4}}
+\backcite {ParallelTagClouds,WordBridge}{{1}{2.1.1}{subsubsection.4}}
+\backcite {SemWordCloudKLM, SemWordification, wang2020Recloud, cui2010context}{{1}{2.1.1}{subsubsection.4}}
+\backcite {viegas2008timelines}{{1}{2.1.1}{subsubsection.4}}
+\backcite {vayansky2020topicreview}{{2}{2.1.2}{subsubsection.5}}
+\backcite {blei2003LDA}{{2}{2.1.2}{subsubsection.5}}
+\backcite {blei2006correlated}{{2}{2.1.2}{subsubsection.5}}
+\backcite {li2006pachinko}{{2}{2.1.2}{subsubsection.5}}
+\backcite {lee1999NMF}{{2}{2.1.2}{subsubsection.5}}
+\backcite {el2017progressive, choo2013utopian, lee2012ivisclustering, kim2016topiclens, chaney2012visualizing, gretarsson2012topicnets}{{2}{2.1.2}{subsubsection.5}}
+\backcite {lee2017human}{{2}{2.1.2}{subsubsection.5}}
+\backcite {chuang2012interpretation}{{2}{2.1.2}{subsubsection.5}}
+\backcite {park2017conceptvector}{{2}{2.1.4}{subsubsection.7}}
+\backcite {stasko2007jigsaw}{{2}{2.1.4}{subsubsection.7}}
+\backcite {cao2010facetatlas}{{2}{2.1.4}{subsubsection.7}}
+\backcite {Narechania2022VITALITY}{{2}{2.1.5}{subsubsection.8}}
+\backcite {EESurveyBiomed}{{2}{2.2}{subsection.9}}
+\backcite {trieu2020deepeventmine}{{2}{2.2}{subsection.9}}
+\backcite {lu2021text2event}{{2}{2.2}{subsection.9}}
+\backcite {fischer2021hypergraphsurvey}{{2}{2.3}{subsection.10}}
+\backcite {kapec2010visualizing, paquette2011hypergraph, kerren2013radial, ouvrard2017networks, jacobsen2020metrosets}{{2}{2.3}{subsection.10}}
+\backcite {kapec2010visualizing}{{2}{2.3}{subsection.10}}
+\backcite {paquette2011hypergraph}{{2}{2.3}{subsection.10}}
+\backcite {ouvrard2017networks}{{2}{2.3}{subsection.10}}
+\backcite {agarwal2020setstreams, nguyen2016timesets, valdivia2019analyzing}{{2}{2.3}{subsection.10}}
+\backcite {agarwal2020setstreams}{{3}{2.3}{subsection.10}}
+\backcite {streeb2019visual, fischer2020visual}{{3}{2.3}{subsection.10}}
