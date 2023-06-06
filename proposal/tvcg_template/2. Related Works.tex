@@ -4,31 +4,31 @@
 \subsubsection{Word Clouds}
 Word Clouds are intuitive and effective means for users even with the lowest visual literacy to understand the main topics in a collection of documents instantly.
 The most basic word clouds display the most frequent words in the collection in a visually appealing way, with the size of the words representing their frequency.
-More advanced word clouds try to enhance it by incorporating more information, such as temporal attributes~\cite{PyramidTags,SparkClouds}, relations between words~\cite{ParallelTagClouds,WordBridge} and semantics~\cite{SemWordCloudKLM, SemWordification, wang2020Recloud, cui2010context}.
-However, regardless of the enhancements, common limitations of the word clouds exist, and some are in the root of the statistical assumptions of word clouds.
+More advanced word clouds try to enhance it by incorporating more information, such as temporal attributes~\cite{PyramidTags, SparkClouds}, relations between words~\cite{ParallelTagClouds, WordBridge} and semantics~\cite{SemWordCloudKLM, SemWordification, wang2020Recloud, cui2010context}.
+However, regardless of the enhancements, common limitations of the word clouds exist, and some are at the root of the statistical assumptions of word clouds.
 
 First, word clouds assume the independence between words, and all statistical calculations such as word frequency and co-occurrence are based on this assumption.
-This assumption leads to the inability to preserve complex relations between words in the text, and eventually limits its visual representation.
+This assumption leads to the inability to preserve complex relations between words in the text and eventually limits its visual representation.
 Since all words are treated independently, the position of each word is usually randomized in the visualization of a word cloud.
 This randomization is not a design choice, but the implication of not being able to capture anything meaningful to be encoded as positions.
-Semantic-preserving word clouds try to address this issue by grouping semantically similar words together, and weakly encodes the position of each word,
+Semantic-preserving word clouds try to address this issue by grouping semantically similar words, and weakly encoding the position of each word,
 but the relative position of words in each group is still randomized.
 
 The second limitation of word clouds is the lack of support for further analytical tasks~\cite{viegas2008timelines}.
-This is due to some common issues of the visual encoding.
-For example, the size encoding of each word is not accurate due to different word length, making it difficult to compare words.
-Despite its popularity, word clouds used in visual analytics systems are often used as an exploratory starting point for user to select words,
+This is due to some common issues of their visual encoding.
+For example, the size encoding of each word is not accurate due to different word lengths, making it difficult to compare words.
+Despite its popularity, word clouds used in visual analytics systems are often used as an exploratory starting point for the user to select words,
 providing a static and non-interactive overview,
-while the rest of the system design that supports further analytical tasks on the selected words are not directly informed by the information provided by the word clouds.
+while the rest of the system designs that support further analytical tasks on the selected words are not directly informed by the information provided by the word clouds.
 This decoupling of the word clouds and the rest of the system means that word clouds are better used as a complementary visualization component, rather than the main component for exploratory analysis.
 
 \subsubsection{Topic Models}
 Topic modeling is a popular statistical tool for extracting latent variables (topics) from large collections of documents~\cite{vayansky2020topicreview}.
 By making different assumptions and using different statistical models, an extensive amount of topic models are proposed,
-such as Latent DirichLet Allocation (LDA)~\cite{blei2003LDA}, Correlated Topic Model (CTM)~\cite{blei2006correlated}, Pachinko Allocation Model (PAM)~\cite{li2006pachinko}, Non-negative Matrix Factorization (NMF)~\cite{lee1999NMF},
+such as Latent Dirichlet Allocation (LDA)~\cite{blei2003LDA}, Correlated Topic Model (CTM)~\cite{blei2006correlated}, Pachinko Allocation Model (PAM)~\cite{li2006pachinko}, Non-negative Matrix Factorization (NMF)~\cite{lee1999NMF},
 and their countless variations.
-Although having the ability to capture various complex relations in the text, the extensive amount of possible choices and their each individual complex assumptions and modeling processes make it difficult for even the experts to choose the right model for their task.
-Moreover, each model might have hyper parameters that need to be tuned, which is often time consuming and requires expert knowledge.
+Although having the ability to capture various complex relations in the text, the extensive amount of possible choices and their complex assumptions and modeling processes make it difficult for even the experts to choose the right model for their task.
+Moreover, each model might have hyperparameters that need to be tuned, which is often time-consuming and requires expert knowledge.
 
 Addressing the complexity of topic models is not a trivial task.
 The complexity of the topic models even spurs the idea of using visual analytic systems to help users understand and refine the topic models~\cite{el2017progressive, choo2013utopian, lee2012ivisclustering, kim2016topiclens, chaney2012visualizing, gretarsson2012topicnets}.
@@ -40,72 +40,87 @@ Based on this evaluation, they conducted a literature review and finds that most
 \subsubsection{Text Patterns}
 \textbf{TBD}
 \subsubsection{Entity based methods}
-Besides the majority of works that use word clouds and topic models to provide overview at the corpus level,
+Besides the majority of works that use word clouds and topic models to provide an overview at the corpus level,
 some other works also use various methods to summarize a corpus.
 
-ConceptVector~\cite{park2017conceptvector} proposes a user-steerable word-to-concept similarities model where user can define and refine concepts, which are then used to organize document corpus and conduct analysis.
-Their similarity computation is based on word-embeddings, but enhanced to compute similarity (relevance) between a concept and a document.
-As an earlier approach, Jigsaw~\cite{stasko2007jigsaw} extracts entities mentioned in each document, and connects entities if they appear in the same document.
+ConceptVector~\cite{park2017conceptvector} proposes a user-steerable word-to-concept similarities model where the user can define and refine concepts, which are then used to organize document corpus and conduct analysis.
+Their similarity computation is based on word embeddings but enhanced to compute similarity (relevance) between a concept and a document.
+As an earlier approach, Jigsaw~\cite{stasko2007jigsaw} extracts entities mentioned in each document and connects entities if they appear in the same document.
 It provides a list view as well as a graph view, where each document is a node and the mentioned entities are connected to the document.
 This graph visualization approach is similar to what we use in this proposal, but instead of connecting entities by documents, we connect entities by events they participate in.
 FacteAtlas~\cite{cao2010facetatlas} also build upon the idea of organizing documents by entities.
-They first extract entities mentioned in a document along with their classes (facets), and then organize the corpus by facets. 
+They first extract entities mentioned in a document along with their classes (facets) and then organize the corpus by facets. 
 The result is represented by a multi-layer graph and visualized in a novel way.
-These approaches all assumes that words co-occurring with each other have semantic meaningful relations, which is not always true as will be mentioned in~\autoref{sec:ee}.
+These approaches all assume that words co-occurring with each other have semantic meaningful relations, which is not always true as will be mentioned in~\autoref{sec: ee}.
 
 \subsubsection{Embedding based methods}
 Recent approaches, such as VITALITY~\cite{Narechania2022VITALITY}, uses document embeddings and dimensionality reduction methods to visualize the corpus in a scatter plot, where each circle represents a document.
-Despite being intuitive, these embedding-based approaches lacks interpretability, and it is not straightforward for the user to understand why similar documents are grouped together.
+Despite being intuitive, these embedding-based approaches lack interpretability, and it is not straightforward for the user to understand why similar documents are grouped together.
 
-\subsection{Event Extraction}\label{sec:ee}
+\subsection{Event Extraction}\label{sec: ee}
 To capture an accurate relation between words, researchers from Natural Language Processing (NLP) community have developed \textit{event extraction} (EE) methods~\cite{EESurveyBiomed}.
-In this context, the most basic definition of an \textit{event} is defined as a structure consists of a \textit{trigger} and zero or more \textit{arguments},
+In this context, the most basic definition of an \textit{event} is defined as a structure consisting of a \textit{trigger} and zero or more \textit{arguments},
 where the \textit{trigger} is the textual mention of verbs that clearly expresses the occurrence of an event,
 and the \textit{arguments} are the textual mentions of the participants of the event, usually a named entity.
-In slightly more advanced definitions, events might also include \textit{argument roles} and \textit{event property}, and events could be nested, where an argument of an event is another event.
-Event trigger and its arguments are not necessarily in the same sentence, thus does not rely on the aforementioned bag-of-words assumption.
-In addition, relations between words are represented by the trigger, enabling the possibility of capturing diverse while interpretable relations between words.
+\hl{
+Additionally, each argument typically has an associated \textit{argument role}.
+For example, taking the input: \textit{`The man returned to Los Angeles from Mexico following his capture Tuesday by bounty hunters.'},
+an event extraction model should extract \textit{`return'} as the trigger and \textit{`man', `Los Angeles', `Mexico', `Tuesday' and `bounty hunters'} as the arguments.
+The arguments are thus semantically differentiated by their argument roles.
+}
+In slightly more advanced definitions, events might also have \textit{event property}, and events could be nested, where an argument of an event is another event.
+Event trigger and its arguments are not necessarily in the same sentence, thus the extracted relations do not rely on the aforementioned bag-of-words assumption.
+In addition, relations between words are represented by the trigger, enabling the possibility of capturing diverse but interpretable relations between words.
 
-Event extraction (EE) is a well-studied problem in NLP community, and various methods have been proposed.
+Event extraction (EE) is a well-studied problem in the NLP community, and various methods have been proposed.
 To begin with, EE models can be divided into \textit{Close Domain} (CDEE) and \textit{Open Domain} (ODEE) models.
-CDEE models uses predefined event schemas, where it defines targeting event types and corresponding argument types, and the goal is to fill the expected `slots'.
-CDEE solutions are usually limited to a specific domain and require labeled training data.
-On the other hand, ODEE models does not assume predefined event schemas, and the goal is to extract all possible events from the text.
-Though promising, ODEE models are rare, and its evaluation can only be done manually.
+CDEE models use a predefined event schema, which defines targeting event types and corresponding argument types, and the goal is to fill the expected `slots'.
+\hl{
+In the aforementioned example, two events can be extracted: The man \textit{returning} and the man being \textit{captured}.
+Using a predefined event schema enables better accuracy on the targeted events by ignoring other events.
+This trade-off is constantly being made in CDEE models to account for different application scenarios.
+As a result, CDEE solutions are usually limited to a specific domain.
+Their labeled dataset scale is also limited because event schemas are not easily transferrable, requiring different labels for different schemas.
+}
+On the other hand, ODEE models do not assume a predefined event schema, and the goal is to extract all possible events from the text.
+Though promising, ODEE models are rare, and model evaluation can only be done manually.
 
-Early approaches on EE adopted human-crafted templates to match the events.
-These rule-based pattern matching approaches are promised to be accurate if the templates are well designed, it is expensive to build and maintain and hardly generalizable.
+Early approaches to EE adopted human-crafted templates to match the events.
+These rule-based pattern-matching approaches are promised to be accurate if the templates are well-designed, it is expensive to build and maintain and hardly generalizable.
 Recent approaches use supervised deep learning models to extract events.
-Despite various variations, most deep learning models use popular datasets like Cancer Genetics 2023 (CG), GENIA 2011/2013 (GE11, GE13), Infectious Disease (ID),
-and fine-tunes Bert-based or similar language models to extract events.
+Despite various variations, most deep learning models use popular datasets like Cancer Genetics 2023 (CG), GENIA 2011/2013 (GE11, GE13), and Infectious Disease (ID),
+and fine-tune Bert-based or similar language models to extract events.
 Deep learning models achieve state-of-the-art (SOTA) performance, but they are usually CDEE models, and thus the model can only apply to the domain of the training data.
-To the best of our knowledge, most datasets are in either biomedical or news domain, limiting the event extraction models to these domains.
-In biomedical domain, the SOTA model is DeepEventMine~\cite{trieu2020deepeventmine}, and in news domain it is Text2Event~\cite{lu2021text2event}.
-We propose to test these two models in two different case studies to prove the efficacy of using event extraction models.
+To the best of our knowledge, most datasets are in either the biomedical or news domain, limiting the event extraction models to these domains.
+In the biomedical domain, the SOTA model is DeepEventMine~\cite{trieu2020deepeventmine}, and in the news domain, it is Text2Event~\cite{lu2021text2event}.
+In our work, we test these two models in two different case studies to prove the efficacy of using event extraction models.
 
 \subsection{Hyper Graph Visualization}
-Hyper graph is a generalization of graph, where an edge can connect more than two nodes~\cite{fischer2021hypergraphsurvey}.
-The result of event extraction can be transformed into a hyper graph, where an event is a hyper edge, and the arguments are the nodes.
-Traditionally, hyper graphs are visualized as Venn diagrams or Euler diagrams, but these visualizations are limited to small hyper graphs.
-More advanced visualizations can be categorized into node-link based, matrix-based, and timeline-based approaches.
+A hypergraph is a generalization of a graph, where an edge can connect more than two nodes~\cite{fischer2021hypergraphsurvey}.
+The result of event extraction can be transformed into a hypergraph, where an event is a hyperedge, and the arguments are the nodes.
+Traditionally, hypergraphs are visualized as Venn diagrams or Euler diagrams, but these visualizations are limited to small hypergraphs.
+More advanced visualizations can be categorized into node-link based, matrix based, and timeline based approaches.
 
-In node-link based approaches, hyper edges are represented as an extra node, and the hyper graph is represented as a bipartite graph.
-The resulting graph is similar to a heterogeneous graph, and can be visualized using normal graph layout algorithms.
-This is the most common approach, and is used in many hyper graph visualization systems~\cite{kapec2010visualizing, paquette2011hypergraph, kerren2013radial, ouvrard2017networks, jacobsen2020metrosets}.
-Kapec~\cite{kapec2010visualizing} and Paquette et al.~\cite{paquette2011hypergraph} propose the earlier extra node approaches, 
-and Ouvard et al.~\cite{ouvrard2017networks} further refine the visualization by minimizing the size of hyper-edge nodes.
+In node-link based approaches, hyperedges are represented as an extra node, and the hypergraph is represented as a bipartite graph.
+The resulting graph is similar to a heterogeneous graph and can be visualized using normal graph layout algorithms.
+Node-link based approach is the most common approach and is used in many hypergraph visualization systems~\cite{kapec2010visualizing, paquette2011hypergraph, kerren2013radial, ouvrard2017networks, jacobsen2020metrosets}.
+Kapec~\cite{kapec2010visualizing} and Paquette and Tokuyasu.~\cite{paquette2011hypergraph} first use the extra node representation, 
+and Ouvard et al.~\cite{ouvrard2017networks} refine the visualization by minimizing the size of hyper-edge nodes.
 Node-link based approaches are the most intuitive and have the best support for interaction, but the visual scalability is limited as all graph layout algorithms.
 
-Timeline-based approaches targets dynamic hyper graphs, and usually treat the hyper graph visualization problem as a set membership visualization problem~\cite{agarwal2020setstreams, nguyen2016timesets, valdivia2019analyzing}.
-At each time step, each hyper edge can be seen as a subset of the set of nodes, and the goal is to visualize the membership of each node at different time steps.
-For example, Agarwal et al.used a sankey diagram to visualize dynamic hyper graphs, where each subset (hyper edge) is represented by a bar in the sankey diagram, and the nodes are represented by flows~\cite{agarwal2020setstreams}.
+The timeline based approaches target dynamic hypergraphs, and usually treat the hypergraph visualization problem as a set membership visualization problem~\cite{agarwal2020setstreams, nguyen2016timesets, valdivia2019analyzing}.
+At each time step, each hyperedge can be seen as a subset of the set of nodes, and the goal is to visualize the membership of each node at different time steps.
+For example, Agarwal et al.use a Sankey diagram to visualize dynamic hypergraphs, where each subset (hyperedge) is represented by a vertical bar in the Sankey diagram and the nodes are represented by flows~\cite{agarwal2020setstreams}.
 
-Matrix-based approaches~\cite{streeb2019visual, fischer2020visual} put nodes and hyper edges on the rows and columns, and use the cell to encode where the node belongs to a hyper edge.
-The benefit of using a matrix-based visualization is the scalability. 
-However, similar to normal graphs, the row and column ordering of the matrix visualization is important to reveal interesting patterns.
-Also, matrix visualization assumes that hyper edges do not have any relation, this prevents to visualize hyper graphs with nested events.
-As a result, we will focus on node-link based approaches in this project.
-
+Matrix-based approaches~\cite{streeb2019visual, fischer2020visual} put nodes and hyperedges on the rows and columns, and use the cell to encode where the node belongs to a hyperedge.
+\hl{
+The benefit of using a matrix-based visualization is scalability and better support for dynamic networks. 
+At this point, there are still many unsolved problems to use a matrix-based visualization for hypergraphs.
+First, the row and column ordering of the matrix visualization is important to reveal interesting patterns.
+Also, matrix visualization assumes that hyperedges do not have any relation; this prevents visualizing hypergraphs with nested events.
+Finally, it is not trivial to visualize the temporal aspect of the hypergraph. 
+Further research is needed to solve these problems.
+}
 
 
 

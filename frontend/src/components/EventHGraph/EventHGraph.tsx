@@ -1,11 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
 import * as d3 from "d3"
-import './EventNetwork.css'
+import './EventHGraph.css'
 import * as Colors from '../../colors'
 import * as parameters from './parameters'
 import tooltip from './Tooltip'
+import { Checkbox } from 'antd';
+import type { CheckboxValueType } from 'antd/es/checkbox/Group';
+import { server_address } from '../../shared'
 
-function EventNetwork({ network_data, svgId, nodeOnClick }) {
+function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
+  const [node_pos_dict, setNodePosDict] = useState({})
+  const [link_pos_dict, setLinkPosDict] = useState({})
   const margin = {
       left: 0,
       right: 0,
@@ -13,25 +18,18 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
       bottom: 0
     }
   
-  const svgSize = {
-    width: 1562,
-    height: 1000,
-  }
+  const svgSize = useMemo(() => {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    return { width, height }
+  }, [])
+
   const canvasSize = useMemo(() => { 
     return {
       width: svgSize.width - margin.left - margin.right,
       height: svgSize.height - margin.top - margin.bottom,
     }
   }, [])
-
-
-  const total_communities: number = useMemo(() => {
-    const communities = new Set()
-    network_data.nodes.forEach(node => {
-      communities.add(node.community)
-    })
-    return communities.size
-  }, [network_data])
 
   const community_colors = d3.scaleOrdinal(d3.schemeCategory10)
   // const scale = d3.scaleOrdinal(d3.schemeCategory10)
@@ -70,12 +68,6 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
 
   useEffect(() => {
     update_graph()
-    // update_dag()
-    // if(asTree) {
-    //   update_tree()
-    // } else {
-    //   update_graph()
-    // }
   }, [network_data]);
 
   function init() {
@@ -83,6 +75,8 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
       .attr("viewBox", `0 0 ${svgSize.width} ${svgSize.height}`)
       .attr("width", "100%")
       .attr("height", "100%")
+      .attr("overflow", "visible")
+      // .attr("preserveAspectRatio", "none")
     const canvas = svg.append("g")
       .attr("class", "margin")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -103,12 +97,25 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
     canvas.select("g.node-group").selectAll("*").remove()
     canvas.select("g.edge-group").selectAll("*").remove()
     const links = network_data.links.map(d => Object.create(d));
-    const nodes = network_data.nodes.map(d => Object.create(d));
+    const nodes = network_data.nodes.map(d => {
+      const datum = Object.create(d)
+      if(node_pos_dict[d.id] != undefined) {
+        datum.x = node_pos_dict[d.id][0]
+        datum.y = node_pos_dict[d.id][1]
+      }
+      return datum
+    });
+  
+
 
     const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id((d: any) => d.id))
-        .force("charge", d3.forceManyBody().strength(-50))  
+        .alphaMin(0.001)
+        .force("link", d3.forceLink(links).id((d: any) => d.id).distance(10))
+        .force("charge", d3.forceManyBody().strength(-25))  
         .force("center", d3.forceCenter(svgSize.width / 2, svgSize.height / 2)) 
+        .force("collision", d3.forceCollide().radius((d: any) => {
+          return d.type == "entity"? parameters.entity_node_size : parameters.hyperedge_node_size
+        }))
         .force("x", d3.forceX(100).strength(0.04))
         .force("y", d3.forceY())
     
@@ -123,30 +130,45 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
         // .attr("stroke-width", (d: any) => 10*d.value);
 
     const tooltipDiv = d3.select(".tooltip");
-
-    const node = svg.select("g.node-group")
-        .selectAll(".node")
+    console.log({nodes})
+    const node = svg.selectAll("g.node-group")
         .data(nodes)
-        .join("g")
-        .attr('class', 'node')
+        // .data(nodes, function(d: any) { console.log(network_data.nodes[d.index].id); return network_data.nodes[d.index].id })
+        .join(
+          enter => {
+            console.log("enter", enter.nodes())
+            const group = enter.append("g").attr("class", "node-group")
+            const circle = group.append("circle")
+                  // .attr("r", (d: any) => parameters.node_size + 0*d.mentions.length/10)
+                  .attr("r", (d: any) => {
+                    return d.type == "entity"? parameters.entity_node_size : parameters.hyperedge_node_size
+                  })
+                  .attr("fill", (d: any) => {
+                    if(d.type == 'hyper_edge') {
+                      return Colors.hyper_edge_node_color
+                    } else {
+                      return "white"
+                      // return "hsl(" + (d.community)/total_communities * 360 + ",100%,50%)"
+                      // return community_colors(d.community)
+                    }
+                  })
+                  .attr("stroke", 'black')
+                  .attr("stroke-width", 1)
+                  .attr("cursor", (d: any) => "pointer")
+                  .call(tooltip, tooltipDiv, svgSize.width, svgSize.height, margin)
+          },
+          update => {
+            console.log("update:", update.nodes())
+          },
+          exit => {
+            console.log("exit:", exit.nodes())
+            exit.transition().duration(500)
+                      .attr("transform", "translate(0,0)")
+                      .remove()
+          }
+        )
         // .call(drag(simulation))
     
-    node.append('circle')
-        // .attr("r", (d: any) => parameters.node_size + 0*d.mentions.length/10)
-        .attr("r", (d: any) => {
-          return d.type == "entity"? parameters.node_size : 1
-        })
-        .attr("fill", (d: any) => {
-          if(d.type == 'hyper_edge') {
-            return Colors.hyper_edge_node_color
-          } else {
-            return community_colors(d.community)
-          }
-        })
-        .attr("stroke", 'black')
-        .attr("stroke-width", 1)
-        .attr("cursor", (d: any) => "pointer")
-        .call(tooltip, tooltipDiv, svgSize.width, svgSize.height, margin)
         // .on("click", (e, d: any) => {
         //     console.log(d)
         // })
@@ -157,42 +179,30 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
         // .on("mouseout", function(this: any, e, d: any) {
         //   d3.select(this).attr("stroke-width", 1)
         // })
-
-    
-
-
-
-
-    // node.append("text")
-    //     .text(function(d: any) {
-    //       return d.group != "topic" ? d.id : d.farm_id;
-    //     })
-    //     .attr("class", "node-label")
-    //     .style('fill', '#000')
-    //     .style('font-size', "0.6rem")
-    //     .attr('x', (d: any) => (d.group == 'topic') ? -22 : 6)
-    //     .attr('y', (d: any) => (d.group == 'topic') ? 5 : 3)
-    //     .attr("pointer-events", "none")
-    //     .attr("opacity", (d: any) => (d.group == "topic")? 1:0)
-
     const radius = 5;
     
+    let node_pos = {}
+    let link_pos = {}
+    const update_node = svg.selectAll("g.node-group")
     simulation.on("tick", function(this: any) {
-      link
-          .attr("x1", (d: any) => d.source.x)
+      link.attr("x1", (d: any) => d.source.x)
           .attr("y1", (d: any) => d.source.y)
           .attr("x2", (d: any) => d.target.x)
           .attr("y2", (d: any) => d.target.y);
+      
+      update_node.attr( "transform", (d: any) => {
+          // if(d.index == 500) console.log(network_data.nodes[d.index].id)
+          node_pos[network_data.nodes[d.index].id] = [d.x, d.y]
+          return `translate(${d.x}, ${d.y})`
+            // (d: any) =>
+            //   `translate(${Math.max(
+            //     radius,
+            //     Math.min(svgSize.width - radius, d.x)
+            //   )}, ${Math.max(radius, Math.min(svgSize.height - radius, d.y))})`
+      });
+    })
+    .on("end", setNodePosDict(node_pos))
 
-      node.attr(
-        "transform",
-        (d: any) =>
-          `translate(${Math.max(
-            radius,
-            Math.min(svgSize.width - radius, d.x)
-          )}, ${Math.max(radius, Math.min(svgSize.height - radius, d.y))})`
-      );
-    });
   }
 
   function initLegend() {
@@ -284,20 +294,39 @@ function EventNetwork({ network_data, svgId, nodeOnClick }) {
       .attr("dominant-baseline", "central")
   }
 
+  async function filter_community(checkedCommunities: CheckboxValueType[]) {
+    fetch(`${server_address}/filter`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({communities: checkedCommunities})
+  })
+      .then(res => res.json())
+      .then(filtered_network => {
+        
+      })
+  }
+
+  // const communitySelectionChanged = (checkedValues: CheckboxValueType[]) => {
+  //   console.log('checked = ', checkedValues);
+  // };
+
 
     // invalidation.then(() => simulation.stop());
     
   return (
     <>
       <div className="event-network-container">
-        <div className='event-network-header'>Event Network</div>
-        <svg id={svgId} className='event-network-svg'>
-
-        </svg>
+        <div className='event-network-header'>
+          Event Network
+        </div>
+        <svg id={svgId} className='event-network-svg'> </svg>
         <div className='tooltip'></div>
       </div>
     </>
   )
 }
 
-export default EventNetwork
+export default EventHGraph

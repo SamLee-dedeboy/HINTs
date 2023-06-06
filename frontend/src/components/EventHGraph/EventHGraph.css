@@ -1,27 +1,30 @@
-.lda-graph-container {
+.event-network-container {
     width: 100%;
     height: 100%;
-    /* overflow: visible; */
+    overflow: visible;
     display: flex;
     flex-direction: column;
 }
-.lda-graph-svg {
-    /* overflow: visible; */
-}
-.legend-background {
-    /* fill: white */
-}
 
-.lda-graph-header {
+.event-network-header {
     text-align: left;
     padding: 0.5% 0.5% 0.5% 0.5%;
     border-bottom: solid black 1px;
     background: #efefef;
     font-weight: initial;
     font-size: 1.5rem;
+    display: flex;
+}
+
+.controlPanel{
+    margin-left: 10px;
+    display: flex;
+    width: 50%;
+    height: 100%;
 }
 
 div.tooltip {
+
     box-sizing: border-box;
     position: absolute;
     display: none;

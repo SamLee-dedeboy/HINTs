@@ -1,1 +1,0 @@
-export const node_size = 8

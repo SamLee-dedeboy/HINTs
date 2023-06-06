@@ -82,7 +82,7 @@ const tooltip = (selectionGroup, tooltipDiv, width, height, margin) => {
 
 function setContents(datum, tooltipDiv) {
     // customize this function to set the tooltip's contents however you see fit
-    console.log({datum})
+    // console.log({datum})
 
     tooltipDiv
       .selectAll("p")

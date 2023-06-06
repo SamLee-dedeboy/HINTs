@@ -4,8 +4,8 @@
 \backcite {EESurveyBiomed}{{1}{1}{section.1}}
 \backcite {chun2006extraction}{{1}{1}{section.1}}
 \backcite {antelmi2020analyzing}{{1}{1}{section.1}}
-\backcite {PyramidTags,SparkClouds}{{1}{2.1.1}{subsubsection.4}}
-\backcite {ParallelTagClouds,WordBridge}{{1}{2.1.1}{subsubsection.4}}
+\backcite {PyramidTags, SparkClouds}{{1}{2.1.1}{subsubsection.4}}
+\backcite {ParallelTagClouds, WordBridge}{{1}{2.1.1}{subsubsection.4}}
 \backcite {SemWordCloudKLM, SemWordification, wang2020Recloud, cui2010context}{{1}{2.1.1}{subsubsection.4}}
 \backcite {viegas2008timelines}{{1}{2.1.1}{subsubsection.4}}
 \backcite {vayansky2020topicreview}{{2}{2.1.2}{subsubsection.5}}
@@ -28,6 +28,6 @@
 \backcite {kapec2010visualizing}{{2}{2.3}{subsection.10}}
 \backcite {paquette2011hypergraph}{{2}{2.3}{subsection.10}}
 \backcite {ouvrard2017networks}{{2}{2.3}{subsection.10}}
-\backcite {agarwal2020setstreams, nguyen2016timesets, valdivia2019analyzing}{{2}{2.3}{subsection.10}}
+\backcite {agarwal2020setstreams, nguyen2016timesets, valdivia2019analyzing}{{3}{2.3}{subsection.10}}
 \backcite {agarwal2020setstreams}{{3}{2.3}{subsection.10}}
 \backcite {streeb2019visual, fischer2020visual}{{3}{2.3}{subsection.10}}
