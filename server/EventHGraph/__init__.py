@@ -29,19 +29,12 @@ class EventHGraph:
         # self.nodes, self.links = network_data['nodes'], network_data['links']
 
         rams_network_data = json.load(open(data_path + 'RAMS/dev_subgraph.json'))
-        self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
+        rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev.json'))
+        self.nodes, self.links = rams_gpt_network_data['nodes'], rams_gpt_network_data['links']
+        # self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
 
     def apply_filters(self, filters):
         return _apply_filters(filters, self.nodes, self.links, self.community_size_dict)
-
-def read_hypergraph_data(dataset):
-    jlPkg.activate("HyperModularity.jl")
-    jl.seval("using HyperModularity")
-    maxsize = 5	# max hyperedge size
-    minsize = 0	# min hyperedge size
-    return_labels = False
-    H = jl.HyperModularity.read_hypergraph_data(dataset, maxsize, minsize, return_labels)
-    print(H)
 
 def compute_community_size_dict(communities):
     communities, community_size = np.unique(communities, return_counts=True)

@@ -10,16 +10,35 @@ openai.api_key = api_key
 
 
 @app.route("/event_extraction", methods=(["POST"]))
-def original():
+def event_extraction():
     if request.method == "POST":
-        prompt = request.json['prompt']
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=prompt,
+        messages = request.json['messages']
+        response = openai.ChatCompletion.create(
+            # model="text-davinci-003",
+            # model="gpt-4",
+            model="gpt-3.5-turbo-0301",
+            messages=messages,
             temperature=0, # 0.6
             max_tokens=2048,
             stop=['{}']
         )
         print(response)
         return json.dumps(response, default=vars)
+
+@app.route("/belief_elicitation", methods=(["POST"]))
+def belief_elicitation():
+    if request.method == "POST":
+        messages = request.json['messages']
+        response = openai.ChatCompletion.create(
+            # model="text-davinci-003",
+            # model="gpt-4",
+            model="gpt-3.5-turbo-0301",
+            messages=messages,
+            temperature=0, # 0.6
+            max_tokens=2048,
+            stop=['{}']
+        )
+        print(response)
+        return json.dumps(response, default=vars)
+
 
