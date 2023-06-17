@@ -17,10 +17,15 @@ def get_communities():
 @app.route("/data/event_hgraph", methods=["POST"])
 def get_event_network():
     filters = request.json
-    filtered_nodes, filtered_links, enabled_communities = event_hgraph.apply_filters(filters)
+    # filtered_nodes, filtered_links, enabled_communities = event_hgraph.apply_filters(filters)
+    # hgraph = {
+    #     "nodes": filtered_nodes,
+    #     "links": filtered_links,
+    #     "communities": enabled_communities
+    # }
     hgraph = {
-        "nodes": filtered_nodes,
-        "links": filtered_links,
-        "communities": enabled_communities
+        "nodes": event_hgraph.nodes,
+        "links": event_hgraph.links,
+        "communities": event_hgraph.ravasz_communities[1]
     }
     return json.dumps(hgraph, default=vars)

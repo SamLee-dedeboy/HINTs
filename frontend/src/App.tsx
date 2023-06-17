@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import EventNetwork from './components/EventHGraph'
+import EventHgraph from './components/EventHGraph'
 import Filters from './components/Filters'
 import { server_address } from './shared'
 import type {EventHGraph} from './types'
@@ -58,16 +58,16 @@ function App() {
   return (
     <div className="App">
       <div className='left-panel'>
-        {
+        {/* {
           enabled_communities && communities && 
           <Filters communities={communities} enabled_communities={enabled_communities} onChange={fetch_event_hgraph} ></Filters>
-        }
+        } */}
 
       </div>
       <div className='right-panel'>
         {
           eventHGraphLoaded && 
-          <EventNetwork svgId={'event-network'} network_data={event_hgraph} total_communities={communities?.length || 1}></EventNetwork>
+          <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
         }
       </div>
     </div>
