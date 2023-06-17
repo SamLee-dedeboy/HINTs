@@ -145,7 +145,8 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
                   })
                   .attr("fill", (d: any) => {
                     if(d.type == 'hyper_edge') {
-                      return Colors.hyper_edge_node_color
+                      return community_colors(network_data.communities[d.id])
+                      // return Colors.hyper_edge_node_color
                     } else {
                       return "white"
                       // return "hsl(" + (d.community)/total_communities * 360 + ",100%,50%)"
@@ -259,7 +260,6 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
       .attr("text-anchor", "bottom")
       .attr("dominant-baseline", "central")
     // node size 
-    // - farm
     legend.append("circle")
       .attr("class", "farm")
       .attr("r", 6*parameters.node_size)

@@ -30,7 +30,9 @@ class EventHGraph:
 
         rams_network_data = json.load(open(data_path + 'RAMS/dev_subgraph.json'))
         rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev.json'))
+        rams_gpt_communities = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_partitions.json'))
         self.nodes, self.links = rams_gpt_network_data['nodes'], rams_gpt_network_data['links']
+        self.ravasz_communities = rams_gpt_communities
         # self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
 
     def apply_filters(self, filters):
