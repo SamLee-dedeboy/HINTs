@@ -20,23 +20,57 @@ class EventHGraph:
         # node_to_index_dict = json.load(open(data_path + 'node_to_index.json'))
 
         # # TODO: move community detection from jupyter notebook to here
-        communities_data = json.load(open(data_path + 'ID_event_hgraph/communities.json'))
+        # communities_data = json.load(open(data_path + 'ID_event_hgraph/communities.json'))
         # network_data['nodes'] = add_community_labels(network_data['nodes'], communities_data, node_to_index_dict)
 
-        self.community_size_dict = compute_community_size_dict(communities_data)
-        self.communities = list(map(lambda label: str(label), self.community_size_dict.keys()))
+        # self.community_size_dict = compute_community_size_dict(communities_data)
+        # self.communities = list(map(lambda label: str(label), self.community_size_dict.keys()))
 
         # self.nodes, self.links = network_data['nodes'], network_data['links']
 
+        # RAMS
         rams_network_data = json.load(open(data_path + 'RAMS/dev_subgraph.json'))
-        rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev.json'))
-        rams_gpt_communities = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_partitions.json'))
+        # GPT-processsed
+        rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev_hgraph.json'))
+        rams_gpt_partitions = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_partitions.json'))
+        rams_gpt_hierarchy = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_hierarchies.json'))
+
         self.nodes, self.links = rams_gpt_network_data['nodes'], rams_gpt_network_data['links']
-        self.ravasz_communities = rams_gpt_communities
+        self.ravasz_partitions = rams_gpt_partitions
+        self.hierarchy = rams_gpt_hierarchy
         # self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
 
-    def apply_filters(self, filters):
+    def apply_filters(self, filters, test=False):
+        if test:
+            return _get_hierarchy(self.nodes, self.links, self.ravasz_partitions, filters)
         return _apply_filters(filters, self.nodes, self.links, self.community_size_dict)
+
+def _get_hierarchy(nodes, links, communities, hierarchies):
+    # get top level hierarchy
+    if len(hierarchies) == 0:
+        return {}
+    top_level = hierarchies[0].split("-")[1]
+    top_level_hierarchies = []
+    for hierarchy in hierarchies:
+        level = hierarchy.split("-")[1]
+        if level == top_level:
+            top_level_hierarchies.append(hierarchy)
+    partition = communities[int(top_level)]
+    comm_node_dict = defaultdict(list)
+    for node in nodes:
+        node_id = node['id']
+        if node_id in partition:
+            node_comm = partition[node_id]
+            comm_node_dict[str(node_comm)].append(node)
+    res = []
+    for comm_labels in top_level_hierarchies:
+        community_label = comm_labels.split("-")[2]
+        comm_nodes = comm_node_dict[str(community_label)]
+        res.append({"community_label": community_label, "nodes": comm_nodes})
+    return res
+
+    
+   
 
 def compute_community_size_dict(communities):
     communities, community_size = np.unique(communities, return_counts=True)
