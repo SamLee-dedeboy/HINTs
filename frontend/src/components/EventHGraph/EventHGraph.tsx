@@ -4,6 +4,7 @@ import './EventHGraph.css'
 import * as Colors from '../../colors'
 import * as parameters from './parameters'
 import tooltip from './Tooltip'
+// import lasso frim './lasso'
 import { Checkbox } from 'antd';
 import type { CheckboxValueType } from 'antd/es/checkbox/Group';
 import { server_address } from '../../shared'
@@ -31,7 +32,15 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
     }
   }, [])
 
-  const community_colors = d3.scaleOrdinal(d3.schemeCategory10)
+  const community_colors = useMemo(() => {
+    let comm_color_dict = {}
+    const colors = d3.scaleOrdinal(d3.schemeCategory10)
+    Object.keys(network_data.communities).forEach(node => {
+      const comm = network_data.communities[node]
+      comm_color_dict[comm] = colors(comm)
+    })
+    return comm_color_dict
+  }, [network_data.communities])
   // const scale = d3.scaleOrdinal(d3.schemeCategory10)
   // const color = (d) => {
   //   const ord = d.group != "word"? d.id : d.topic
@@ -94,8 +103,8 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
     const canvas = svg.select("g.margin")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     // svg.selectAll("*").remove()
-    canvas.select("g.node-group").selectAll("*").remove()
-    canvas.select("g.edge-group").selectAll("*").remove()
+    // canvas.select("g.node-group").selectAll("*").remove()
+    // canvas.select("g.edge-group").selectAll("*").remove()
     const links = network_data.links.map(d => Object.create(d));
     const nodes = network_data.nodes.map(d => {
       const datum = Object.create(d)
@@ -118,7 +127,7 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
         }))
         .force("x", d3.forceX(100).strength(0.04))
         .force("y", d3.forceY())
-    
+    console.log({links})
     const link = svg.select("g.edge-group")
         .attr("stroke", "black")
         .attr("stroke-opacity", 0.3)
@@ -126,74 +135,55 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
       .selectAll("line")
       .data(links)
       .join("line")
+        .attr("class", "edge")
         .attr("stroke-width", (d: any) => 1)
-        // .attr("stroke-width", (d: any) => 10*d.value);
 
     const tooltipDiv = d3.select(".tooltip");
     console.log({nodes})
-    const node = svg.selectAll("g.node-group")
-        .data(nodes)
+    console.log({community_colors})
+    // add circle node
+    svg.select("g.node-group")
+        .selectAll("circle")
+        .data(nodes, (d: any) => d.id)
         // .data(nodes, function(d: any) { console.log(network_data.nodes[d.index].id); return network_data.nodes[d.index].id })
         .join(
-          enter => {
-            console.log("enter", enter.nodes())
-            const group = enter.append("g").attr("class", "node-group")
-            const circle = group.append("circle")
-                  // .attr("r", (d: any) => parameters.node_size + 0*d.mentions.length/10)
-                  .attr("r", (d: any) => {
-                    return d.type == "entity"? parameters.entity_node_size : parameters.hyperedge_node_size
-                  })
-                  .attr("fill", (d: any) => {
-                    if(d.type == 'hyper_edge') {
-                      return community_colors(network_data.communities[d.id])
-                      // return Colors.hyper_edge_node_color
-                    } else {
-                      return "white"
-                      // return "hsl(" + (d.community)/total_communities * 360 + ",100%,50%)"
-                      // return community_colors(d.community)
-                    }
-                  })
-                  .attr("stroke", 'black')
-                  .attr("stroke-width", 1)
-                  .attr("cursor", (d: any) => "pointer")
-                  .call(tooltip, tooltipDiv, svgSize.width, svgSize.height, margin)
-          },
-          update => {
-            console.log("update:", update.nodes())
-          },
-          exit => {
-            console.log("exit:", exit.nodes())
-            exit.transition().duration(500)
-                      .attr("transform", "translate(0,0)")
-                      .remove()
-          }
+          enter => enter.append("circle").attr("class", "node")
+            .attr("r", (d: any) => {
+              if(d.type === "entity") 
+                return parameters.entity_node_size
+              else 
+                return parameters.hyperedge_node_size
+            })
+            .attr("fill", (d: any) => {
+              if(d.type === 'hyper_edge') {
+                const comm_label = String(network_data.communities[d.id])
+                // console.log(comm_label, community_colors(comm_label), community_colors("5"), community_colors("6"))
+                return community_colors[comm_label]
+                // return Colors.hyper_edge_node_color
+              } else {
+                return "white"
+              }
+            })
+            .attr("stroke", 'black')
+            .attr("stroke-width", 1)
+            .attr("cursor", (d: any) => "pointer")
+            .call(tooltip, tooltipDiv, svgSize.width, svgSize.height, margin),
+          update => update,
+          exit => exit.transition().duration(500).attr("transform", "translate(0, 0)").remove()
         )
-        // .call(drag(simulation))
-    
-        // .on("click", (e, d: any) => {
-        //     console.log(d)
-        // })
-        // .on("mouseover", function(this: any, e, d: any) {
-        //   d3.select(this).attr("stroke-width", 3)
-        //   console.log(d.community)
-        // })
-        // .on("mouseout", function(this: any, e, d: any) {
-        //   d3.select(this).attr("stroke-width", 1)
-        // })
     const radius = 5;
     
     let node_pos = {}
-    let link_pos = {}
-    const update_node = svg.selectAll("g.node-group")
     simulation.on("tick", function(this: any) {
-      link.attr("x1", (d: any) => d.source.x)
+      svg.select("g.edge-group").selectAll("line.edge")
+          .attr("x1", (d: any) => d.source.x)
           .attr("y1", (d: any) => d.source.y)
           .attr("x2", (d: any) => d.target.x)
           .attr("y2", (d: any) => d.target.y);
       
-      update_node.attr( "transform", (d: any) => {
+      svg.select("g.node-group").selectAll("circle.node").attr("transform", (d: any) => {
           // if(d.index == 500) console.log(network_data.nodes[d.index].id)
-          node_pos[network_data.nodes[d.index].id] = [d.x, d.y]
+          node_pos[d.id] = [d.x, d.y]
           return `translate(${d.x}, ${d.y})`
             // (d: any) =>
             //   `translate(${Math.max(
@@ -202,9 +192,21 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
             //   )}, ${Math.max(radius, Math.min(svgSize.height - radius, d.y))})`
       });
     })
-    .on("end", setNodePosDict(node_pos))
+    .on("end", () => setNodePosDict(node_pos))
 
+    // const expandNode = (selection) => {
+    //   selection.attr("r", (d) => d.type == "entity"? parameters.entity_node_size + 7 : parameters.hyperedge_node_size + 7)
+    //             .attr("stroke", 'red')
+    //             .attr("stroke-width", 2)
+    // }
+    // const restoreNodeExpand = (selection) => {
+    //   selection.attr("r", (d) => d.type == "entity"? parameters.entity_node_size : parameters.hyperedge_node_size)
+    //             .attr("stroke", 'black')
+    //             .attr("stroke-width", 1)
+    // }
+    // svg.call(lasso, svg.selectAll("g.node-group"), expandNode, restoreNodeExpand)
   }
+
 
   function initLegend() {
     const svg = d3.select('#' + svgId)

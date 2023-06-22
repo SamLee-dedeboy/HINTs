@@ -57,17 +57,32 @@ def _get_hierarchy(nodes, links, communities, hierarchies):
             top_level_hierarchies.append(hierarchy)
     partition = communities[int(top_level)]
     comm_node_dict = defaultdict(list)
+    node_dict = {node['id']: node for node in nodes}
     for node in nodes:
         node_id = node['id']
         if node_id in partition:
             node_comm = partition[node_id]
             comm_node_dict[str(node_comm)].append(node)
-    res = []
+    subgraph_nodes_set = set()
+    subgraph_links = []
+    subgraph_communities = {}
+    # construct sub-graph of the selected community
+    # 1. get the nodes of the subgraph
     for comm_labels in top_level_hierarchies:
         community_label = comm_labels.split("-")[2]
         comm_nodes = comm_node_dict[str(community_label)]
-        res.append({"community_label": community_label, "nodes": comm_nodes})
-    return res
+        for comm_node in comm_nodes:
+            subgraph_nodes_set.add(comm_node['id'])
+            subgraph_communities[comm_node['id']] = community_label
+            for argument in comm_node['arguments']:
+                subgraph_nodes_set.add(argument)
+            comm_node['argument_titles'] = [node_dict[node_id]['title'] for node_id in comm_node['arguments']]
+    subgraph_nodes = [node_dict[node_id] for node_id in subgraph_nodes_set]
+    # 2. get the links between the nodes
+    for link in links:
+        if link['source'] in subgraph_nodes_set and link['target'] in subgraph_nodes_set:
+            subgraph_links.append(link)
+    return {"nodes": list(subgraph_nodes), "links": subgraph_links, "communities": subgraph_communities}
 
     
    
