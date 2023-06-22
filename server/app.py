@@ -23,8 +23,8 @@ def get_hierarcy():
 @app.route("/data/test/event_hgraph", methods=["POST"])
 def get_event_network_filtered():
     hierarchies = request.json
-    communities = event_hgraph.apply_filters(hierarchies, test=True)
-    return json.dumps(communities, default=vars)
+    hgraph = event_hgraph.apply_filters(hierarchies, test=True)
+    return json.dumps(hgraph, default=vars)
 
 @app.route("/data/event_hgraph", methods=["POST"])
 def get_event_network():

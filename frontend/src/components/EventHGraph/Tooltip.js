@@ -91,6 +91,8 @@ function setContents(datum, tooltipDiv) {
       .filter(([key, value]) => value !== null && value !== undefined)
       .html(
         ([key, value]) => {
+            if(key == 'content') return
+            if(key == 'arguments') return
             if(key == 'mentions') 
                 return `<strong>${key}</strong>: ${Array.from(new Set(value.map(mention => mention.mention))).join(", ")}, ${value.length}`   
             else 

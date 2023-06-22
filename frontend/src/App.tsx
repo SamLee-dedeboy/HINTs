@@ -21,7 +21,7 @@ function App() {
   useEffect(() => {
       // fetch_communities()
       fetch_hierarchy()
-      fetch_event_hgraph(filters)
+      // fetch_event_hgraph(filters)
   }, [])
   // init 
   // useEffect(() => {
@@ -81,25 +81,29 @@ function App() {
       body: JSON.stringify(checkedHierarchy)
     })
       .then(res => res.json())
-      .then(res => {
-        console.log({res})
-        let contents: any[] = []
-        res.forEach(comm => {
-          const label = comm['community_label']
-          const nodes = comm['nodes']
-          contents.push({
-            label: label,
-            nodes: nodes.map(node => { 
-              return {
-                trigger: node['trigger'],
-                arguments: node['arguments'],
-                summary: node['summary']
-              }
-            })
-          })
-        })
-        console.log({contents})
-        setContents(contents)
+      .then(selected_communities_hgraph => {
+        console.log({selected_communities_hgraph})
+        setEventHGraph(selected_communities_hgraph)
+        setEventHGraphLoaded(true)
+        setEnabledCommunities(selected_communities_hgraph.communities)
+        // console.log({res})
+        // let contents: any[] = []
+        // res.forEach(comm => {
+        //   const label = comm['community_label']
+        //   const nodes = comm['nodes']
+        //   contents.push({
+        //     label: label,
+        //     nodes: nodes.map(node => { 
+        //       return {
+        //         trigger: node['trigger'],
+        //         arguments: node['arguments'],
+        //         summary: node['summary']
+        //       }
+        //     })
+        //   })
+        // })
+        // console.log({contents})
+        // setContents(contents)
       })
       // .then(event_hgraph => {
       //   console.log({event_hgraph})
@@ -123,35 +127,35 @@ function App() {
         }
 
       </div>
-      {
-        contents &&
-        contents.map(content => {
-          return (
-            <div className='cluster-content-container' key={content.label}>
-              <p> comm size: {content.nodes.length}</p>
-              <div className='cluster-node-list-container'>
-                {
-                content.nodes.map(node => {
-                  return (
-                    <div className='cluster-node-container' key={node.trigger}>
-                      <p> Event: {node.trigger}</p>
-                      <p> arguments: {node.arguments}</p>
-                      <p> summary: {node.summary}</p>
-                    </div>
-                  )
-                })
-                }
-              </div>
-            </div>
-          )
-        })
-      }
-      {/* <div className='right-panel'>
+      <div className='right-panel'>
         {
           eventHGraphLoaded && 
           <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
         }
-      </div> */}
+        {
+          contents &&
+          contents.map(content => {
+            return (
+              <div className='cluster-content-container' key={content.label}>
+                <p> comm size: {content.nodes.length}</p>
+                <div className='cluster-node-list-container'>
+                  {
+                  content.nodes.map(node => {
+                    return (
+                      <div className='cluster-node-container' key={node.trigger}>
+                        <p> Event: {node.trigger}</p>
+                        <p> arguments: {node.arguments}</p>
+                        <p> summary: {node.summary}</p>
+                      </div>
+                    )
+                  })
+                  }
+                </div>
+              </div>
+            )
+          })
+        }
+      </div>
     </div>
   )
 }
