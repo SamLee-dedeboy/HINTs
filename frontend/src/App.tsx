@@ -5,6 +5,8 @@ import HierarchyInspector from './components/HierarchyInspector/HierarchyInspect
 import { server_address } from './shared'
 import type {EventHGraph} from './types'
 import './App.css'
+import cluster from '../public/2016_10p_dates_count.json'
+import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 
 function App() {
   const [event_hgraph, setEventHGraph] = useState<EventHGraph>()
@@ -19,6 +21,7 @@ function App() {
   })
 
   useEffect(() => {
+    console.log(cluster)
       // fetch_communities()
       fetch_hierarchy()
       // fetch_event_hgraph(filters)
@@ -71,6 +74,27 @@ function App() {
       })
   }
 
+  async function fetchPartition(level) {
+    level = 4
+    console.log("fetching partition", level)
+    fetch(`${server_address}/data/partition`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify(level)
+    })
+      .then(res => res.json())
+      .then(partition => {
+        console.log({partition})
+        setEventHGraph(partition)
+        setEventHGraphLoaded(true)
+        // setEnabledCommunities(event_hgraph.communities)
+      })
+  }
+
+
   async function handleHierarchyChecked(checkedHierarchy) {
     fetch(`${server_address}/data/test/event_hgraph`, {
       method: "POST",
@@ -80,37 +104,37 @@ function App() {
       },
       body: JSON.stringify(checkedHierarchy)
     })
-      .then(res => res.json())
-      .then(selected_communities_hgraph => {
-        console.log({selected_communities_hgraph})
-        setEventHGraph(selected_communities_hgraph)
-        setEventHGraphLoaded(true)
-        setEnabledCommunities(selected_communities_hgraph.communities)
-        // console.log({res})
-        // let contents: any[] = []
-        // res.forEach(comm => {
-        //   const label = comm['community_label']
-        //   const nodes = comm['nodes']
-        //   contents.push({
-        //     label: label,
-        //     nodes: nodes.map(node => { 
-        //       return {
-        //         trigger: node['trigger'],
-        //         arguments: node['arguments'],
-        //         summary: node['summary']
-        //       }
-        //     })
-        //   })
-        // })
-        // console.log({contents})
-        // setContents(contents)
+    .then(res => res.json())
+    .then(selected_communities_hgraph => {
+      console.log({selected_communities_hgraph})
+      setEventHGraph(selected_communities_hgraph)
+      setEventHGraphLoaded(true)
+      setEnabledCommunities(selected_communities_hgraph.communities)
+      // console.log({res})
+      let contents: any[] = []
+      selected_communities_hgraph.nodes.forEach(node => {
+        if(node.type === 'entity') return
+        const community_label = selected_communities_hgraph.communities[node.id]
+        if(contents[community_label] == undefined) contents[community_label] = []
+        contents[community_label].push({
+            trigger: node['trigger'],
+            arguments: node['argument_titles'].join(", "),
+            summary: node['summary']
+        })
       })
+      console.log({contents})
+      setContents(contents)
+    })
       // .then(event_hgraph => {
       //   console.log({event_hgraph})
       //   setEventHGraph(event_hgraph)
       //   setEventHGraphLoaded(true)
       // })
+  }
 
+  async function shutDownServer() {
+    console.log("shutting down server")
+    fetch(`${server_address}/shutdown`)
   }
 
 
@@ -123,38 +147,46 @@ function App() {
         } */}
         {
           hierarchy &&
-          <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
+          <div>
+            <button className={"test"} onClick={fetchPartition}> Show Level 4</button>
+            <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
+          </div>
         }
 
       </div>
       <div className='right-panel'>
+        {/* {
+        } */}
         {
           eventHGraphLoaded && 
-          <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
+          // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
+          <ClusterOverview svgId={"cluster-svg"} graph={event_hgraph} />
         }
-        {
-          contents &&
-          contents.map(content => {
-            return (
-              <div className='cluster-content-container' key={content.label}>
-                <p> comm size: {content.nodes.length}</p>
-                <div className='cluster-node-list-container'>
-                  {
-                  content.nodes.map(node => {
-                    return (
-                      <div className='cluster-node-container' key={node.trigger}>
-                        <p> Event: {node.trigger}</p>
-                        <p> arguments: {node.arguments}</p>
-                        <p> summary: {node.summary}</p>
-                      </div>
-                    )
-                  })
-                  }
+        <div className={'description-panel'}>
+          {
+            contents &&
+            Object.keys(contents).map(comm_label => {
+              return (
+                <div className='cluster-content-container' key={comm_label}>
+                  <p> comm size: {contents[comm_label].length}</p>
+                  <div className='cluster-node-list-container'>
+                    {
+                    contents[comm_label].map(node => {
+                      return (
+                        <div className='cluster-node-container' key={node.trigger}>
+                          <p> Event: {node.trigger}</p>
+                          <p> arguments: {node.arguments}</p>
+                          <p> summary: {node.summary}</p>
+                        </div>
+                      )
+                    })
+                    }
+                  </div>
                 </div>
-              </div>
-            )
-          })
-        }
+              )
+            })
+          }
+        </div>
       </div>
     </div>
   )
