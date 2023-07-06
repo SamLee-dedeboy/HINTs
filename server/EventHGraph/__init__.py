@@ -28,22 +28,39 @@ class EventHGraph:
 
         # self.nodes, self.links = network_data['nodes'], network_data['links']
 
-        # RAMS
-        rams_network_data = json.load(open(data_path + 'RAMS/dev_subgraph.json'))
-        # GPT-processsed
-        rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev_hgraph.json'))
-        rams_gpt_partitions = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_partitions.json'))
-        rams_gpt_hierarchy = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_hierarchies.json'))
+        # # RAMS
+        # rams_network_data = json.load(open(data_path + 'RAMS/dev_subgraph.json'))
+        # # GPT-processsed
+        # rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev_hgraph.json'))
+        # rams_gpt_partitions = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_partitions.json'))
+        # rams_gpt_hierarchy = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_hierarchies.json'))
+        
+        # AllTheNews
+        atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/frontend.json'))
+        atn_gpt_partitions = json.load(open(data_path + 'AllTheNews/network/ravasz_partitions.json'))
+        atn_gpt_hierarchy = json.load(open(data_path + 'AllTheNews/network/ravasz_hierarchies.json'))
 
-        self.nodes, self.links = rams_gpt_network_data['nodes'], rams_gpt_network_data['links']
-        self.ravasz_partitions = rams_gpt_partitions
-        self.hierarchy = rams_gpt_hierarchy
+        self.nodes, self.links = atn_gpt_network_data['nodes'], atn_gpt_network_data['links']
+        self.hyperedge_nodes = list(filter(lambda node: node['type'] == 'hyper_edge', self.nodes))
+        self.entity_nodes = list(filter(lambda node: node['type'] == 'entity', self.nodes))
+        self.ravasz_partitions = atn_gpt_partitions
+        self.hierarchy = atn_gpt_hierarchy
         # self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
 
     def apply_filters(self, filters, test=False):
         if test:
             return _get_hierarchy(self.nodes, self.links, self.ravasz_partitions, filters)
         return _apply_filters(filters, self.nodes, self.links, self.community_size_dict)
+
+    def binPartitions(self, level):
+        return _binPartitions(self.nodes, self.ravasz_partitions[level])
+
+def _binPartitions(nodes, partition):
+    node_dict = {node['id']: node for node in nodes}
+    clusters = defaultdict(list)
+    for node_id, cluster_label in partition.items():
+        clusters[cluster_label].append(node_dict[node_id])
+    return clusters
 
 def _get_hierarchy(nodes, links, communities, hierarchies):
     # get top level hierarchy

@@ -5,20 +5,31 @@ import json
 from datetime import datetime
 from pprint import pprint
 from EventHGraph import EventHGraph
+import sys
+import os
 
 app = Flask(__name__)
 CORS(app)
 
 event_hgraph =  EventHGraph(r'../preprocess/data/result/')
-communities = event_hgraph.apply_filters(['L-0-4'], test=True)
+# communities = event_hgraph.apply_filters(['L-0-4'], test=True)
 
-@app.route("/data/communities", methods=["GET"])
-def get_communities():
-    return json.dumps(event_hgraph.communities)
-
+# @app.route("/data/communities", methods=["GET"])
+# def get_communities():
+#     return json.dumps(event_hgraph.communities)
 @app.route("/data/hierarchy", methods=["GET"])
 def get_hierarcy():
     return json.dumps(event_hgraph.hierarchy)
+
+@app.route("/data/partition", methods=["POST"])
+def get_partition():
+    level = request.json
+    hgraph = {
+        "nodes": event_hgraph.hyperedge_nodes,
+        # "links": event_hgraph.links,
+        "partition": event_hgraph.binPartitions(level)
+    }
+    return json.dumps(hgraph, default=vars)
 
 @app.route("/data/test/event_hgraph", methods=["POST"])
 def get_event_network_filtered():
