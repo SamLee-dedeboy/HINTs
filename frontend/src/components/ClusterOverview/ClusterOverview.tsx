@@ -99,6 +99,8 @@ function ClusterOverview({svgId, graph}) {
   useEffect(() => {
     updateClusterBoxes()
     update_cluster()
+    // addLasso()
+    addBrush()
   }, [graph]);
 
   function init() {
@@ -190,17 +192,108 @@ function ClusterOverview({svgId, graph}) {
           .data(nodes) 
           .join("circle")
           .attr("class", "node")
-          .attr("cx", d => dateScale(new Date(formatDate(d.date))))
-          .attr("cy", d => {
-            return cy_start(box_bins[formatDate(d.date)]) + node_radius*2*(d.bin_index-1)
-          })
+          .attr("cx", d => d.cx=dateScale(new Date(formatDate(d.date))))
+          .attr("cy", d => 
+            d.cy = cy_start(box_bins[formatDate(d.date)]) + node_radius*2*(d.bin_index-1)
+          )
           .attr("r", node_radius)
           .attr("stroke", "black")
           .attr("stroke-width", 1)
           .attr("fill", "white")
       })
   }
+
+  function addBrush() {
+    const brush = d3.brush()
+      .on("brush", brushing)
+      .on("end", brushed);
+    const svg = d3.select('#' + svgId)
+    svg.append("g").attr("class", "brush").call(brush);
+  }
+  function brushing({selection}) {
+    const svg = d3.select('#' + svgId)
+    const circles = svg.selectAll("circle.node").attr("fill", "white")
+    circles.each((d: any) => d.scanned = d.selected = false);
+    if (selection) search(circles, selection, "brushing");
+  }
+
+  function brushed({selection}) {
+    const svg = d3.select('#' + svgId)
+    const circles = svg.selectAll("circle.node").attr("fill", "white")
+    circles.each((d: any) => d.scanned = d.selected = false);
+    if (selection) search(circles, selection, "end");
+    const selected_circle = circles.filter((d: any) => d.selected)
+    const selected_node_id = selected_circle.data().map((d: any) => d.doc_id)
+    console.log(selected_node_id)
+  }
+  // Find the nodes within the specified rectangle.
+  function search(circles, [[x0, y0], [x3, y3]], type) {
+    circles.each(function(this, d) {
+      const x = d.cx
+      const y = d.cy
+      const inside_brush = x >= x0 && x < x3 && y >= y0 && y < y3;  
+      if(inside_brush) {
+        if(type === "end") {
+          d.selected = inside_brush
+          d3.select(this).attr("fill", "red")
+        } else {
+          d3.select(this).attr("fill", "orange")
+        }
+      }
+      // if (!node.length) {
+      //   do {
+      //     const {data: d, data: [x, y]} = node;
+      //     d.scanned = true;
+      //     d.selected = x >= x0 && x < x3 && y >= y0 && y < y3;
+      //   } while ((node = node.next));
+      // }
+      // return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
+    });
+  }
+
+  function addLasso() {
+    const svg = d3.select('#' + svgId)
+    const circles = svg.selectAll("circle.node")
+    let lasso_start = function() {
+      console.log('start')
+        lasso.items()
+            .attr("r",7) 
+            .classed("not_possible",true)
+            .classed("selected",false);
+    };
   
+    let lasso_draw = function() {
+      console.log('draw')
+        lasso.possibleItems()
+            .classed("not_possible",false)
+            .classed("possible",true);
+        lasso.notPossibleItems()
+            .classed("not_possible",true)
+            .classed("possible",false);
+    };
+  
+    let lasso_end = function() {
+        console.log('end')
+        lasso.items()
+            .classed("not_possible",false)
+            .classed("possible",false);
+        lasso.selectedItems()
+            .classed("selected",true)
+            .attr("r",7);
+        lasso.notSelectedItems()
+            .attr("r",3.5);
+    };
+    const lasso = _lasso.lasso()
+            .closePathDistance(305) 
+            .closePathSelect(true) 
+            .targetArea(svg)
+            .items(circles) 
+            .on("start",lasso_start) 
+            .on("draw",lasso_draw) 
+            .on("end",lasso_end); 
+  
+    svg.call(lasso);
+  } 
   return (
     <>
       <div className="event-cluster-container">

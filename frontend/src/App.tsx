@@ -5,7 +5,6 @@ import HierarchyInspector from './components/HierarchyInspector/HierarchyInspect
 import { server_address } from './shared'
 import type {EventHGraph} from './types'
 import './App.css'
-import cluster from '../public/2016_10p_dates_count.json'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 
 function App() {
@@ -21,7 +20,6 @@ function App() {
   })
 
   useEffect(() => {
-    console.log(cluster)
       // fetch_communities()
       fetch_hierarchy()
       // fetch_event_hgraph(filters)
