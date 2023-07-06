@@ -99,6 +99,7 @@ function EventHGraph({ network_data, svgId, total_communities, nodeOnClick }) {
 
   function update_graph() {
     console.log({network_data})
+    return
     const svg = d3.select('#' + svgId)
     const canvas = svg.select("g.margin")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
