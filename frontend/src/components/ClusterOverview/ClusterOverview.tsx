@@ -2,6 +2,7 @@ import * as d3 from "d3"
 import { useState, useMemo, useEffect } from 'react'
 import d3Hilbert from 'd3-hilbert';
 import "./ClusterOverview.css"
+import { t_EventHGraph } from "../../types.ts"
 
 function ClusterOverview({svgId, graph, hierarchies, onNodesSelected}) {
   const margin = {
@@ -82,7 +83,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected}) {
     })
   }
   
-  function add_cluster_label(graph) {
+  function add_cluster_label(graph: t_EventHGraph) {
     let partition_dict = {}
     Object.keys(graph.partition).forEach(cluster_label => {
         const node_ids = graph.partition[cluster_label].map(node => node.id)
@@ -90,7 +91,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected}) {
             partition_dict[node_id] = cluster_label
         })
     })
-    graph.nodes.forEach(node => {
+    graph.hyperedge_nodes.forEach(node => {
         node.cluster_label = partition_dict[node.id]
     })
   }
@@ -123,9 +124,9 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected}) {
     console.log(Object.keys(graph.partition).length)
     const svg = d3.select('#' + svgId)
     add_cluster_label(graph)
-    generate_order(graph.nodes, hierarchies)
-    generate_hilbert_coord(graph.nodes, Object.keys(graph.partition).length)
-    console.log("hilbert: ", graph.nodes)
+    generate_order(graph.hyperedeg_nodes, hierarchies)
+    generate_hilbert_coord(graph.hyperedge_nodes, Object.keys(graph.partition).length)
+    console.log("hilbert: ", graph.hyperedge_nodes)
     const node_group = svg.select('g.node-group')
     // const nodes = node_group.selectAll('circle.node')
     //   .data(graph.nodes, (d: any) => d.id)
@@ -142,7 +143,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected}) {
     //         .attr("transform", (d: any) => `translate(${d.x}, ${d.y})`)
     //   )
     const node_containers = node_group.selectAll('g.node_container')
-      .data(graph.nodes, (d: any) => d.id)
+      .data(graph.hyperedge_nodes, (d: any) => d.id)
       .join(
         enter => enter.append("g")
             .attr("class", "node_container")

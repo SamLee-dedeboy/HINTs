@@ -36,9 +36,9 @@ class EventHGraph:
         # rams_gpt_hierarchy = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_hierarchies.json'))
         
         # AllTheNews
-        atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/frontend.json'))
-        atn_gpt_partitions = json.load(open(data_path + 'AllTheNews/network/ravasz_partitions.json'))
-        atn_gpt_hierarchy = json.load(open(data_path + 'AllTheNews/network/ravasz_hierarchies.json'))
+        atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend.json'))
+        atn_gpt_partitions = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions.json'))
+        atn_gpt_hierarchy = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies.json'))
 
         self.nodes, self.links = atn_gpt_network_data['nodes'], atn_gpt_network_data['links']
         self.hyperedge_nodes = list(filter(lambda node: node['type'] == 'hyper_edge', self.nodes))

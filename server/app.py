@@ -27,8 +27,9 @@ def get_hierarcy():
 def get_partition():
     level = request.json
     hgraph = {
-        "nodes": event_hgraph.hyperedge_nodes,
-        # "links": event_hgraph.links,
+        "hyperedge_nodes": event_hgraph.hyperedge_nodes,
+        "entity_nodes": event_hgraph.entity_nodes,
+        "links": event_hgraph.links,
         "partition": event_hgraph.binPartitions(level)
     }
     return json.dumps(hgraph, default=vars)
