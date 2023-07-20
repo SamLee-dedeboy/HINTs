@@ -3,7 +3,7 @@
   padding: 0.5%;
   text-align: center;
   width: 100vw;
-  height: 100vh;
+  height: 98vh;
   overflow: visible;
 }
 
@@ -12,7 +12,9 @@
   height: 100%;
   display: flex;
 }
-
+.left-panel {
+  width: 10%;
+}
 .right-panel {
   width: 100%;
   height: 100%;
@@ -21,8 +23,11 @@
 }
 .description-panel {
   display: flex;
-
 }
+.topic-viewer {
+  width: 100%;
+}
+
 .cluster-content-container {
   height: 50%;
   width: 100%;

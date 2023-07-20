@@ -1,20 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
 import * as d3 from "d3"
+import { useState, useMemo, useEffect } from 'react'
+import d3Hilbert from 'd3-hilbert';
+import "./ClusterOverview.css"
 
-function formatDate(date_str) {
-  const date = new Date(date_str)
-  let mm = date.getMonth() + 1; // getMonth() is zero-based
-  let dd = date.getDate();
-
-  return [date.getFullYear(),
-          (mm>9 ? '' : '0') + mm,
-          (dd>9 ? '' : '0') + dd
-         ].join('/');
-}
-
-function ClusterOverview({svgId, graph}) {
+function ClusterOverview({svgId, graph, hierarchies, onNodesSelected}) {
   const margin = {
-      left: 0,
+      left: 30,
       right: 0,
       top: 0,
       bottom: 0
@@ -22,7 +13,7 @@ function ClusterOverview({svgId, graph}) {
   
   const svgSize = useMemo(() => {
     const width = window.innerWidth
-    const height = window.innerHeight
+    const height = window.innerHeight*2
     return { width, height }
   }, [])
 
@@ -37,170 +28,149 @@ function ClusterOverview({svgId, graph}) {
     }
   }, [])
 
-  // metadata
-  const timeRange = useMemo(() => {
-    const max_date = new Date(Math.max.apply(null, graph.nodes.map(node => new Date(formatDate(node.date))) as any[]))
-    const min_date = new Date(Math.min.apply(null, graph.nodes.map(node => new Date(formatDate(node.date))) as any[]))
-    return [min_date, max_date]
-  }, [graph])
-
   // scales & constants
-  const monthBinWidth = (canvasSize.width) / 12
-  const dateScale = d3.scaleTime().domain(timeRange).range([canvasSize.start_x, canvasSize.end_x])
-  const monthScale = d3.scaleTime().domain([0, 11]).range([canvasSize.start_x, canvasSize.end_x])
-  const dayScale = d3.scaleTime().domain([0, 6]).range([0, monthBinWidth])
+  const node_radius = 3.5
 
-  const clusterColorScale = d3.scaleOrdinal(d3.schemeCategory10)
-  const node_radius = 2
-  const bin_max_height = 50
 
-  // re-organizing data
-  const boxes: any[] = useMemo(() => generate_bbox(graph.partition), [graph])
-
-  function generate_bbox(partition) {
-    // calculate width and height of each cluster bbox
-    let cluster_bboxes: any = []
-    let previous_ymax: number = 0
-    Object.keys(partition).forEach((cluster_label, index) => {
-      const nodes = partition[cluster_label]
-      const dates_bin = {}
-      nodes.forEach(node => {
-        const date = formatDate(node.date)
-        // const date = node.date
-        if(!dates_bin[date]) dates_bin[date] = 0
-        dates_bin[date]++;
-        node.bin_index = dates_bin[date]
-      })
-      const min_date = new Date(Math.min.apply(null, nodes.map(node => new Date(formatDate(node.date)))))
-      const max_date = new Date(Math.max.apply(null, nodes.map(node => new Date(formatDate(node.date)))))
-
-      const bbox_x0 = dateScale(min_date)
-      const bbox_x1 = dateScale(max_date)
-      const bbox_y_max_node = Math.max.apply(null, Object.keys(dates_bin).map(date_str => dates_bin[date_str]))
-      const bbox_y_max = bbox_y_max_node * node_radius * 2 
-      cluster_bboxes.push({
-        "label": cluster_label,
-        "x0": bbox_x0,
-        "x1": bbox_x1,
-        "y0": previous_ymax,
-        "height": bbox_y_max,
-        "bins": dates_bin
-      })
-      previous_ymax += bbox_y_max + 50
-    })
-    // TODO: adjust y0 of each bbox for optimal layout
-    return cluster_bboxes
-    // return Object.keys(cluster_bboxes).map(cluster_label => cluster_bboxes[cluster_label])
+  function generate_order(nodes, hierarchy) {
+    let order = []
+    dfs(nodes, hierarchy, order)
   }
+
+  function dfs(nodes, hierarchy, order) {
+    if(hierarchy.children === undefined) {
+        const cluster_label = hierarchy.title.split("-")[2]
+        const target_leaf_node = nodes.filter(node => node.leaf_label == cluster_label)[0]
+        target_leaf_node.order = order.length
+        order.push(target_leaf_node)
+        return
+    } else {
+        hierarchy.children.forEach(child => {
+            dfs(nodes, child, order)
+        })
+        return
+    }
+  }
+
+  function generate_hilbert_coord(nodes, num_of_clusters) {
+    const hilbert_order = Math.ceil(Math.log(nodes.length) / Math.log(4))+1 // log_4(nodes.length)
+    console.log({num_of_clusters, hilbert_order})
+    const hilbert = d3Hilbert().order(hilbert_order)
+    const grid_length = Math.pow(2, hilbert_order)
+    const cell_width = canvasSize.width / grid_length
+    const cell_height = canvasSize.height / grid_length
+    const cluster_gap = Math.floor((Math.pow(4, hilbert_order) - nodes.length) / num_of_clusters)
+    let cluster_count = 0
+    nodes.sort((a, b) => a.order - b.order)
+    let cur_cluster = nodes[0].cluster_label
+    nodes.forEach(node => {
+        // add cluster gap to node order
+        // node.order += Number(node.cluster_label) * cluster_gap
+        if(node.cluster_label != cur_cluster) {
+            cluster_count += 1
+            cur_cluster = node.cluster_label
+        }
+        const node_hilbert_order = node.order + cluster_count * cluster_gap
+
+
+        // if(original_order < 1000)
+        //     console.log(original_order, node_hilbert_order)
+
+        const xy = hilbert.getXyAtVal(node_hilbert_order)
+        node.x = cell_width * xy[0]
+        node.y = cell_height * xy[1]
+    })
+  }
+  
+  function add_cluster_label(graph) {
+    let partition_dict = {}
+    Object.keys(graph.partition).forEach(cluster_label => {
+        const node_ids = graph.partition[cluster_label].map(node => node.id)
+        node_ids.forEach(node_id => {
+            partition_dict[node_id] = cluster_label
+        })
+    })
+    graph.nodes.forEach(node => {
+        node.cluster_label = partition_dict[node.id]
+    })
+  }
+    
   useEffect(() => {
     init()
   }, []);
 
   useEffect(() => {
-    updateClusterBoxes()
     update_cluster()
-    // addLasso()
-    addBrush()
   }, [graph]);
 
   function init() {
     const svg = d3.select('#' + svgId)
       .attr("viewBox", `0 0 ${svgSize.width} ${svgSize.height}`)
-      .attr("width", "100%")
-      .attr("height", "100%")
+      // .attr("width", "100%")
+      // .attr("height", "100%")
       .attr("overflow", "visible")
       // .attr("preserveAspectRatio", "none")
     const canvas = svg.append("g")
       .attr("class", "margin")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    canvas.append("g").attr("class", "clusters")
-    canvas.append("g").attr("class", "bbox-group")
-    // initLegend()
-    // update_cluster()
-    // updateClusterBoxes()
-  }
-
-  function updateClusterBoxes() {
-    const svg = d3.select('#' + svgId)
-    const box_group = svg.select('g.bbox-group')
-    box_group.selectAll("rect.bbox")
-      .data(boxes)
-      .join("rect")
-      .attr("class", "bbox")
-      .attr("x", d => d.x0)
-      .attr("y", d => d.y0)
-      .attr("width", d => d.x1 - d.x0)
-      .attr("height", d => d.height)
-      .attr("stroke", "black")
-      .attr("stroke-width", 1)
-      .attr("fill", "none")
-    // update Bins
-    const bins_group = box_group.selectAll("g.bins")
-      .data(boxes)
-      .join("g")
-      .attr("class", "bins-group")
-      .each(function(box_data) {
-        const bins_value = Object.keys(box_data.bins).map(date_str => box_data.bins[date_str])
-        const max_value = Math.max(...bins_value)
-        const bin_xScale = d3.scaleBand().domain([...Array(366).keys()]).range([canvasSize.start_x, canvasSize.end_x])
-        const bin_width = bin_xScale.bandwidth()
-        const bin_yScale = d3.scaleLinear().domain([0, max_value]).range([0, box_data.height])
-        d3.select(this).selectAll("rect.bins")
-          .data(Object.keys(box_data.bins))
-          .join("rect")
-          .attr("class", "bins")
-          .attr("x", d => {
-            return bin_xScale(daysIntoYear(new Date(formatDate(d)))) - bin_width / 2
-          })
-          .attr("y", d => box_data.y0 + (box_data.height - bin_yScale(box_data.bins[d])))
-          .attr("width", bin_width)
-          .attr("height", d => bin_yScale(box_data.bins[d]))
-          .attr("stroke", "black")
-          .attr('stroke-width', 1)
-          .attr("fill", "white")
-          .attr("opacity", 0)
-      })
-  }
-  function daysIntoYear(date) {
-    return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000 - 1;
+    canvas.append("g").attr("class", "node-group")
+    addBrush()
   }
 
 
   function update_cluster() {
+    const clusterColorScale = d3.scaleOrdinal(d3.schemeCategory10)
+    console.log(Object.keys(graph.partition).length)
     const svg = d3.select('#' + svgId)
-    const clusters = svg.select('g.clusters')
-    clusters.selectAll('g.node_container')
-      .data(Object.keys(graph.partition))
-      .join("g")
-      .attr("class", "node_container")
-      .each(function(cluster_label) {
-        const nodes: any[] = graph.partition[cluster_label]
-        const node_container = d3.select(this)
-        const cluster_box = boxes.filter(box => box.label == cluster_label)[0]
-
-        const box_bins = cluster_box.bins
-        const max_bin_height = Math.max.apply(null, Object.keys(box_bins).map(date_str => box_bins[date_str]))
-        const bin_pheight = cluster_box.height / max_bin_height
-        const cy_start = (bin_height) => {
-          const start_height = max_bin_height / 2 - (bin_height-1) / 2
-          const start_pheight = start_height * bin_pheight
-          return start_pheight + cluster_box.y0
-        }
-
-        // const cy_start = cluster_box.y0 + cluster_box.height - node_radius
-        node_container.selectAll("circle.node")
-          .data(nodes) 
-          .join("circle")
-          .attr("class", "node")
-          .attr("cx", d => d.cx=dateScale(new Date(formatDate(d.date))))
-          .attr("cy", d => 
-            d.cy = cy_start(box_bins[formatDate(d.date)]) + node_radius*2*(d.bin_index-1)
-          )
-          .attr("r", node_radius)
-          .attr("stroke", "black")
-          .attr("stroke-width", 1)
-          .attr("fill", "white")
-      })
+    add_cluster_label(graph)
+    generate_order(graph.nodes, hierarchies)
+    generate_hilbert_coord(graph.nodes, Object.keys(graph.partition).length)
+    console.log("hilbert: ", graph.nodes)
+    const node_group = svg.select('g.node-group')
+    // const nodes = node_group.selectAll('circle.node')
+    //   .data(graph.nodes, (d: any) => d.id)
+    //   .join(
+    //     enter => enter.append("circle")
+    //         .attr("class", "node")
+    //         .attr("r", node_radius)
+    //         .attr("stroke", "black")
+    //         .attr("stroke-width", 1)
+    //         .attr("fill", (d: any) => d.cluster_color = clusterColorScale(d.cluster_label))
+    //         .attr("opacity", 0.8)
+    //         .attr("transform", (d: any) => `translate(${d.x}, ${d.y})`),
+    //     update => update.transition().duration(1000)
+    //         .attr("transform", (d: any) => `translate(${d.x}, ${d.y})`)
+    //   )
+    const node_containers = node_group.selectAll('g.node_container')
+      .data(graph.nodes, (d: any) => d.id)
+      .join(
+        enter => enter.append("g")
+            .attr("class", "node_container")
+            .attr("transform", (d: any) => `translate(${d.x}, ${d.y})`)
+            .each(function(d: any) {
+                const node_container = d3.select(this)
+                node_container.append("circle") 
+                .attr("class", "node")
+                .attr("r", node_radius)
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .attr("fill", d.cluster_color = clusterColorScale(d.cluster_label))
+                .attr("opacity", 0.8)
+                // node_container.selectAll("text.node_label")
+                //     .data([node_data])
+                //     .join("text")
+                //     .attr("class", "node_label")
+                //     .attr("x", d => d.x)
+                //     .attr("y", d => d.y)
+                //     .attr("dx", 5)
+                //     .text(d => d.id)
+            }),
+        update => update.transition().duration(2000)
+            .attr("transform", (d: any) => `translate(${d.x}, ${d.y})`)
+            // .select("circle")
+            //     .attr("fill", (d: any) => d.cluster_color = clusterColorScale(d.cluster_label))
+      )
+    console.log("node clusters update done")
   }
 
   function addBrush() {
@@ -212,95 +182,46 @@ function ClusterOverview({svgId, graph}) {
   }
   function brushing({selection}) {
     const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.node").attr("fill", "white")
+    const circles = svg.selectAll("circle.node").attr("stroke-width", 1)
     circles.each((d: any) => d.scanned = d.selected = false);
     if (selection) search(circles, selection, "brushing");
   }
 
   function brushed({selection}) {
     const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.node").attr("fill", "white")
+    const circles = svg.selectAll("circle.node").attr("stroke-width", 1)
     circles.each((d: any) => d.scanned = d.selected = false);
     if (selection) search(circles, selection, "end");
     const selected_circle = circles.filter((d: any) => d.selected)
-    const selected_node_id = selected_circle.data().map((d: any) => d.doc_id)
-    console.log(selected_node_id)
+    const selected_node_id = selected_circle.data().map((d: any) => d.id)
+    onNodesSelected(selected_node_id)
   }
+
   // Find the nodes within the specified rectangle.
   function search(circles, [[x0, y0], [x3, y3]], type) {
     circles.each(function(this, d) {
-      const x = d.cx
-      const y = d.cy
+      const x = d.x + margin.left + margin.right
+      const y = d.y + margin.top + margin.bottom
       const inside_brush = x >= x0 && x < x3 && y >= y0 && y < y3;  
       if(inside_brush) {
         if(type === "end") {
           d.selected = inside_brush
-          d3.select(this).attr("fill", "red")
+          d3.select(this).attr("opacity", 1).attr("stroke-width", 1.5)
         } else {
-          d3.select(this).attr("fill", "orange")
+          d3.select(this).attr("stroke-width", 1.5)
         }
       }
-      // if (!node.length) {
-      //   do {
-      //     const {data: d, data: [x, y]} = node;
-      //     d.scanned = true;
-      //     d.selected = x >= x0 && x < x3 && y >= y0 && y < y3;
-      //   } while ((node = node.next));
-      // }
-      // return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
     });
   }
-
-  function addLasso() {
-    const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.node")
-    let lasso_start = function() {
-      console.log('start')
-        lasso.items()
-            .attr("r",7) 
-            .classed("not_possible",true)
-            .classed("selected",false);
-    };
-  
-    let lasso_draw = function() {
-      console.log('draw')
-        lasso.possibleItems()
-            .classed("not_possible",false)
-            .classed("possible",true);
-        lasso.notPossibleItems()
-            .classed("not_possible",true)
-            .classed("possible",false);
-    };
-  
-    let lasso_end = function() {
-        console.log('end')
-        lasso.items()
-            .classed("not_possible",false)
-            .classed("possible",false);
-        lasso.selectedItems()
-            .classed("selected",true)
-            .attr("r",7);
-        lasso.notSelectedItems()
-            .attr("r",3.5);
-    };
-    const lasso = _lasso.lasso()
-            .closePathDistance(305) 
-            .closePathSelect(true) 
-            .targetArea(svg)
-            .items(circles) 
-            .on("start",lasso_start) 
-            .on("draw",lasso_draw) 
-            .on("end",lasso_end); 
-  
-    svg.call(lasso);
-  } 
   return (
     <>
       <div className="event-cluster-container">
         <div className='event-cluster-header'>
           Event Cluster
         </div>
-        <svg id={svgId} className='event-cluster-svg'> </svg>
+        <div className="svg-container"> 
+            <svg id={svgId} className='event-cluster-svg'> </svg>
+        </div>
         <div className='tooltip'></div>
       </div>
     </>
