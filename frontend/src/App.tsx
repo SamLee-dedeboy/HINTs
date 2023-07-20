@@ -1,15 +1,15 @@
 import { useState, useMemo, useEffect } from 'react'
-import EventHgraph from './components/EventHGraph'
+// import EventHgraph from './components/EventHGraph'
 import Filters from './components/Filters'
 import HierarchyInspector from './components/HierarchyInspector/HierarchyInspector'
 import { server_address } from './shared'
-import type {EventHGraph} from './types'
+import type { t_EventHGraph } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import LevelInput from './components/LevelInput/LevelInput'
 
 function App() {
-  const [event_hgraph, setEventHGraph] = useState<EventHGraph>()
+  const [event_hgraph, setEventHGraph] = useState<t_EventHGraph>()
   const [eventHGraphLoaded, setEventHGraphLoaded] = useState(false)
   const [communities, setCommunities] = useState<any[]>()
   const [hierarchy, setHierarchy] = useState<any[]>()
@@ -87,7 +87,7 @@ function App() {
       body: JSON.stringify(level)
     })
       .then(res => res.json())
-      .then(partition => {
+      .then((partition: t_EventHGraph) => {
         console.log({partition})
         setEventHGraph(partition)
         setEventHGraphLoaded(true)
