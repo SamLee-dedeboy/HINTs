@@ -6,6 +6,7 @@ import { server_address } from './shared'
 import type {EventHGraph} from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
+import LevelInput from './components/LevelInput/LevelInput'
 
 function App() {
   const [event_hgraph, setEventHGraph] = useState<EventHGraph>()
@@ -13,6 +14,8 @@ function App() {
   const [communities, setCommunities] = useState<any[]>()
   const [hierarchy, setHierarchy] = useState<any[]>()
   const [contents, setContents] = useState<any[]>()
+  const [topic, setTopic] = useState<any>()
+  const [level, setLevel] = useState<any>(5)
   const [enabled_communities, setEnabledCommunities] = useState<any[]>()
   const [filters, setFilters] = useState({
       community_size: 5,
@@ -24,11 +27,12 @@ function App() {
       fetch_hierarchy()
       // fetch_event_hgraph(filters)
   }, [])
-  // init 
-  // useEffect(() => {
-  //   console.log({filters})
-  //   fetch_event_hgraph(filters)
-  // }, [filters]);
+
+  useEffect(() => {
+    fetchPartition()
+  }, [level])
+
+  
 
 
   async function fetch_hierarchy() {
@@ -42,38 +46,37 @@ function App() {
   }
 
 
-  async function fetch_communities() {
-    console.log("fetching communities")
-    fetch(`${server_address}/data/communities`)
-      .then(res => res.json())
-      .then(communities => {
-        console.log({communities})
-        setCommunities(communities)
-      })
-  }
+  // async function fetch_communities() {
+  //   console.log("fetching communities")
+  //   fetch(`${server_address}/data/communities`)
+  //     .then(res => res.json())
+  //     .then(communities => {
+  //       console.log({communities})
+  //       setCommunities(communities)
+  //     })
+  // }
 
-  async function fetch_event_hgraph(filters) {
-    console.log("fetching event hgraph", filters)
-    if(filters == undefined) filters = {}
-    fetch(`${server_address}/data/event_hgraph`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify(filters)
-    })
-      .then(res => res.json())
-      .then(event_hgraph => {
-        console.log({event_hgraph})
-        setEventHGraph(event_hgraph)
-        setEventHGraphLoaded(true)
-        setEnabledCommunities(event_hgraph.communities)
-      })
-  }
+  // async function fetch_event_hgraph(filters) {
+  //   console.log("fetching event hgraph", filters)
+  //   if(filters == undefined) filters = {}
+  //   fetch(`${server_address}/data/event_hgraph`, {
+  //     method: "POST",
+  //     headers: {
+  //         "Accept": "application/json",
+  //         "Content-Type": "application/json"
+  //     },
+  //     body: JSON.stringify(filters)
+  //   })
+  //     .then(res => res.json())
+  //     .then(event_hgraph => {
+  //       console.log({event_hgraph})
+  //       setEventHGraph(event_hgraph)
+  //       setEventHGraphLoaded(true)
+  //       setEnabledCommunities(event_hgraph.communities)
+  //     })
+  // }
 
-  async function fetchPartition(level) {
-    level = 4
+  async function fetchPartition() {
     console.log("fetching partition", level)
     fetch(`${server_address}/data/partition`, {
       method: "POST",
@@ -94,7 +97,7 @@ function App() {
 
 
   async function handleHierarchyChecked(checkedHierarchy) {
-    fetch(`${server_address}/data/test/event_hgraph`, {
+    fetch(`${server_address}/data/event_hgraph`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
@@ -123,17 +126,30 @@ function App() {
       console.log({contents})
       setContents(contents)
     })
-      // .then(event_hgraph => {
-      //   console.log({event_hgraph})
-      //   setEventHGraph(event_hgraph)
-      //   setEventHGraphLoaded(true)
-      // })
   }
 
-  async function shutDownServer() {
-    console.log("shutting down server")
-    fetch(`${server_address}/shutdown`)
+  async function fetchTopic(hyperedge_ids) {
+    console.log("fetching topic", hyperedge_ids)
+    if(hyperedge_ids.length === 0) {
+      setTopic("No article selected")
+      return
+    }
+    fetch(`${server_address}/topic`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify(hyperedge_ids)
+    })
+      .then(res => res.json())
+      .then(topic => {
+        console.log({topic})
+        setTopic(topic)
+        // setEnabledCommunities(event_hgraph.communities)
+      })
   }
+
 
 
   return (
@@ -146,8 +162,10 @@ function App() {
         {
           hierarchy &&
           <div>
-            <button className={"test"} onClick={fetchPartition}> Show Level 4</button>
+            <button className={"test"} onClick={fetchPartition}> Show Level {level}</button>
+            <LevelInput inputValue={level} onChange={setLevel} minValue={0} maxValue={7} />
             <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
+            <div className={"topic-viewer"}> {topic} </div>
           </div>
         }
 
@@ -158,7 +176,7 @@ function App() {
         {
           eventHGraphLoaded && 
           // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
-          <ClusterOverview svgId={"cluster-svg"} graph={event_hgraph} />
+          <ClusterOverview svgId={"cluster-svg"} graph={event_hgraph} hierarchies={hierarchy} onNodesSelected={fetchTopic} />
         }
         <div className={'description-panel'}>
           {

@@ -42,8 +42,10 @@ class EventHGraph:
 
         self.nodes, self.links = atn_gpt_network_data['nodes'], atn_gpt_network_data['links']
         self.hyperedge_nodes = list(filter(lambda node: node['type'] == 'hyper_edge', self.nodes))
+        self.hyperedge_dict = {node['id']: node for node in self.hyperedge_nodes}
         self.entity_nodes = list(filter(lambda node: node['type'] == 'entity', self.nodes))
         self.ravasz_partitions = atn_gpt_partitions
+        self.hyperedge_nodes = addLeafLabel(self.hyperedge_nodes, self.ravasz_partitions[0])
         self.hierarchy = atn_gpt_hierarchy
         # self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
 
@@ -54,6 +56,11 @@ class EventHGraph:
 
     def binPartitions(self, level):
         return _binPartitions(self.nodes, self.ravasz_partitions[level])
+
+def addLeafLabel(nodes, partition):
+    for node in nodes:
+        node['leaf_label'] = partition[node['id']]
+    return nodes
 
 def _binPartitions(nodes, partition):
     node_dict = {node['id']: node for node in nodes}
