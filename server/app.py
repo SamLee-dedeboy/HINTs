@@ -5,14 +5,16 @@ import requests
 import json
 from datetime import datetime
 from pprint import pprint
-from EventHGraph import EventHGraph
+from DataUtils import EventHGraph, DataTransformer
+from collections import defaultdict
 import sys
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-event_hgraph =  EventHGraph(r'../preprocess/data/result/')
+event_hgraph = EventHGraph(r'../preprocess/data/result/')
+data_transformer = DataTransformer()
 example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example.json'))
 # communities = event_hgraph.apply_filters(['L-0-4'], test=True)
 
@@ -25,12 +27,25 @@ def get_hierarcy():
 
 @app.route("/data/partition", methods=["POST"])
 def get_partition():
-    level = request.json
+    level = request.json['level']
+    entity_node_num = request.json['entity_node_num']
+    # sort by degree
+    candidate_entity_nodes = event_hgraph.entity_nodes_sorted[:entity_node_num]
+    partition = event_hgraph.binPartitions(level)
+    hyperedge_node_dict = { node['id']: node for node in event_hgraph.hyperedge_nodes}
+
+    # add cluster label to hyperedge nodes
+    for cluster_id, node_ids in partition.items():
+        for node_id in node_ids:
+            hyperedge_node_dict[node_id]['cluster_label'] = cluster_id
+
     hgraph = {
-        "hyperedge_nodes": event_hgraph.hyperedge_nodes,
+        "hyperedge_nodes": data_transformer.transform_hyperedge(event_hgraph.hyperedge_nodes),
         "entity_nodes": event_hgraph.entity_nodes,
-        "links": event_hgraph.links,
-        "partition": event_hgraph.binPartitions(level)
+        "argument_nodes": event_hgraph.argument_nodes,
+        "candidate_entity_nodes": candidate_entity_nodes,
+        "links": event_hgraph.filter_links(event_hgraph.hyperedge_nodes + candidate_entity_nodes, event_hgraph.links),
+        "clusters": event_hgraph.binPartitions(level),
     }
     return json.dumps(hgraph, default=vars)
 
