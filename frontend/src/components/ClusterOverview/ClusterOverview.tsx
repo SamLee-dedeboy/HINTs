@@ -10,13 +10,23 @@ import concaveman from "concaveman"
 interface ClusterOverviewProps {
   svgId: string
   graph: t_EventHGraph
+  highlightNodeIds: string[]
   hierarchies: any
   onNodesSelected: (node_ids: string[]) => void
   onClusterClicked: (cluster_label: string, clusters: any) => void
   brushMode: boolean
+  searchMode: boolean
 }
 
-function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterClicked, brushMode}: ClusterOverviewProps) {
+function ClusterOverview({
+  svgId, 
+  graph, 
+  highlightNodeIds, 
+  hierarchies, 
+  onNodesSelected, 
+  onClusterClicked, 
+  brushMode, 
+  searchMode}: ClusterOverviewProps) {
   const margin = {
       left: 30,
       right: 0,
@@ -132,16 +142,16 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
         node.x = cell_width * xy[0]
         node.y = cell_height * xy[1] 
         node.hilbert_order = node_hilbert_order
-        if(previousNodeDict[node.id] !== undefined)
-        if(previousNodeDict[node.id].x != node.x || previousNodeDict[node.id].y != node.y) {
-          console.log("node moved", node.id, node.cluster_label, node.x, node.y, node.order, node_hilbert_order, previousNodeDict[node.id].x, previousNodeDict[node.id].y, previousNodeDict[node.id].order, previousNodeDict[node.id].hilbert_order)
-        }
-        // node_coords[node.id] = [node.x, node.y]
-        node_coords[node.id] = node
+        // if(previousNodeDict[node.id] !== undefined)
+        // if(previousNodeDict[node.id].x != node.x || previousNodeDict[node.id].y != node.y) {
+        //   console.log("node moved", node.id, node.cluster_label, node.x, node.y, node.order, node_hilbert_order, previousNodeDict[node.id].x, previousNodeDict[node.id].y, previousNodeDict[node.id].order, previousNodeDict[node.id].hilbert_order)
+        // }
+        node_coords[node.id] = [node.x, node.y]
+        // node_coords[node.id] = node
         node.cell_width = cell_width,
         node.cell_height = cell_height
     })
-    setPreviousNodeDict(node_coords)
+    // setPreviousNodeDict(node_coords)
     // entity nodes
     // const entity_nodes = graph.candidate_entity_nodes
     // entity_nodes.forEach((node, i) => {
@@ -183,7 +193,17 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
   }, [brushMode])
 
   useEffect(() => {
+    if(searchMode) update_highlight()
+    if(!searchMode)remove_highlight() 
+  }, [searchMode])
+
+  useEffect(() => {
+    update_highlight()
+  }, [highlightNodeIds])
+
+  useEffect(() => {
     update_hyperedge_cluster()
+    update_highlight()
   }, [graph]);
 
   function init() {
@@ -195,6 +215,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     canvas.append("g").attr("class", "border-group")
     canvas.append("g").attr("class", "hyperedge-node-group")
+    canvas.append("path").attr("class", "highlight-border")
     // canvas.append("g").attr("class", "entity-node-group")
     // canvas.append("g").attr("class", "link-group")
     addBrush()
@@ -308,15 +329,78 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
     //   )
   }
 
+  function remove_highlight() {
+    const canvas = d3.select('#' + svgId).select("g.margin")
+    const hyperedge_node_group = canvas.select("g.hyperedge-node-group")
+    hyperedge_node_group.selectAll("circle.hyperedge-node")
+      .attr("stroke-width", 1)
+      .attr("opacity", 1)
+    
+  }
+
+  function update_highlight() {
+    console.log("update highight", highlightNodeIds, searchMode)
+    const canvas = d3.select('#' + svgId).select("g.margin")
+    const hyperedge_node_group = canvas.select("g.hyperedge-node-group")
+    if(highlightNodeIds.length === 0) {
+      if(searchMode) {
+        hyperedge_node_group.selectAll("circle.hyperedge-node")
+          .attr("stroke-width", 1)
+          .attr("opacity", 0.5)
+          return
+      } else {
+        hyperedge_node_group.selectAll("circle.hyperedge-node")
+          .attr("stroke-width", 1)
+          .attr("opacity", 1)
+          return
+      }
+    }
+
+    // set normal nodes to background
+    hyperedge_node_group.selectAll("circle.hyperedge-node")
+      .attr("stroke-width", 1)
+      .attr("opacity", 0.5)
+
+    // update highlighted nodes 
+    hyperedge_node_group.selectAll("circle.hyperedge-node")
+      .filter((node: any) => highlightNodeIds.includes(node.doc_id))
+      .attr("stroke-width", 2)
+      .attr("opacity", 1)
+
+    // highlight hyperedge borders
+    // const highlight_hyperedge_nodes = graph.hyperedge_nodes.filter(node => highlightNodeIds.includes(node.doc_id))
+    // if(highlight_hyperedge_nodes.length > 0) {
+    //   const highlight_path = generate_border(highlight_hyperedge_nodes, 2)
+    //   canvas.select("path.highlight-border")
+    //     .attr("d", highlight_path)
+    //     .attr("fill", "yellow")
+    //     .attr("stroke", "black")
+    //     .attr("opacity", 0.8)
+    //     .attr("stroke-width", 1)
+    // }
+  }
+
   function generate_cluster_borders(graph) {
     let border_paths: any[] = []
     Object.keys(graph.clusters).forEach(cluster_label => {
       const cluster_hyperedge_node_ids = graph.clusters[cluster_label]
       const hyperedge_nodes_data = graph.hyperedge_nodes.filter(node => cluster_hyperedge_node_ids.includes(node.id))
-      // add concave hull forst to make its z-index lower
-      let points: any[] = []
+      const border_path = generate_border(hyperedge_nodes_data)
+      border_paths.push({
+        "cluster_label": cluster_label,
+        "cluster_order": graph.cluster_order.indexOf(cluster_label),
+        "update_cluster_order": graph.update_cluster_order[cluster_label],
+        "path": border_path
+      })
+    })
+    return border_paths
+  }
+
+  function generate_border(hyperedge_nodes_data, concavity=0.2) {
       const offset_x = (hyperedge_nodes_data[0] as any).cell_width
       const offset_y = (hyperedge_nodes_data[0] as any).cell_height
+      // add concave hull forst to make its z-index lower
+      let points: any[] = []
       hyperedge_nodes_data.forEach((node: any) => {
         points.push([node.x - offset_x, node.y - offset_y]) // 1
         points.push([node.x, node.y - offset_y]) // 2
@@ -328,17 +412,10 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
         points.push([node.x + offset_x, node.y + offset_y]) // 9
       })
       // const polygon = concaveman(points, 0.5, 0)
-      const polygon = concaveman(points, 0.2, 0)
+      const polygon = concaveman(points, concavity, 0)
       // const path = createRoundedCornersFromPointsWithLines(polygon);
       const path = createSmoothPathFromPointsWithCurves(polygon);
-      border_paths.push({
-        "cluster_label": cluster_label,
-        "cluster_order": graph.cluster_order.indexOf(cluster_label),
-        "update_cluster_order": graph.update_cluster_order[cluster_label],
-        "path": path
-      })
-    })
-    return border_paths
+      return path
   }
 
   function createSmoothPathFromPointsWithLines(points) {

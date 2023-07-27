@@ -8,6 +8,10 @@ import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import ClusterDetail from './components/ClusterDetail/ClusterDetail'
 import LevelInput from './components/LevelInput/LevelInput'
+import { Input, InputNumber } from 'antd';
+
+
+const Search = Input.Search;
 
 function App() {
   const [event_hgraph, setEventHGraph] = useState<t_EventHGraph>()
@@ -18,6 +22,14 @@ function App() {
   const [level, setLevel] = useState<any>(5)
   const [cluster_data, setClusterData] = useState<any>()
   const [brushMode, setBrushMode] = useState<boolean>(false)
+
+  // searching related
+  const [searchMode, setSearchMode] = useState<boolean>(false)
+  const [query, setQuery] = useState<string>("")
+  const [searchLoading, setSearchLoading] = useState<boolean>(false)
+  const [docsRanked, setDocsRanked] = useState<any[]>([]) 
+  const [relevantDocIds, setRelevantDocIds] = useState<any[]>([])
+  const [relevanceThreshold, setRelevanceThreshold] = useState<any>(0.8)
 
   // flags
   const [cluster_selected, setClusterSelected] = useState(false)
@@ -33,8 +45,9 @@ function App() {
     fetchPartition()
   }, [level])
 
-  
-
+  useEffect(() => {
+    updateRelevantDocIds(docsRanked, relevanceThreshold)
+  }, [relevanceThreshold])
 
   async function fetch_hierarchy() {
     console.log("fetching hierarchy")
@@ -142,10 +155,47 @@ function App() {
       })
   }
 
+  async function search() {
+    if(query === "") return
+    setSearchLoading(true)
+    setSearchMode(true)
+    console.log("searching: ", query)
+    fetch(`${server_address}/data/search`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ query })
+    })
+      .then(res => res.json())
+      .then(docs_ranked => {
+        console.log({docs_ranked})
+        setSearchLoading(false)
+        setDocsRanked(docs_ranked)
+        updateRelevantDocIds(docs_ranked, relevanceThreshold)
+        // setEventHGraph(expanded_hgraph)
+        // setEventHGraphLoaded(true)
+        // setClusterData(cluster_data)
+        // setClusterDataFetched(true)
+      })
+
+  }
+
+  function updateRelevantDocIds(doc_id_relevance_list, threshold) {
+    const relevant_doc_ids = doc_id_relevance_list.filter(doc_id_relevance => doc_id_relevance[1] >= threshold).map(doc_id_relevance => doc_id_relevance[0])
+    setRelevantDocIds(relevant_doc_ids)
+  }
+
   function toggleBrush() {
     if(brushMode) setBrushMode(false)
     else setBrushMode(true)
   }
+  function toggleSearchMode() {
+    if(searchMode) setSearchMode(false)
+    else setSearchMode(true)
+  }
+
 
 
 
@@ -159,7 +209,14 @@ function App() {
         {
           eventHGraphLoaded && !cluster_selected && 
           // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
-          <ClusterOverview svgId={"cluster-overview-svg"} graph={event_hgraph!} hierarchies={hierarchy} onNodesSelected={fetchTopic} onClusterClicked={handleClusterClicked} brushMode={brushMode} />
+          <ClusterOverview svgId={"cluster-overview-svg"} 
+            graph={event_hgraph!} 
+            highlightNodeIds={relevantDocIds} 
+            hierarchies={hierarchy} 
+            onNodesSelected={fetchTopic} 
+            onClusterClicked={handleClusterClicked} 
+            searchMode={searchMode}
+            brushMode={brushMode} />
         }
         {
           cluster_selected && !cluster_data_fetched && 
@@ -176,6 +233,16 @@ function App() {
           <div>
             {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
             <button className={"toggle-brush"} onClick={toggleBrush}> Brush {brushMode? "on":"off"}</button>
+            <button className={"toggle-searchMode"} onClick={toggleSearchMode}> SearchMode {searchMode? "on":"off"}</button>
+            <Search className={"search-bar"}
+              placeholder="input search text" 
+              // enterButton="Search" 
+              size="large" 
+              onChange={(e) => setQuery(e.target.value)}
+              onSearch={search} 
+              loading={searchLoading} />
+            <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} onChange={setRelevanceThreshold} />
+
             <LevelInput inputValue={level} onChange={setLevel} minValue={0} maxValue={7} />
             <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
             <div className="topic-viewer w-full"> {topic} </div>
