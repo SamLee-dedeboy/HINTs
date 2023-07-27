@@ -17,6 +17,7 @@ function App() {
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [cluster_data, setClusterData] = useState<any>()
+  const [brushMode, setBrushMode] = useState<boolean>(false)
 
   // flags
   const [cluster_selected, setClusterSelected] = useState(false)
@@ -139,7 +140,11 @@ function App() {
         // setClusterData(cluster_data)
         // setClusterDataFetched(true)
       })
+  }
 
+  function toggleBrush() {
+    if(brushMode) setBrushMode(false)
+    else setBrushMode(true)
   }
 
 
@@ -154,7 +159,7 @@ function App() {
         {
           eventHGraphLoaded && !cluster_selected && 
           // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
-          <ClusterOverview svgId={"cluster-overview-svg"} graph={event_hgraph!} hierarchies={hierarchy} onNodesSelected={fetchTopic} onClusterClicked={handleClusterClicked} />
+          <ClusterOverview svgId={"cluster-overview-svg"} graph={event_hgraph!} hierarchies={hierarchy} onNodesSelected={fetchTopic} onClusterClicked={handleClusterClicked} brushMode={brushMode} />
         }
         {
           cluster_selected && !cluster_data_fetched && 
@@ -169,7 +174,8 @@ function App() {
         {
           hierarchy &&
           <div>
-            <button className={"test"} onClick={fetchPartition}> Show Level {level}</button>
+            {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
+            <button className={"toggle-brush"} onClick={toggleBrush}> Brush {brushMode? "on":"off"}</button>
             <LevelInput inputValue={level} onChange={setLevel} minValue={0} maxValue={7} />
             <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
             <div className="topic-viewer w-full"> {topic} </div>
