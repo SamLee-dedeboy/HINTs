@@ -64,25 +64,27 @@ def get_partition():
 def expand_cluster():
     # retain original setups
     cluster_label = request.json['cluster_label']
-    cluster_level = int(cluster_label.split('-')[1])
-    clusters = event_hgraph.binPartitions(cluster_level)
-    sub_clusters = event_hgraph.binPartitions(cluster_level - 1)
+    clusters = request.json['clusters']
+    sub_clusters = event_hgraph.getSubClusters(clusters.keys(), isList=True)
+    # cluster_level = int(cluster_label.split('-')[1])
+    # clusters = event_hgraph.binPartitions(cluster_level)
+    # sub_clusters = event_hgraph.binPartitions(cluster_level - 1)
     ###############
     # expand cluster
     # generate sub clusters of targeted cluster
-    targeted_sub_cluster_labels = event_hgraph.getSubClusters(cluster_label)
-    targeted_sub_clusters = {sub_cluster_label: sub_clusters[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
+    targeted_sub_clusters = event_hgraph.getSubClusters(cluster_label)
+        # targeted_sub_cluster_labels = event_hgraph.getSubClusterLabels(cluster_label)
+        # targeted_sub_clusters = {sub_cluster_label: sub_clusters[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
     # replace the targeted cluster with targeted_sub_clusters
     del clusters[cluster_label]
     for targeted_sub_cluster_label, targeted_sub_cluster_node_ids in targeted_sub_clusters.items():
         clusters[targeted_sub_cluster_label] = targeted_sub_cluster_node_ids
     # generate sub-clusters of sub_clusters
-    sub_cluster_level = cluster_level - 1
-    sub_sub_clusters_all = event_hgraph.binPartitions(sub_cluster_level - 1) if int(sub_cluster_level) > 0 else None
+    # sub_cluster_level = cluster_level - 1
+    # sub_sub_clusters_all = event_hgraph.binPartitions(sub_cluster_level - 1) if int(sub_cluster_level) > 0 else None
     # filter out targeted sub-sub-clusters
-    # targeted_sub_sub_cluster_labels = [event_hgraph.getSubClusters(sub_cluster_label) for sub_cluster_label in targeted_sub_clusters.keys()]
-    targeted_sub_sub_cluster_labels = event_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True)
-    targeted_sub_sub_clusters = {sub_sub_cluster_label: sub_sub_clusters_all[sub_sub_cluster_label] for sub_sub_cluster_label in targeted_sub_sub_cluster_labels}
+    targeted_sub_sub_clusters = event_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True)
+        # targeted_sub_sub_clusters = {sub_sub_cluster_label: sub_sub_clusters_all[sub_sub_cluster_label] for sub_sub_cluster_label in targeted_sub_sub_cluster_labels}
     # replace the sub-clusters of targeted cluster with its sub-sub-clusters
     for targeted_sub_cluster_key in targeted_sub_clusters.keys():
         del sub_clusters[targeted_sub_cluster_key]

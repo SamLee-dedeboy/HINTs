@@ -108,7 +108,7 @@ class EventHGraph:
         #         queue += cur['children']
         #     queue = queue[1:]
         # return sub_cluster_num_dict
-    def getSubClusters(self, cluster_labels, isList=False):
+    def getSubClusterLabels(self, cluster_labels, isList=False):
         if isList:
             res = []
             for cluster_label in cluster_labels:
@@ -116,6 +116,27 @@ class EventHGraph:
             return res
         else:
             return self.hierarchy_flattened[cluster_labels]['children']
+
+    def getSubClusters(self, cluster_labels, isList=False):
+        if isList:
+            targeted_sub_clusters = {}
+            for cluster_label in cluster_labels:
+                targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_label)
+                sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
+                all_sub_cluster_at_level = self.binPartitions(sub_cluster_level)
+                # keep only the sub clusters that are in the sub_cluster_labels
+                for sub_cluster_label in targeted_sub_cluster_labels:
+                    targeted_sub_clusters[sub_cluster_label] = all_sub_cluster_at_level[sub_cluster_label]
+            return targeted_sub_clusters
+        else:
+            targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_labels)
+            sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
+            all_sub_cluster_at_level = self.binPartitions(sub_cluster_level)
+            # keep only the sub clusters that are in the sub_cluster_labels
+            targeted_sub_clusters = {sub_cluster_label: all_sub_cluster_at_level[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
+            return targeted_sub_clusters
+
+
     
     def getClusterDetail(self, level, cluster_label):
         # get the hyperedge nodes
