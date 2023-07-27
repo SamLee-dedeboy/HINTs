@@ -5,7 +5,7 @@ import requests
 import json
 from datetime import datetime
 from pprint import pprint
-from DataUtils import EventHGraph, DataTransformer, Utils
+from DataUtils import EventHGraph, DataTransformer, Utils, EmbeddingSearch
 
 from collections import defaultdict
 import sys
@@ -13,8 +13,10 @@ import os
 
 app = Flask(__name__)
 CORS(app)
+openai_api_key = open("openai_api_key").read()
 
 event_hgraph = EventHGraph(r'../preprocess/data/result/')
+embedding_searcher = EmbeddingSearch(r'../preprocess/data/result/', openai_api_key)
 data_transformer = DataTransformer()
 example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example.json'))
 # communities = event_hgraph.apply_filters(['L-0-4'], test=True)
@@ -22,6 +24,13 @@ example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/
 # @app.route("/data/communities", methods=["GET"])
 # def get_communities():
 #     return json.dumps(event_hgraph.communities)
+@app.route("/data/search", methods=["POST"])
+def search():
+    query = request.json['query']
+    docs = embedding_searcher.search(query=query)
+    # res = { doc_id: relatedness for doc_id, relatedness in docs }
+    return json.dumps(docs)
+    
 @app.route("/data/hierarchy", methods=["GET"])
 def get_hierarcy():
     return json.dumps(event_hgraph.hierarchy)

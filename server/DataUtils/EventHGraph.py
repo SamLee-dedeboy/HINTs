@@ -11,37 +11,13 @@ import BratUtils
 import networkx as nx
 import copy
 
-# import BratUtils
 class EventHGraph:
     def __init__(self, data_path) -> None:
-        # # event_network = BratUtils.brat_data_to_network(data_path)
-        # # TODO: move event network construction from jupyter notebook to here
-        # network_data = json.load(open(data_path + 'ID_event_hgraph/event_network_data.json'))
-
-        # # TODO: move from jupyter notebook to here
-        # node_to_index_dict = json.load(open(data_path + 'node_to_index.json'))
-
-        # # TODO: move community detection from jupyter notebook to here
-        # communities_data = json.load(open(data_path + 'ID_event_hgraph/communities.json'))
-        # network_data['nodes'] = add_community_labels(network_data['nodes'], communities_data, node_to_index_dict)
-
-        # self.community_size_dict = compute_community_size_dict(communities_data)
-        # self.communities = list(map(lambda label: str(label), self.community_size_dict.keys()))
-
-        # self.nodes, self.links = network_data['nodes'], network_data['links']
-
-        # # RAMS
-        # rams_network_data = json.load(open(data_path + 'RAMS/dev_subgraph.json'))
-        # # GPT-processsed
-        # rams_gpt_network_data = json.load(open(data_path + 'RAMS/gpt_dev_hgraph.json'))
-        # rams_gpt_partitions = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_partitions.json'))
-        # rams_gpt_hierarchy = json.load(open(data_path + 'RAMS/gpt_biHgraph_dev/ravasz_hierarchies.json'))
-        
         # AllTheNews
         atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend.json'))
         atn_gpt_partitions = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions.json'))
         atn_gpt_hierarchy = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies.json'))
-        # self.network_statistics = json.load(open(data_path + 'AllTheNews/network/server/entity_node_statistics.json'))
+
 
         #################
         #################
