@@ -13,9 +13,10 @@ interface ClusterOverviewProps {
   hierarchies: any
   onNodesSelected: (node_ids: string[]) => void
   onClusterClicked: (cluster_label: string) => void
+  brushMode: boolean
 }
 
-function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterClicked}: ClusterOverviewProps) {
+function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterClicked, brushMode}: ClusterOverviewProps) {
   const margin = {
       left: 30,
       right: 0,
@@ -167,6 +168,14 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
   }, []);
 
   useEffect(() => {
+    if(brushMode) {
+      addBrush()
+    } else {
+      removeBrush()
+    }
+  }, [brushMode])
+
+  useEffect(() => {
     update_hyperedge_cluster()
   }, [graph]);
 
@@ -181,7 +190,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
     canvas.append("g").attr("class", "hyperedge-node-group")
     // canvas.append("g").attr("class", "entity-node-group")
     // canvas.append("g").attr("class", "link-group")
-    // addBrush()
+    addBrush()
   }
 
 
@@ -387,16 +396,22 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
     const svg = d3.select('#' + svgId)
     svg.append("g").attr("class", "brush").call(brush);
   }
+
+  function removeBrush() {
+    const svg = d3.select('#' + svgId)
+    svg.select("g.brush").remove()
+  }
+
   function brushing({selection}) {
     const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.hyperedge_node").attr("stroke-width", 1)
+    const circles = svg.selectAll("circle.hyperedge-node").attr("stroke-width", 1)
     circles.each((d: any) => d.scanned = d.selected = false);
     if (selection) search(circles, selection, "brushing");
   }
 
   function brushed({selection}) {
     const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.hyperedge_node").attr("stroke-width", 1)
+    const circles = svg.selectAll("circle.hyperedge-node").attr("stroke-width", 1)
     circles.each((d: any) => d.scanned = d.selected = false);
     if (selection) search(circles, selection, "end");
     const selected_circle = circles.filter((d: any) => d.selected)
