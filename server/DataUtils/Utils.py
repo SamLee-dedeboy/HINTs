@@ -22,7 +22,8 @@ def generateUpdateClusterOrder(cluster_order, new_clusters, top_level=False):
             if find_fisrt_update_cluster_index == False: 
                 first_update_cluster_index = index
                 find_fisrt_update_cluster_index = True
-            update_cluseter_order[cluster_label] = index - first_update_cluster_index 
+            # update_cluseter_order[cluster_label] = index - first_update_cluster_index 
+            update_cluseter_order[cluster_label] = 1
     return update_cluseter_order
 
 def addClusterLabel(node_dict, clusters, subClusters=None):

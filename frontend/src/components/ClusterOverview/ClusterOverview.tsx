@@ -12,7 +12,7 @@ interface ClusterOverviewProps {
   graph: t_EventHGraph
   hierarchies: any
   onNodesSelected: (node_ids: string[]) => void
-  onClusterClicked: (cluster_label: string) => void
+  onClusterClicked: (cluster_label: string, clusters: any) => void
   brushMode: boolean
 }
 
@@ -49,6 +49,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
   const subClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   const [previousClusterColorDict, setPreviousClusterColorDict] = useState<any>(undefined)
   const [previousSubClusterColorDict, setPreviousSubClusterColorDict] = useState<any>(undefined)
+  const [previousNodeDict, setPreviousNodeDict] = useState<any>({}) 
   
   const clusterColorDict = useMemo(() => {
     let cluster_color_dict = {}
@@ -93,7 +94,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
   }, [graph])
 
 
-  function generate_hilbert_coord(graph, num_of_clusters) {
+  function generate_hilbert_coord(graph) {
     // hyperedge nodes
     const hyperedge_nodes = graph.hyperedge_nodes
     let hyperedge_dict = {}
@@ -105,7 +106,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
     const grid_length = Math.pow(2, hilbert_order)
     const cell_width = canvasSize.width / grid_length
     const cell_height = canvasSize.height / grid_length
-    const total_cluster_gap = Math.pow(4, hilbert_order) - hyperedge_nodes.length
+    const total_cluster_gap = Math.pow(4, hilbert_order) - 1 - hyperedge_nodes.length
     const cluster_order = graph.cluster_order
     let gaps: number[] = [0]
     let accumulative_gap = 0
@@ -117,24 +118,30 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
       const cluster1_volume = graph.clusters[cluster1].length
       const cluster2_volume = graph.clusters[cluster2].length
       const volume_ratio = (cluster1_volume + cluster2_volume) / total_volume
-      const gap = Math.round(total_cluster_gap * volume_ratio)
-      accumulative_gap += gap
+      const gap = total_cluster_gap * volume_ratio
+      accumulative_gap += Math.round(gap)
       gaps.push(accumulative_gap)
     }
-    console.log(total_cluster_gap, {gaps})
 
     // assign hilbert coord to hyperedge nodes
     hyperedge_nodes.sort((a, b) => a.order - b.order)
     const node_coords = {}
     hyperedge_nodes.forEach(node => {
-        const node_hilbert_order = node.order + gaps[node.cluster_order]
+        const node_hilbert_order = Math.min(node.order + gaps[node.cluster_order], Math.pow(4, hilbert_order) - 1)
         const xy = hilbert.getXyAtVal(node_hilbert_order)
         node.x = cell_width * xy[0]
         node.y = cell_height * xy[1] 
-        node_coords[node.id] = [node.x, node.y]
+        node.hilbert_order = node_hilbert_order
+        if(previousNodeDict[node.id] !== undefined)
+        if(previousNodeDict[node.id].x != node.x || previousNodeDict[node.id].y != node.y) {
+          console.log("node moved", node.id, node.cluster_label, node.x, node.y, node.order, node_hilbert_order, previousNodeDict[node.id].x, previousNodeDict[node.id].y, previousNodeDict[node.id].order, previousNodeDict[node.id].hilbert_order)
+        }
+        // node_coords[node.id] = [node.x, node.y]
+        node_coords[node.id] = node
         node.cell_width = cell_width,
         node.cell_height = cell_height
     })
+    setPreviousNodeDict(node_coords)
     // entity nodes
     // const entity_nodes = graph.candidate_entity_nodes
     // entity_nodes.forEach((node, i) => {
@@ -197,7 +204,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
   function update_hyperedge_cluster() {
     const canvas = d3.select('#' + svgId).select("g.margin")
     // canvas.selectAll("circle.hyperedge-node").attr("opacity", 0)
-    generate_hilbert_coord(graph, Object.keys(graph.clusters).length)
+    generate_hilbert_coord(graph)
     // links
     // const link_group = canvas.select('g.link-group')
     // const links = link_group.selectAll("line.link")
@@ -236,7 +243,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
             .attr("fill", (d: any) => d.cluster_color = clusterColorDict[d.cluster_label])
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
-            .attr("opacity", 1)
+            // .attr("opacity", 1)
             ,
       )
     // cluster borders
@@ -252,6 +259,7 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
       .attr("stroke-width", 1)
       .attr("cursor", "pointer")
       .on("mouseover", function(e, d: any) {
+        console.log(d.cluster_label)
         // d3.select(this)
         //   .raise()
         //   .attr("opacity", 0.5)
@@ -274,7 +282,8 @@ function ClusterOverview({svgId, graph, hierarchies, onNodesSelected, onClusterC
         canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
           .attr("fill", (d: any) => d.cluster_color = clusterColorDict[d.cluster_label])
       })
-      .on("click", (e, d) => onClusterClicked(d.cluster_label))
+      .on("click", (e, d) => onClusterClicked(d.cluster_label, graph.clusters))
+      .filter((d: any) => d.update_cluster_order !== 0)
       .attr("opacity", 0)
       .transition().delay(d => d.update_cluster_order*t_delay).duration(t_duration)
       .attr("opacity", 1)

@@ -120,7 +120,7 @@ function App() {
       })
   }
 
-  async function handleClusterClicked(cluster_id) {
+  async function handleClusterClicked(cluster_id, clusters) {
     // setClusterSelected(true)
     // setClusterDataFetched(false)
     console.log("fetching for cluster", cluster_id)
@@ -130,7 +130,7 @@ function App() {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify({ cluster_label: cluster_id })
+      body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
     })
       .then(res => res.json())
       .then(expanded_hgraph => {
