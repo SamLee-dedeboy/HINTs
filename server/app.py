@@ -5,7 +5,8 @@ import requests
 import json
 from datetime import datetime
 from pprint import pprint
-from DataUtils import EventHGraph, DataTransformer
+from DataUtils import EventHGraph, DataTransformer, Utils
+
 from collections import defaultdict
 import sys
 import os
@@ -29,25 +30,113 @@ def get_hierarcy():
 def get_partition():
     level = request.json['level']
     entity_node_num = request.json['entity_node_num']
-    # sort by degree
+    # get candidate entity nodes
     candidate_entity_nodes = event_hgraph.entity_nodes_sorted[:entity_node_num]
-    partition = event_hgraph.binPartitions(level)
-    hyperedge_node_dict = { node['id']: node for node in event_hgraph.hyperedge_nodes}
+
+    # get clusters
+    clusters = event_hgraph.binPartitions(level)
+    sub_clusters = event_hgraph.binPartitions(level - 1) if int(level) > 0 else None
 
     # add cluster label to hyperedge nodes
-    for cluster_id, node_ids in partition.items():
-        for node_id in node_ids:
-            hyperedge_node_dict[node_id]['cluster_label'] = cluster_id
+    hyperedge_node_dict = Utils.addClusterLabel(event_hgraph.hyperedge_dict, clusters, sub_clusters)
 
+    # generate cluster order
+    cluster_order = Utils.generateClusterOrder(event_hgraph.hyperedge_nodes)
+    update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+    # add cluster order to hyperedge nodes
+    hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+
+    # return result
     hgraph = {
-        "hyperedge_nodes": data_transformer.transform_hyperedge(event_hgraph.hyperedge_nodes),
-        "entity_nodes": event_hgraph.entity_nodes,
-        "argument_nodes": event_hgraph.argument_nodes,
-        "candidate_entity_nodes": candidate_entity_nodes,
-        "links": event_hgraph.filter_links(event_hgraph.hyperedge_nodes + candidate_entity_nodes, event_hgraph.links),
-        "clusters": event_hgraph.binPartitions(level),
+        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
+        # "entity_nodes": event_hgraph.entity_nodes,
+        # "argument_nodes": event_hgraph.argument_nodes,
+        # "candidate_entity_nodes": candidate_entity_nodes,
+        # "links": event_hgraph.filter_links(event_hgraph.hyperedge_nodes + candidate_entity_nodes, event_hgraph.links),
+        "clusters": clusters,
+        "num_sub_clusters": event_hgraph.getSubClusterNumDict(clusters.keys()),
+        "cluster_order": cluster_order,
+        "update_cluster_order": update_cluster_order,   
     }
     return json.dumps(hgraph, default=vars)
+
+@app.route("/data/expand_cluster", methods=["POST"])
+def expand_cluster():
+    # retain original setups
+    cluster_label = request.json['cluster_label']
+    cluster_level = int(cluster_label.split('-')[1])
+    clusters = event_hgraph.binPartitions(cluster_level)
+    sub_clusters = event_hgraph.binPartitions(cluster_level - 1)
+    ###############
+    # expand cluster
+    # generate sub clusters of targeted cluster
+    targeted_sub_cluster_labels = event_hgraph.getSubClusters(cluster_label)
+    targeted_sub_clusters = {sub_cluster_label: sub_clusters[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
+    # replace the targeted cluster with targeted_sub_clusters
+    del clusters[cluster_label]
+    for targeted_sub_cluster_label, targeted_sub_cluster_node_ids in targeted_sub_clusters.items():
+        clusters[targeted_sub_cluster_label] = targeted_sub_cluster_node_ids
+    # generate sub-clusters of sub_clusters
+    sub_cluster_level = cluster_level - 1
+    sub_sub_clusters_all = event_hgraph.binPartitions(sub_cluster_level - 1) if int(sub_cluster_level) > 0 else None
+    # filter out targeted sub-sub-clusters
+    # targeted_sub_sub_cluster_labels = [event_hgraph.getSubClusters(sub_cluster_label) for sub_cluster_label in targeted_sub_clusters.keys()]
+    targeted_sub_sub_cluster_labels = event_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True)
+    targeted_sub_sub_clusters = {sub_sub_cluster_label: sub_sub_clusters_all[sub_sub_cluster_label] for sub_sub_cluster_label in targeted_sub_sub_cluster_labels}
+    # replace the sub-clusters of targeted cluster with its sub-sub-clusters
+    for targeted_sub_cluster_key in targeted_sub_clusters.keys():
+        del sub_clusters[targeted_sub_cluster_key]
+    for sub_sub_cluster_label, sub_sub_cluster_node_ids in targeted_sub_sub_clusters.items():
+        sub_clusters[sub_sub_cluster_label] = sub_sub_cluster_node_ids
+    ###############
+    ###############
+    # post-process
+    # add cluster label to hyperedge nodes
+    hyperedge_node_dict = Utils.addClusterLabel(event_hgraph.hyperedge_dict, clusters, sub_clusters)
+
+    # generate cluster order
+    cluster_order = Utils.generateClusterOrder(event_hgraph.hyperedge_nodes)
+    update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, targeted_sub_clusters.keys())
+    # add cluster order to hyperedge nodes
+    hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+
+    # return result
+    hgraph = {
+        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
+        # "entity_nodes": event_hgraph.entity_nodes,
+        # "argument_nodes": event_hgraph.argument_nodes,
+        # "candidate_entity_nodes": candidate_entity_nodes,
+        # "links": event_hgraph.filter_links(event_hgraph.hyperedge_nodes + candidate_entity_nodes, event_hgraph.links),
+        "clusters": clusters,
+        "num_sub_clusters": event_hgraph.getSubClusterNumDict(clusters.keys()),
+        "cluster_order": cluster_order,
+        "update_cluster_order": update_cluster_order,   
+    }
+    return json.dumps(hgraph, default=vars)
+
+
+@app.route("/data/cluster", methods=["POST"])
+def get_cluster():
+    level = request.json['level']
+    cluster_label = request.json['cluster_label']
+    print(level, cluster_label)
+    hyperedge_nodes, \
+    entity_nodes, \
+    argument_nodes, \
+    candidate_entity_nodes, \
+    links, \
+    connected_clusters = event_hgraph.getClusterDetail(level, cluster_label)
+
+    cluster = {
+        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_nodes),
+        # "entity_nodes": entity_nodes,
+        # "argument_nodes": argument_nodes,
+        "candidate_entity_nodes": candidate_entity_nodes,
+        "links": links,
+        # "connected_clusters": connected_clusters,
+    }
+    return json.dumps(cluster, default=vars)
+
 
 @app.route("/data/event_hgraph", methods=["POST"])
 def get_event_network_filtered():
