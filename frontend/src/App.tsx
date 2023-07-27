@@ -45,37 +45,6 @@ function App() {
       })
   }
 
-
-  // async function fetch_communities() {
-  //   console.log("fetching communities")
-  //   fetch(`${server_address}/data/communities`)
-  //     .then(res => res.json())
-  //     .then(communities => {
-  //       console.log({communities})
-  //       setCommunities(communities)
-  //     })
-  // }
-
-  // async function fetch_event_hgraph(filters) {
-  //   console.log("fetching event hgraph", filters)
-  //   if(filters == undefined) filters = {}
-  //   fetch(`${server_address}/data/event_hgraph`, {
-  //     method: "POST",
-  //     headers: {
-  //         "Accept": "application/json",
-  //         "Content-Type": "application/json"
-  //     },
-  //     body: JSON.stringify(filters)
-  //   })
-  //     .then(res => res.json())
-  //     .then(event_hgraph => {
-  //       console.log({event_hgraph})
-  //       setEventHGraph(event_hgraph)
-  //       setEventHGraphLoaded(true)
-  //       setEnabledCommunities(event_hgraph.communities)
-  //     })
-  // }
-
   async function fetchPartition() {
     console.log("fetching hgraph with partition", level)
     fetch(`${server_address}/data/partition`, {
@@ -95,8 +64,8 @@ function App() {
       })
   }
 
-
   async function handleHierarchyChecked(checkedHierarchy) {
+    return
     fetch(`${server_address}/data/event_hgraph`, {
       method: "POST",
       headers: {
@@ -150,23 +119,25 @@ function App() {
       })
   }
 
-  async function handleClusterSelected(cluster_id) {
-    setClusterSelected(true)
-    setClusterDataFetched(false)
+  async function handleClusterClicked(cluster_id) {
+    // setClusterSelected(true)
+    // setClusterDataFetched(false)
     console.log("fetching for cluster", cluster_id)
-    fetch(`${server_address}/cluster`, {
+    fetch(`${server_address}/data/expand_cluster`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify(cluster_id)
+      body: JSON.stringify({ cluster_label: cluster_id })
     })
       .then(res => res.json())
-      .then(cluster_data => {
-        console.log({cluster_data})
-        setClusterData(cluster_data)
-        setClusterDataFetched(true)
+      .then(expanded_hgraph => {
+        console.log({expanded_hgraph})
+        setEventHGraph(expanded_hgraph)
+        setEventHGraphLoaded(true)
+        // setClusterData(cluster_data)
+        // setClusterDataFetched(true)
       })
 
   }
@@ -183,7 +154,7 @@ function App() {
         {
           eventHGraphLoaded && !cluster_selected && 
           // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
-          <ClusterOverview svgId={"cluster-overview-svg"} graph={event_hgraph!} hierarchies={hierarchy} onNodesSelected={fetchTopic} onClusterSelected={handleClusterSelected} />
+          <ClusterOverview svgId={"cluster-overview-svg"} graph={event_hgraph!} hierarchies={hierarchy} onNodesSelected={fetchTopic} onClusterClicked={handleClusterClicked} />
         }
         {
           cluster_selected && !cluster_data_fetched && 

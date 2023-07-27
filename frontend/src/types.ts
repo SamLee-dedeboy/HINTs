@@ -1,18 +1,25 @@
 export type t_EventHGraph = {
     hyperedge_nodes: t_HyperedgeNode[],
-    entity_nodes: t_EntityNode[],
-    candidate_entity_nodes: t_EntityNode[]
-    links: t_link[],
-    clusters: any
+    clusters: any,
+    num_sub_clusters: any,
+    cluster_order: any,
+    links?: t_link[],
+    candidate_entity_nodes?: t_EntityNode[]
+    entity_nodes?: t_EntityNode[],
+    argument_nodes?: t_EntityNode[],
+
 }
 
 export type t_Cluster = {
     id: string,
-    hyperedge_nodes: string[]
-    entity_nodes: string[]
-    candidate_entity_nodes: string[]
-    connected_clusters: t_ConnectedCluster[]
+    hyperedge_nodes: t_HyperedgeNode[]
     links: t_link[],
+    candidate_entity_nodes: string[]
+    argument_nodes? : t_EntityNode[]
+    entity_nodes? : string[]
+    connected_clusters?: t_ConnectedCluster[]
+    cluster_color?: string,
+    sub_cluster_color?: string,
 }
 
 export type t_ConnectedCluster = {
@@ -23,14 +30,20 @@ export type t_ConnectedCluster = {
 export type t_HyperedgeNode = {
     id: string,
     type: string,
-    trigger: string,
-    arguments: string[],
     doc_id: string,
-    summary: string,
-    content: string,
     date: string,
-    cluster_label? :string,
+    order: number,
+    cluster_order: number,
+    update_cluster_order: number,
+    cluster_label: string,
+    sub_cluster_label: string,
+    // optional
+    trigger?: string,
+    arguments?: string[],
+    summary?: string,
+    content?: string,
     cluster_color? :string,
+    sub_cluster_color? :string,
     x? : number,
     y? : number,
 }
