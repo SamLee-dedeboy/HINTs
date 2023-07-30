@@ -1,11 +1,10 @@
 import json
 from flask import Flask, request
 from flask_cors import CORS
-import requests
 import json
 from datetime import datetime
 from pprint import pprint
-from DataUtils import EventHGraph, DataTransformer, Utils, EmbeddingSearch
+from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils
 
 from collections import defaultdict
 import sys
@@ -15,42 +14,51 @@ app = Flask(__name__)
 CORS(app)
 openai_api_key = open("openai_api_key").read()
 
-event_hgraph = EventHGraph(r'../preprocess/data/result/')
+graph_controller = GraphController(r'../preprocess/data/result/')
+event_hgraph = graph_controller.static_event_hgraph
 embedding_searcher = EmbeddingSearch(r'../preprocess/data/result/', openai_api_key)
 data_transformer = DataTransformer()
 example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example.json'))
+
+users = [0]
+for uid in users:
+    graph_controller.create_user_hgraph(uid, hyperedge_ids=None)
 # communities = event_hgraph.apply_filters(['L-0-4'], test=True)
 
 # @app.route("/data/communities", methods=["GET"])
 # def get_communities():
 #     return json.dumps(event_hgraph.communities)
-@app.route("/data/search", methods=["POST"])
-def search():
-    query = request.json['query']
-    docs = embedding_searcher.search(query=query)
-    # res = { doc_id: relatedness for doc_id, relatedness in docs }
-    return json.dumps(docs)
-    
-@app.route("/data/hierarchy", methods=["GET"])
+@app.route("/static/hierarchy", methods=["GET"])
 def get_hierarcy():
     return json.dumps(event_hgraph.hierarchy)
 
-@app.route("/data/partition", methods=["POST"])
-def get_partition():
+@app.route("/static/topic", methods=["POST"])
+def generate_topic():
+    hyperedge_ids = request.json
+    # messages = GptUtils.generate_summary_message(hyperedge_ids, event_hgraph.hyperedge_dict)
+    example_summaries = example['summaries']
+    example_topic = example['topic']
+    topic = GptUtils.explain_articles(hyperedge_ids, event_hgraph.hyperedge_dict, example_summaries, example_topic)
+    return json.dumps(topic, default=vars)
+
+@app.route("/user/partition/<uid>", methods=["POST"])
+def get_partition(uid):
+    uid = int(uid)
     level = request.json['level']
     entity_node_num = request.json['entity_node_num']
     # get candidate entity nodes
-    candidate_entity_nodes = event_hgraph.entity_nodes_sorted[:entity_node_num]
+    user_hgraph = graph_controller.getUserHGraph(uid)
+    candidate_entity_nodes = user_hgraph.entity_nodes_sorted[:entity_node_num]
 
     # get clusters
-    clusters = event_hgraph.binPartitions(level)
-    sub_clusters = event_hgraph.binPartitions(level - 1) if int(level) > 0 else None
+    clusters = user_hgraph.binPartitions(level)
+    sub_clusters = user_hgraph.binPartitions(level - 1) if int(level) > 0 else None
 
     # add cluster label to hyperedge nodes
-    hyperedge_node_dict = Utils.addClusterLabel(event_hgraph.hyperedge_dict, clusters, sub_clusters)
+    hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
 
     # generate cluster order
-    cluster_order = Utils.generateClusterOrder(event_hgraph.hyperedge_nodes)
+    cluster_order = Utils.generateClusterOrder(user_hgraph.hyperedge_nodes)
     update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
     # add cluster order to hyperedge nodes
     hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
@@ -58,31 +66,71 @@ def get_partition():
     # return result
     hgraph = {
         "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
-        # "entity_nodes": event_hgraph.entity_nodes,
-        # "argument_nodes": event_hgraph.argument_nodes,
+        # "entity_nodes": user_hgraph.entity_nodes,
+        # "argument_nodes": user_hgraph.argument_nodes,
         # "candidate_entity_nodes": candidate_entity_nodes,
-        # "links": event_hgraph.filter_links(event_hgraph.hyperedge_nodes + candidate_entity_nodes, event_hgraph.links),
+        # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
         "clusters": clusters,
-        "num_sub_clusters": event_hgraph.getSubClusterNumDict(clusters.keys()),
+        "num_sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
     }
     return json.dumps(hgraph, default=vars)
 
-@app.route("/data/expand_cluster", methods=["POST"])
+@app.route("/user/filter/<uid>", methods=["POST"])
+def filter_hgraph(uid: int):
+    uid = int(uid)
+    hyperedge_node_ids = request.json['hyperedge_ids']
+    clusters = request.json['clusters']
+    # filter clusters
+    clusters = Utils.filterClusters(clusters, hyperedge_node_ids)
+    # get candidate entity nodes
+    user_hgraph = graph_controller.getUserHGraph(uid)
+    # BUG: needs to turn doc id to node id
+    user_hgraph.filter_hyperedge_nodes(hyperedge_node_ids)
+
+    # get clusters
+    sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True, filtered=True)
+
+    # add cluster label to hyperedge nodes
+    hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
+
+    # generate cluster order
+    cluster_order = Utils.generateClusterOrder(user_hgraph.hyperedge_nodes)
+    update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+    # add cluster order to hyperedge nodes
+    hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+
+    # return result
+    hgraph = {
+        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
+        # "entity_nodes": user_hgraph.entity_nodes,
+        # "argument_nodes": user_hgraph.argument_nodes,
+        # "candidate_entity_nodes": candidate_entity_nodes,
+        # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
+        "clusters": clusters,
+        "num_sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+        "cluster_order": cluster_order,
+        "update_cluster_order": update_cluster_order,   
+    }
+    return json.dumps(hgraph, default=vars)
+
+@app.route("/user/expand_cluster/<uid>", methods=["POST"])
 def expand_cluster():
+    uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
     clusters = request.json['clusters']
-    sub_clusters = event_hgraph.getSubClusters(clusters.keys(), isList=True)
+    user_hgraph = graph_controller.getUserHGraph(uid)
+    sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
     # cluster_level = int(cluster_label.split('-')[1])
-    # clusters = event_hgraph.binPartitions(cluster_level)
-    # sub_clusters = event_hgraph.binPartitions(cluster_level - 1)
+    # clusters = user_hgraph.binPartitions(cluster_level)
+    # sub_clusters = user_hgraph.binPartitions(cluster_level - 1)
     ###############
     # expand cluster
     # generate sub clusters of targeted cluster
-    targeted_sub_clusters = event_hgraph.getSubClusters(cluster_label)
-        # targeted_sub_cluster_labels = event_hgraph.getSubClusterLabels(cluster_label)
+    targeted_sub_clusters = user_hgraph.getSubClusters(cluster_label)
+        # targeted_sub_cluster_labels = user_hgraph.getSubClusterLabels(cluster_label)
         # targeted_sub_clusters = {sub_cluster_label: sub_clusters[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
     # replace the targeted cluster with targeted_sub_clusters
     del clusters[cluster_label]
@@ -90,9 +138,9 @@ def expand_cluster():
         clusters[targeted_sub_cluster_label] = targeted_sub_cluster_node_ids
     # generate sub-clusters of sub_clusters
     # sub_cluster_level = cluster_level - 1
-    # sub_sub_clusters_all = event_hgraph.binPartitions(sub_cluster_level - 1) if int(sub_cluster_level) > 0 else None
+    # sub_sub_clusters_all = user_hgraph.binPartitions(sub_cluster_level - 1) if int(sub_cluster_level) > 0 else None
     # filter out targeted sub-sub-clusters
-    targeted_sub_sub_clusters = event_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True)
+    targeted_sub_sub_clusters = user_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True)
         # targeted_sub_sub_clusters = {sub_sub_cluster_label: sub_sub_clusters_all[sub_sub_cluster_label] for sub_sub_cluster_label in targeted_sub_sub_cluster_labels}
     # replace the sub-clusters of targeted cluster with its sub-sub-clusters
     for targeted_sub_cluster_key in targeted_sub_clusters.keys():
@@ -103,10 +151,10 @@ def expand_cluster():
     ###############
     # post-process
     # add cluster label to hyperedge nodes
-    hyperedge_node_dict = Utils.addClusterLabel(event_hgraph.hyperedge_dict, clusters, sub_clusters)
+    hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
 
     # generate cluster order
-    cluster_order = Utils.generateClusterOrder(event_hgraph.hyperedge_nodes)
+    cluster_order = Utils.generateClusterOrder(user_hgraph.hyperedge_nodes)
     update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, targeted_sub_clusters.keys())
     # add cluster order to hyperedge nodes
     hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
@@ -114,105 +162,54 @@ def expand_cluster():
     # return result
     hgraph = {
         "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
-        # "entity_nodes": event_hgraph.entity_nodes,
-        # "argument_nodes": event_hgraph.argument_nodes,
+        # "entity_nodes": user_hgraph.entity_nodes,
+        # "argument_nodes": user_hgraph.argument_nodes,
         # "candidate_entity_nodes": candidate_entity_nodes,
-        # "links": event_hgraph.filter_links(event_hgraph.hyperedge_nodes + candidate_entity_nodes, event_hgraph.links),
+        # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
         "clusters": clusters,
-        "num_sub_clusters": event_hgraph.getSubClusterNumDict(clusters.keys()),
+        "num_sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
     }
     return json.dumps(hgraph, default=vars)
 
+@app.route("/static/search/", methods=["POST"])
+def search():
+    query = request.json['query']
+    doc_id_relevance = embedding_searcher.search(query=query)
+    # binary search to find the most appropriate threshold
+    suggested_threshold = GptUtils.binary_search_threshold(doc_id_relevance, query)
 
-@app.route("/data/cluster", methods=["POST"])
-def get_cluster():
-    level = request.json['level']
-    cluster_label = request.json['cluster_label']
-    print(level, cluster_label)
-    hyperedge_nodes, \
-    entity_nodes, \
-    argument_nodes, \
-    candidate_entity_nodes, \
-    links, \
-    connected_clusters = event_hgraph.getClusterDetail(level, cluster_label)
+    doc_data = []
+    for (doc_id, relevance, summary) in doc_id_relevance:
+        doc_data.append({
+            "doc_id": doc_id,
+            "relevance": relevance,
+            "summary": summary
+        })
 
-    cluster = {
-        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_nodes),
-        # "entity_nodes": entity_nodes,
-        # "argument_nodes": argument_nodes,
-        "candidate_entity_nodes": candidate_entity_nodes,
-        "links": links,
-        # "connected_clusters": connected_clusters,
-    }
-    return json.dumps(cluster, default=vars)
-
-
-@app.route("/data/event_hgraph", methods=["POST"])
-def get_event_network_filtered():
-    hierarchies = request.json
-    hgraph = event_hgraph.apply_filters(hierarchies, test=True)
-    return json.dumps(hgraph, default=vars)
+    # res = { doc_id: relatedness for doc_id, relatedness in docs }
+    return json.dumps({"docs": doc_data, "suggested_threshold": suggested_threshold})
     
-@app.route("/topic", methods=["POST"])
-def generate_topic():
-    hyperedge_ids = request.json
-    messages = generate_summary_message(hyperedge_ids, event_hgraph.hyperedge_dict)
-    example_summaries = example['summaries']
-    example_topic = example['topic']
-    topic = explain_articles(hyperedge_ids, event_hgraph.hyperedge_dict, example_summaries, example_topic)
-    return json.dumps(topic, default=vars)
 
-def generate_summary_message(target_hyperedges, hyperedges):
-    summaries = [hyperedges[hyperedge_id]['summary'] for hyperedge_id in target_hyperedges]
-    summaries_message = ""
-    for index, summary in enumerate(summaries):
-        summaries_message += "Article {}: \n".format(index+1)
-        summaries_message += summary + '\n\n\n'
-    return summaries_message
+# @app.route("/data/cluster", methods=["POST"])
+# def get_cluster():
+#     level = request.json['level']
+#     cluster_label = request.json['cluster_label']
+#     print(level, cluster_label)
+#     hyperedge_nodes, \
+#     entity_nodes, \
+#     argument_nodes, \
+#     candidate_entity_nodes, \
+#     links, \
+#     connected_clusters = event_hgraph.getClusterDetail(level, cluster_label)
 
-def explain_articles(target_hyperedge_ids, hyperedges_dict, example_summaries, example_noun_phrase):
-    summaries = [hyperedges_dict[hyperedge_id]['summary'] for hyperedge_id in target_hyperedge_ids]
-    summaries_message = ""
-    for index, summary in enumerate(summaries):
-        summaries_message += "Article {}: \n".format(index+1)
-        summaries_message += summary + '\n\n\n'
-    messages = [
-        { 
-            "role": "system", 
-            "content": """
-                You are a news article summarization system. 
-                The user will provide you with a set of summarized news articles, your job is to further summarize them into one noun phrase.
-                Use words that are already in the articles, and try to use as few words as possible.
-            """
-        },
-        { "role": "system", "name": "example_user", "content": example_summaries},
-        { "role": "system", "name": "example_system", "content": example_noun_phrase},
-        { "role": "user", "content": summaries_message}
-    ]
-    topic = request_chatgpt_gpt4(messages)
-    return topic
-
-
-# @app.route("/data/event_hgraph", methods=["POST"])
-# def get_event_network():
-#     filters = request.json
-#     # filtered_nodes, filtered_links, enabled_communities = event_hgraph.apply_filters(filters)
-#     # hgraph = {
-#     #     "nodes": filtered_nodes,
-#     #     "links": filtered_links,
-#     #     "communities": enabled_communities
-#     # }
-#     hgraph = {
-#         "nodes": event_hgraph.nodes,
-#         "links": event_hgraph.links,
-#         "communities": event_hgraph.ravasz_partitions[1]
+#     cluster = {
+#         "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_nodes),
+#         # "entity_nodes": entity_nodes,
+#         # "argument_nodes": argument_nodes,
+#         "candidate_entity_nodes": candidate_entity_nodes,
+#         "links": links,
+#         # "connected_clusters": connected_clusters,
 #     }
-#     return json.dumps(hgraph, default=vars)
-def request_chatgpt_gpt4(messages):
-    url = "http://127.0.0.1:5000/event_hgraph"
-    body = {"messages": messages}
-    response = requests.post(url, json=body).json()
-    gpt_response = response['choices'][0]['message']['content'].strip()
-    return gpt_response
+#     return json.dumps(cluster, default=vars)
