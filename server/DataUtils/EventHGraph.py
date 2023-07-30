@@ -1,65 +1,118 @@
 import json
-import dataclasses
 from collections import defaultdict
 from pprint import pprint
 import numpy as np
-import functools
-from juliacall import Main as jl
-from juliacall import Pkg as jlPkg
 import hypernetx as hnx
-import BratUtils
 import networkx as nx
 import copy
 
 class EventHGraph:
-    def __init__(self, data_path) -> None:
+    def __init__(self, data_path, target_hyperedge_ids=None) -> None:
         # AllTheNews
         atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend.json'))
         atn_gpt_partitions = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions.json'))
         atn_gpt_hierarchy = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies.json'))
-
+        self.hierarchy = atn_gpt_hierarchy
 
         #################
         #################
         # prepare data
-        self.nodes, self.links = atn_gpt_network_data['nodes'], atn_gpt_network_data['links']
+        self.nodes, self.links, self.ravasz_partitions = filter_network(
+            atn_gpt_network_data['nodes'],
+            atn_gpt_network_data['links'],
+            atn_gpt_partitions,
+            target_hyperedge_ids
+        )
+        self.hierarchy = atn_gpt_hierarchy
+        # self.nodes, self.links = atn_gpt_network_data['nodes'], atn_gpt_network_data['links']
+        # self.ravasz_partitions = atn_gpt_partitions
+        # if target_hyperedge_ids != None:
+        #     self.links = [link for link in self.links if link['source'] in target_hyperedge_ids or link['target'] in target_hyperedge_ids]
+        #     self.nodes = [node for node in self.nodes if node['id'] in target_hyperedge_ids or node['id'] in list(map(lambda link: link['source'], self.links)) or node['id'] in list(map(lambda link: link['target'], self.links))]
+        #     for level in self.ravasz_partitions:
+        #         for hyperedge_node_id in level.keys():
+        #             if hyperedge_node_id not in self.nodes:
+        #                 del level[hyperedge_node_id]
+
         # hyperedge nodes
-        self.hyperedge_nodes = list(filter(lambda node: node['type'] == 'hyper_edge', self.nodes))
-        self.hyperedge_node_ids = [node['id'] for node in self.hyperedge_nodes]
-        self.hyperedge_dict = {node['id']: node for node in self.hyperedge_nodes}
-        # argument nodes
-        self.node_dict = {node['id']: node for node in self.nodes}
-        self.argument_nodes = list(filter(lambda node: node['type'] == 'entity', self.nodes))
-        # entity nodes
-        self.entity_nodes = list(filter(lambda node: node['type'] == 'entity' and node['id'] != node['title'], self.nodes))
-        self.entity_node_ids = [node['id'] for node in self.entity_nodes]
-        # compute statistics
-        self.network_statistics = _network_statistics(self.hyperedge_node_ids, self.entity_node_ids, self.links)
+        # self.hyperedge_nodes = list(filter(lambda node: node['type'] == 'hyper_edge', self.nodes))
+        # self.hyperedge_node_ids = [node['id'] for node in self.hyperedge_nodes]
+        # self.hyperedge_dict = {node['id']: node for node in self.hyperedge_nodes}
+        # # argument nodes
+        # self.node_dict = {node['id']: node for node in self.nodes}
+        # self.argument_nodes = list(filter(lambda node: node['type'] == 'entity', self.nodes))
+        # # entity nodes
+        # self.entity_nodes = list(filter(lambda node: node['type'] == 'entity' and node['id'] != node['title'], self.nodes))
+        # self.entity_node_ids = [node['id'] for node in self.entity_nodes]
+        # # compute statistics
+        # self.network_statistics = _network_statistics(self.hyperedge_node_ids, self.entity_node_ids, self.links)
+        self.hyperedge_nodes, \
+        self.hyperedge_dict, \
+        self.node_dict, \
+        self.argument_nodes, \
+        self.entity_nodes, \
+        self.network_statistic = prepare_data(self.nodes, self.links)
 
         #################
         #################
         # prepare for frontend
-        self.entity_nodes_sorted = sorted(self.entity_nodes, key=lambda node: self.network_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
-        self.ravasz_partitions = atn_gpt_partitions
-        # self.hyperedge_nodes = addLeafLabel(self.hyperedge_nodes, self.ravasz_partitions[0])
+        self.entity_nodes_sorted, \
+        self.hyperedge_nodes, \
+        self.hierarchy_flattened = prepare_frontend(
+            self.entity_nodes, 
+            self.hyperedge_nodes,
+            self.network_statistic, 
+            self.hierarchy, 
+            self.ravasz_partitions, 
+            self.hyperedge_dict
+        )
+        # self.entity_nodes_sorted = sorted(self.entity_nodes, key=lambda node: self.network_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
+        # # add hyperedge node order
+        # self.hyperedge_nodes = addOrder(self.hyperedge_nodes, atn_gpt_hierarchy, self.ravasz_partitions[0])
+        # # sort hyperedge nodes by dfs order
+        # self.hyperedge_nodes = sorted(self.hyperedge_dict.values(), key=lambda node: node['order'])
 
-        # add hyperedge node order
-        self.hyperedge_nodes = addOrder(self.hyperedge_nodes, atn_gpt_hierarchy, self.ravasz_partitions[0])
-        # sort hyperedge nodes by dfs order
-        self.hyperedge_nodes = sorted(self.hyperedge_dict.values(), key=lambda node: node['order'])
+        # self.hierarchy_flattened = flatten_hierarchy(self.hierarchy)
 
-        self.hierarchy = atn_gpt_hierarchy
-        self.hierarchy_flattened = flatten_hierarchy(self.hierarchy)
-        # self.nodes, self.links = rams_network_data['nodes'], rams_network_data['links']
+    def filter_hyperedge_nodes(self, target_hyperedge_ids):
+        filtered_hyperedge_nodes = list(filter(lambda node: node['id'] in target_hyperedge_ids, self.hyperedge_nodes))
+        return filtered_hyperedge_nodes
+        self.nodes, self.links, self.ravasz_partitions = filter_network(
+            self.nodes,
+            self.links,
+            self.ravasz_partitions,
+            target_hyperedge_ids
+        )
 
-    def apply_filters(self, filters, test=False):
-        if test:
-            return _get_hierarchy(self.nodes, self.links, self.ravasz_partitions, filters)
-        return _apply_filters(filters, self.nodes, self.links, self.community_size_dict)
+        self.hyperedge_nodes, \
+        self.hyperedge_dict, \
+        self.node_dict, \
+        self.argument_nodes, \
+        self.entity_nodes, \
+        self.network_statistic = prepare_data(self.nodes, self.links)
+        if target_hyperedge_ids:
+            for hyperedge_node in self.hyperedge_nodes:
+                assert(hyperedge_node['id'] in target_hyperedge_ids)
 
-    def filter_links(self, nodes, links):
-        node_ids = list(map(lambda node: node['id'], nodes))
-        return [link for link in links if link['source'] in node_ids and link['target'] in node_ids]
+        self.entity_nodes_sorted, \
+        self.hyperedge_nodes, \
+        self.hierarchy_flattened = prepare_frontend(
+            self.entity_nodes, 
+            self.hyperedge_nodes,
+            self.network_statistic, 
+            self.hierarchy, 
+            self.ravasz_partitions, 
+            self.hyperedge_dict
+        )
+
+
+    # def apply_filters(self, filters, test=False):
+    #     if test:
+    #         return _get_hierarchy(self.nodes, self.links, self.ravasz_partitions, filters)
+    #     return _apply_filters(filters, self.nodes, self.links, self.community_size_dict)
+    def getDocData(self, doc_id, fieldName):
+        hyperedge_id = self.doc_id_to_hyperedge_id[doc_id]
+        return self.hyperedge_dict[hyperedge_id][fieldName]
 
     def binPartitions(self, level):
         return _binPartitions(self.ravasz_partitions[int(level)], level)
@@ -71,19 +124,6 @@ class EventHGraph:
             sub_cluster_num_dict[cluster_label] = hierarchy_of_cluster['children']
         return sub_cluster_num_dict
 
-        # queue = copy.deepcopy(self.hierarchy['children'])
-        # sub_cluster_num_dict = {}
-        # while(len(queue) > 0):
-        #     cur = queue[0]
-        #     cur_level = int(cur['title'].split("-")[1])
-        #     if cur_level == level:
-        #         sub_cluster = cur['children']
-        #         sub_cluster_ids = list(map(lambda cluster: cluster['title'], sub_cluster))
-        #         sub_cluster_num_dict[cur['title']] = list(map(lambda id: id, sub_cluster_ids))
-        #     elif cur_level > level:
-        #         queue += cur['children']
-        #     queue = queue[1:]
-        # return sub_cluster_num_dict
     def getSubClusterLabels(self, cluster_labels, isList=False):
         if isList:
             res = []
@@ -93,24 +133,38 @@ class EventHGraph:
         else:
             return self.hierarchy_flattened[cluster_labels]['children']
 
-    def getSubClusters(self, cluster_labels, isList=False):
+    def getSubClusters(self, cluster_labels, isList=False, filtered=False):
         if isList:
             targeted_sub_clusters = {}
             for cluster_label in cluster_labels:
                 targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_label)
+                # some of the targeted sub clusters might not exist
+                # user hyperedge ids to filter out the non-existing sub clusters
                 sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
+                if filtered:
+                    targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
                 all_sub_cluster_at_level = self.binPartitions(sub_cluster_level)
                 # keep only the sub clusters that are in the sub_cluster_labels
                 for sub_cluster_label in targeted_sub_cluster_labels:
                     targeted_sub_clusters[sub_cluster_label] = all_sub_cluster_at_level[sub_cluster_label]
             return targeted_sub_clusters
         else:
-            targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_labels)
+            targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_labels) 
+            # some of the targeted sub clusters might not exist
+            # user hyperedge ids to filter out the non-existing sub clusters
             sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
+            if filtered:
+                targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
             all_sub_cluster_at_level = self.binPartitions(sub_cluster_level)
             # keep only the sub clusters that are in the sub_cluster_labels
             targeted_sub_clusters = {sub_cluster_label: all_sub_cluster_at_level[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
             return targeted_sub_clusters
+    
+    def getClusterLabelSetFrom(self, nonFilteredClusterLabels, level):
+        partition = self.ravasz_partitions[level]
+        all_partition_labels = partition.keys()
+        filteredClusterLabels = list(filter(lambda cluster_label: cluster_label in all_partition_labels, nonFilteredClusterLabels))
+        return filteredClusterLabels
 
 
     
@@ -147,6 +201,49 @@ class EventHGraph:
                 hyperedge_entity_links, \
                 None
 
+def filter_network(nodes, links, partitions, target_hyperedge_ids=None):
+    if target_hyperedge_ids != None:
+        links = [link for link in links if link['source'] in target_hyperedge_ids or link['target'] in target_hyperedge_ids]
+        nodes = [node for node in nodes if node['id'] in target_hyperedge_ids or node['id'] in list(map(lambda link: link['source'], links)) or node['id'] in list(map(lambda link: link['target'], links))]
+        for level in partitions:
+            del_keys = []
+            for hyperedge_node_id in level.keys():
+                if hyperedge_node_id not in nodes:
+                    del_keys.append(hyperedge_node_id)
+            for key in del_keys:         
+                del level[key]
+    return nodes, links, partitions
+
+
+def prepare_data(nodes, links):
+    # hyperedge nodes
+    hyperedge_nodes = list(filter(lambda node: node['type'] == 'hyper_edge', nodes))
+    hyperedge_node_ids = [node['id'] for node in hyperedge_nodes]
+    hyperedge_dict = {node['id']: node for node in hyperedge_nodes}
+    # argument nodes
+    node_dict = {node['id']: node for node in nodes}
+    argument_nodes = list(filter(lambda node: node['type'] == 'entity', nodes))
+    # entity nodes
+    entity_nodes = list(filter(lambda node: node['type'] == 'entity' and node['id'] != node['title'], nodes))
+    entity_node_ids = [node['id'] for node in entity_nodes]
+    # compute statistics
+    network_statistics = _network_statistics(hyperedge_node_ids, entity_node_ids, links)
+
+    return hyperedge_nodes, hyperedge_dict, node_dict, argument_nodes, entity_nodes, network_statistics
+
+def prepare_frontend(entity_nodes, hyperedge_nodes, network_statistics, hierarchy, partitions, hyperedge_dict):
+    # prepare for frontend
+    entity_nodes_sorted = sorted(entity_nodes, key=lambda node: network_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
+    # add hyperedge node order
+    hyperedge_nodes = addOrder(hyperedge_nodes, hierarchy, partitions[0])
+    # sort hyperedge nodes by dfs order
+    hyperedge_nodes = sorted(hyperedge_dict.values(), key=lambda node: node['order'])
+
+    hierarchy_flattened = flatten_hierarchy(hierarchy)
+    return entity_nodes_sorted, hyperedge_nodes, hierarchy_flattened
+
+
+
 def flatten_hierarchy(hierarchy):
     queue = copy.deepcopy(hierarchy['children'])
     hierarchy_flattened = {}
@@ -171,7 +268,10 @@ def addOrder(nodes, hierarchy, leaf_partition):
 def dfs(nodes, hierarchy, order, leaf_partition):
     if 'children' not in hierarchy:
         cluster_label = hierarchy['title'].split("-")[2]
-        target_leaf_node = list(filter(lambda node: str(leaf_partition[node['id']]) == str(cluster_label), nodes))[0]
+        target_leaf_node = list(filter(lambda node: str(leaf_partition[node['id']]) == str(cluster_label), nodes))
+        # target leaf node could be filter out, needs to check
+        if len(target_leaf_node) == 0: return
+        target_leaf_node = target_leaf_node[0]
         target_leaf_node['order'] = len(order)
         order.append(target_leaf_node)
         return

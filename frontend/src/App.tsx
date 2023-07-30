@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
 // import EventHgraph from './components/EventHGraph'
-import Filters from './components/Filters'
 import HierarchyInspector from './components/HierarchyInspector/HierarchyInspector'
 import { server_address } from './shared'
 import type { t_EventHGraph } from './types'
@@ -190,7 +189,7 @@ function App() {
 
   async function applyFilter() {
     if(event_hgraph === undefined) return
-    const hyperedge_ids = relevantDocIds
+    const hyperedge_ids = event_hgraph.hyperedge_nodes.filter(hyperedge => relevantDocIds.includes(hyperedge.doc_id)).map(hyperedge => hyperedge.id)
     const clusters = event_hgraph.clusters
     console.log("filtering: ", hyperedge_ids, clusters)
     fetch(`${server_address}/user/filter/${user_id}`, {

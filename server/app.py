@@ -82,28 +82,24 @@ def filter_hgraph(uid: int):
     uid = int(uid)
     hyperedge_node_ids = request.json['hyperedge_ids']
     clusters = request.json['clusters']
+    user_hgraph = graph_controller.getUserHGraph(uid)
     # filter clusters
     clusters = Utils.filterClusters(clusters, hyperedge_node_ids)
+    sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
     # get candidate entity nodes
-    user_hgraph = graph_controller.getUserHGraph(uid)
-    # BUG: needs to turn doc id to node id
-    user_hgraph.filter_hyperedge_nodes(hyperedge_node_ids)
+    filtered_hyperedge_nodes = user_hgraph.filter_hyperedge_nodes(hyperedge_node_ids)
 
-    # get clusters
-    sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True, filtered=True)
-
-    # add cluster label to hyperedge nodes
-    hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
-
+    filtered_hyperedge_node_dict = {node['id']: node for node in filtered_hyperedge_nodes}
+    filtered_hyperedge_node_dict = Utils.addClusterLabel(filtered_hyperedge_node_dict, clusters, sub_clusters)
+    sorted_filtered_hyperedge_nodes = sorted(list(filtered_hyperedge_node_dict.values()), key=lambda x: x['order'])
     # generate cluster order
-    cluster_order = Utils.generateClusterOrder(user_hgraph.hyperedge_nodes)
+    cluster_order = Utils.generateClusterOrder(sorted_filtered_hyperedge_nodes)
     update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
-    # add cluster order to hyperedge nodes
-    hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+    filtered_hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, filtered_hyperedge_node_dict)
 
     # return result
     hgraph = {
-        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
+        "hyperedge_nodes": data_transformer.transform_hyperedge(filtered_hyperedge_node_dict.values()),
         # "entity_nodes": user_hgraph.entity_nodes,
         # "argument_nodes": user_hgraph.argument_nodes,
         # "candidate_entity_nodes": candidate_entity_nodes,

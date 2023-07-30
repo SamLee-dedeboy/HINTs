@@ -29,17 +29,28 @@ def generateUpdateClusterOrder(cluster_order, new_clusters, top_level=False):
 def addClusterLabel(node_dict, clusters, subClusters=None):
     for cluster_id, node_ids in clusters.items():
         for node_id in node_ids:
-            node_dict[node_id]['cluster_label'] = cluster_id
+            if node_id in node_dict:
+                node_dict[node_id]['cluster_label'] = cluster_id
     if subClusters:
         for sub_cluster_id, node_ids in subClusters.items():
             for node_id in node_ids:
-                node_dict[node_id]['sub_cluster_label'] = sub_cluster_id
+                if node_id in node_dict:
+                    node_dict[node_id]['sub_cluster_label'] = sub_cluster_id
     return node_dict
 
 def addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict):
     for cluster_label in cluster_order:
         hyperedge_node_ids = clusters[cluster_label]
         for hyperedge_node_id in hyperedge_node_ids:
-            node_dict[hyperedge_node_id]['cluster_order'] = cluster_order.index(cluster_label)
-            node_dict[hyperedge_node_id]['update_cluster_order'] = update_cluster_order[cluster_label]
+            if hyperedge_node_id in node_dict:
+                node_dict[hyperedge_node_id]['cluster_order'] = cluster_order.index(cluster_label)
+                node_dict[hyperedge_node_id]['update_cluster_order'] = update_cluster_order[cluster_label]
     return node_dict
+
+def filterClusters(clusters, hyperedge_ids):
+    res = {}
+    for cluster_label, cluster_hyperedge_node_ids in clusters.items():
+        filtered_cluster_hyperedge_node_ids = [id for id in cluster_hyperedge_node_ids if id in hyperedge_ids]
+        if len(filtered_cluster_hyperedge_node_ids) > 0:
+            res[cluster_label] = filtered_cluster_hyperedge_node_ids
+    return res
