@@ -13,7 +13,6 @@ class EmbeddingSearch:
         self,
         query: str,
         relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
-        top_n: int = 100
     ) -> tuple[list[str], list[float]]:
         """Returns a list of strings and relatednesses, sorted from most related to least."""
         query_embedding_response = openai.Embedding.create(
@@ -22,7 +21,7 @@ class EmbeddingSearch:
         )
         query_embedding = query_embedding_response["data"][0]["embedding"]
         strings_and_relatednesses = [
-            (doc_data["doc_id"], relatedness_fn(query_embedding, doc_data["embedding"]))
+            (doc_data["doc_id"], relatedness_fn(query_embedding, doc_data["embedding"]), doc_data['summary'])
             for doc_data in self.embeddings_db
         ]
         strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)

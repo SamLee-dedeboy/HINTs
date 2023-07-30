@@ -14,10 +14,12 @@ import { Input, InputNumber } from 'antd';
 const Search = Input.Search;
 
 function App() {
+  const user_id = 0
   const [event_hgraph, setEventHGraph] = useState<t_EventHGraph>()
   const [eventHGraphLoaded, setEventHGraphLoaded] = useState(false)
   const [hierarchy, setHierarchy] = useState<any[]>()
-  const [contents, setContents] = useState<any[]>()
+  // const [contents, setContents] = useState<any[]>()
+
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [cluster_data, setClusterData] = useState<any>()
@@ -28,8 +30,10 @@ function App() {
   const [query, setQuery] = useState<string>("")
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
   const [docsRanked, setDocsRanked] = useState<any[]>([]) 
-  const [relevantDocIds, setRelevantDocIds] = useState<any[]>([])
-  const [relevanceThreshold, setRelevanceThreshold] = useState<any>(0.8)
+  // const [relevantDocs, setRelevantDocs] = useState<any[]>([])
+  const [relevanceThreshold, setRelevanceThreshold] = useState<number>(0.80)
+  const relevantDocs = useMemo(() => docsRanked.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked, relevanceThreshold])
+  const relevantDocIds = useMemo(() => relevantDocs.map(doc => doc.doc_id), [relevantDocs])
 
   // flags
   const [cluster_selected, setClusterSelected] = useState(false)
@@ -45,13 +49,13 @@ function App() {
     fetchPartition()
   }, [level])
 
-  useEffect(() => {
-    updateRelevantDocIds(docsRanked, relevanceThreshold)
-  }, [relevanceThreshold])
+  // useEffect(() => {
+  //   updateRelevantDocIds(docsRanked, relevanceThreshold)
+  // }, [relevanceThreshold])
 
   async function fetch_hierarchy() {
     console.log("fetching hierarchy")
-    fetch(`${server_address}/data/hierarchy`)
+    fetch(`${server_address}/static/hierarchy`)
       .then(res => res.json())
       .then(hierarchy => {
         console.log({hierarchy})
@@ -61,7 +65,7 @@ function App() {
 
   async function fetchPartition() {
     console.log("fetching hgraph with partition", level)
-    fetch(`${server_address}/data/partition`, {
+    fetch(`${server_address}/user/partition/${user_id}`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
@@ -117,7 +121,7 @@ function App() {
       setTopic("No article selected")
       return
     }
-    fetch(`${server_address}/topic`, {
+    fetch(`${server_address}/static/topic`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
@@ -137,7 +141,7 @@ function App() {
     // setClusterSelected(true)
     // setClusterDataFetched(false)
     console.log("fetching for cluster", cluster_id)
-    fetch(`${server_address}/data/expand_cluster`, {
+    fetch(`${server_address}/user/expand_cluster/${user_id}`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
@@ -160,7 +164,7 @@ function App() {
     setSearchLoading(true)
     setSearchMode(true)
     console.log("searching: ", query)
-    fetch(`${server_address}/data/search`, {
+    fetch(`${server_address}/static/search/`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
@@ -169,23 +173,48 @@ function App() {
       body: JSON.stringify({ query })
     })
       .then(res => res.json())
-      .then(docs_ranked => {
-        console.log({docs_ranked})
+      .then(search_response => {
+        console.log({search_response})
+        const docs_ranked = search_response.docs
+        const suggested_threshold = search_response.suggested_threshold
         setSearchLoading(false)
         setDocsRanked(docs_ranked)
-        updateRelevantDocIds(docs_ranked, relevanceThreshold)
+        setRelevanceThreshold(Number(suggested_threshold.toFixed(2)))
+        // updateRelevantDocIds(docs_ranked, relevanceThreshold)
         // setEventHGraph(expanded_hgraph)
         // setEventHGraphLoaded(true)
         // setClusterData(cluster_data)
         // setClusterDataFetched(true)
       })
+  }
+
+  async function applyFilter() {
+    if(event_hgraph === undefined) return
+    const hyperedge_ids = relevantDocIds
+    const clusters = event_hgraph.clusters
+    console.log("filtering: ", hyperedge_ids, clusters)
+    fetch(`${server_address}/user/filter/${user_id}`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ hyperedge_ids, clusters })
+    })
+      .then(res => res.json())
+      .then(filtered_hgraph => {
+        console.log({filtered_hgraph})
+        // setEventHGraph(expanded_hgraph)
+        // setEventHGraphLoaded(true)
+      })
 
   }
 
-  function updateRelevantDocIds(doc_id_relevance_list, threshold) {
-    const relevant_doc_ids = doc_id_relevance_list.filter(doc_id_relevance => doc_id_relevance[1] >= threshold).map(doc_id_relevance => doc_id_relevance[0])
-    setRelevantDocIds(relevant_doc_ids)
-  }
+  // function updateRelevantDocIds(doc_id_relevance_list, threshold) {
+  //   const relevant_doc_ids = doc_id_relevance_list.filter(doc_id_relevance => doc_id_relevance[1] >= threshold).map(doc_id_relevance => doc_id_relevance[0])
+  //   const relevant_docs = []
+  //   setRelevantDocs(relevant_docs)
+  // }
 
   function toggleBrush() {
     if(brushMode) setBrushMode(false)
@@ -218,22 +247,23 @@ function App() {
             searchMode={searchMode}
             brushMode={brushMode} />
         }
-        {
+        {/* {
           cluster_selected && !cluster_data_fetched && 
           <div className="loading-hint"> Loading... </div>
         }
         {
           cluster_selected && cluster_data_fetched && 
           <ClusterDetail svgId={"cluster-detail-svg"} cluster_data={cluster_data} onNodesSelected={fetchTopic}/>
-        }
+        } */}
       </div>
-      <div className='right-panel flex basis-1/2 w-1/12'>
+      <div className='right-panel flex flex-col basis-1/2 w-1/12'>
         {
           hierarchy &&
           <div>
             {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
             <button className={"toggle-brush"} onClick={toggleBrush}> Brush {brushMode? "on":"off"}</button>
             <button className={"toggle-searchMode"} onClick={toggleSearchMode}> SearchMode {searchMode? "on":"off"}</button>
+            <button className={"apply-filter"} onClick={applyFilter}>Apply Filter</button>
             <Search className={"search-bar"}
               placeholder="input search text" 
               // enterButton="Search" 
@@ -241,33 +271,24 @@ function App() {
               onChange={(e) => setQuery(e.target.value)}
               onSearch={search} 
               loading={searchLoading} />
-            <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} onChange={setRelevanceThreshold} />
+            <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
 
             <LevelInput inputValue={level} onChange={setLevel} minValue={0} maxValue={7} />
             <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
             <div className="topic-viewer w-full"> {topic} </div>
           </div>
         }
-        <div className='flex basis-1/2'>
+        <div className='flex flex-col overflow-y-auto'>
           {
-            contents &&
-            Object.keys(contents).map(comm_label => {
+            relevantDocs &&
+            relevantDocs.map(doc_data => {
               return (
-                <div className='cluster-content-container w-full h-1/2' key={comm_label}>
-                  <p> comm size: {contents[comm_label].length}</p>
-                  <div className='cluster-node-list-container flex flex-col overflow-scroll border border-solid border-black h-9/10'>
-                    {
-                    contents[comm_label].map(node => {
-                      return (
-                        <div className='cluster-node-container border-b border-solid border-black' key={node.trigger}>
-                          <p> Event: {node.trigger}</p>
-                          <p> arguments: {node.arguments}</p>
-                          <p> summary: {node.summary}</p>
-                        </div>
-                      )
-                    })
-                    }
+                <div className="doc-card flex border-b">
+                  <div className="doc-card-header flex flex-col border-r justify-center items-center">
+                    <div className="doc-card-title"> {doc_data.doc_id} </div>
+                    <div className="doc-card-relevance"> {doc_data.relevance.toFixed(2)} </div>
                   </div>
+                  <div className="doc-card-content"> {doc_data.summary} </div>
                 </div>
               )
             })
