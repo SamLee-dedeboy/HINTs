@@ -119,20 +119,43 @@ function ClusterOverview({
     const cell_height = canvasSize.height / grid_length
     const total_cluster_gap = Math.pow(4, hilbert_order) - 1 - hyperedge_nodes.length
     const cluster_order = graph.cluster_order
-    let gaps: number[] = [0]
-    let accumulative_gap = 0
     const total_volume = 2*hyperedge_nodes.length - graph.clusters[cluster_order[0]].length - graph.clusters[cluster_order[cluster_order.length-1]].length
-    // generate cluster gaps
-    for(let i = 0; i < cluster_order.length-1; i++) {
-      const cluster1 = cluster_order[i]
-      const cluster2 = cluster_order[i+1]
-      const cluster1_volume = graph.clusters[cluster1].length
-      const cluster2_volume = graph.clusters[cluster2].length
-      const volume_ratio = (cluster1_volume + cluster2_volume) / total_volume
-      const gap = total_cluster_gap * volume_ratio
-      accumulative_gap += Math.round(gap)
-      gaps.push(accumulative_gap)
+    const evenGaps = (cluster_order, total_volume, total_cluster_gap) => {
+      let gaps: number[] = [0]
+      let accumulative_gap = 0
+      // generate cluster gaps
+      for(let i = 0; i < cluster_order.length-1; i++) {
+        const cluster1 = cluster_order[i]
+        const cluster2 = cluster_order[i+1]
+        const cluster1_volume = graph.clusters[cluster1].length
+        const cluster2_volume = graph.clusters[cluster2].length
+        const volume_ratio = (cluster1_volume + cluster2_volume) / total_volume
+        const gap_num = total_cluster_gap * volume_ratio
+        accumulative_gap += Math.round(gap_num)
+        gaps.push(accumulative_gap)
+      }
+      return gaps
     }
+
+    const centerGaps = (cluster_order, total_volume, total_cluster_gap) => {
+      const padding = total_cluster_gap * 0.2
+      const remain_cluster_gap = total_cluster_gap - padding
+      let gaps: number[] = [padding / 2]
+      let accumulative_gap = 0
+      for(let i = 0; i < cluster_order.length-1; i++) {
+        const cluster1 = cluster_order[i]
+        const cluster2 = cluster_order[i+1]
+        const cluster1_volume = graph.clusters[cluster1].length
+        const cluster2_volume = graph.clusters[cluster2].length
+        const volume_ratio = (cluster1_volume + cluster2_volume) / total_volume
+        const gap_num = remain_cluster_gap * volume_ratio
+        accumulative_gap += Math.round(gap_num)
+        gaps.push(accumulative_gap)
+      }
+      return gaps
+    }
+
+    const gaps = centerGaps(cluster_order, total_volume, total_cluster_gap)
 
     // assign hilbert coord to hyperedge nodes
     hyperedge_nodes.sort((a, b) => a.order - b.order)
@@ -388,7 +411,7 @@ function ClusterOverview({
       const cluster_hyperedge_node_ids = graph.clusters[cluster_label]
       console.log(cluster_label, graph.clusters[cluster_label])
       const hyperedge_nodes_data = graph.hyperedge_nodes.filter(node => cluster_hyperedge_node_ids.includes(node.id))
-      
+
       const border_path = generate_border(hyperedge_nodes_data)
       border_paths.push({
         "cluster_label": cluster_label,
