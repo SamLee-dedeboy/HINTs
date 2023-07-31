@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from pprint import pprint
 from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils
+import copy
 
 from collections import defaultdict
 import sys
@@ -48,6 +49,8 @@ def get_partition(uid):
     entity_node_num = request.json['entity_node_num']
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
+    # reset filtering
+    user_hgraph.resetFiltering()
     candidate_entity_nodes = user_hgraph.entity_nodes_sorted[:entity_node_num]
 
     # get clusters
@@ -97,6 +100,11 @@ def filter_hgraph(uid: int):
     update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
     filtered_hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, filtered_hyperedge_node_dict)
 
+    # record the filtered graph
+    user_hgraph.original_hyperedge_nodes = copy.deepcopy(user_hgraph.hyperedge_nodes)
+    user_hgraph.hyperedge_nodes = list(filtered_hyperedge_node_dict.values())
+    user_hgraph.hyperedge_dict = filtered_hyperedge_node_dict
+
     # return result
     hgraph = {
         "hyperedge_nodes": data_transformer.transform_hyperedge(filtered_hyperedge_node_dict.values()),
@@ -112,32 +120,27 @@ def filter_hgraph(uid: int):
     return json.dumps(hgraph, default=vars)
 
 @app.route("/user/expand_cluster/<uid>", methods=["POST"])
-def expand_cluster():
+def expand_cluster(uid):
     uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
     clusters = request.json['clusters']
     user_hgraph = graph_controller.getUserHGraph(uid)
     sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
-    # cluster_level = int(cluster_label.split('-')[1])
-    # clusters = user_hgraph.binPartitions(cluster_level)
-    # sub_clusters = user_hgraph.binPartitions(cluster_level - 1)
     ###############
     # expand cluster
     # generate sub clusters of targeted cluster
+    hyperedge_node_ids = list(map(lambda node: node['id'], user_hgraph.hyperedge_nodes)) 
     targeted_sub_clusters = user_hgraph.getSubClusters(cluster_label)
-        # targeted_sub_cluster_labels = user_hgraph.getSubClusterLabels(cluster_label)
-        # targeted_sub_clusters = {sub_cluster_label: sub_clusters[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
+    targeted_sub_clusters = Utils.filterClusters(targeted_sub_clusters, hyperedge_node_ids)
     # replace the targeted cluster with targeted_sub_clusters
     del clusters[cluster_label]
     for targeted_sub_cluster_label, targeted_sub_cluster_node_ids in targeted_sub_clusters.items():
         clusters[targeted_sub_cluster_label] = targeted_sub_cluster_node_ids
     # generate sub-clusters of sub_clusters
-    # sub_cluster_level = cluster_level - 1
-    # sub_sub_clusters_all = user_hgraph.binPartitions(sub_cluster_level - 1) if int(sub_cluster_level) > 0 else None
     # filter out targeted sub-sub-clusters
     targeted_sub_sub_clusters = user_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True)
-        # targeted_sub_sub_clusters = {sub_sub_cluster_label: sub_sub_clusters_all[sub_sub_cluster_label] for sub_sub_cluster_label in targeted_sub_sub_cluster_labels}
+    targeted_sub_sub_clusters = Utils.filterClusters(targeted_sub_sub_clusters, hyperedge_node_ids)
     # replace the sub-clusters of targeted cluster with its sub-sub-clusters
     for targeted_sub_cluster_key in targeted_sub_clusters.keys():
         del sub_clusters[targeted_sub_cluster_key]
@@ -174,7 +177,8 @@ def search():
     query = request.json['query']
     doc_id_relevance = embedding_searcher.search(query=query)
     # binary search to find the most appropriate threshold
-    suggested_threshold = GptUtils.binary_search_threshold(doc_id_relevance, query)
+    # suggested_threshold = GptUtils.binary_search_threshold(doc_id_relevance, query)
+    suggested_threshold = 0.8
 
     doc_data = []
     for (doc_id, relevance, summary) in doc_id_relevance:

@@ -111,7 +111,8 @@ function ClusterOverview({
     graph.hyperedge_nodes.forEach(node => { hyperedge_dict[node.id] = node })
     // let entity_node_dict = {}
     // graph.candidate_entity_nodes.forEach(node => { entity_node_dict[node.id] = node })
-    const hilbert_order = Math.ceil(Math.log(hyperedge_nodes.length) / Math.log(4))+0 // log_4(nodes.length)
+    // const hilbert_order = Math.ceil(Math.log(hyperedge_nodes.length) / Math.log(4))+0 // log_4(nodes.length)
+    const hilbert_order = Math.ceil(Math.log(7546) / Math.log(4))+0 // log_4(nodes.length)
     const hilbert = d3Hilbert().order(hilbert_order)
     const grid_length = Math.pow(2, hilbert_order)
     const cell_width = canvasSize.width / grid_length
@@ -136,8 +137,8 @@ function ClusterOverview({
     // assign hilbert coord to hyperedge nodes
     hyperedge_nodes.sort((a, b) => a.order - b.order)
     const node_coords = {}
-    hyperedge_nodes.forEach(node => {
-        const node_hilbert_order = Math.min(node.order + gaps[node.cluster_order], Math.pow(4, hilbert_order) - 1)
+    hyperedge_nodes.forEach((node, index) => {
+        const node_hilbert_order = Math.min(index + gaps[node.cluster_order], Math.pow(4, hilbert_order) - 1)
         const xy = hilbert.getXyAtVal(node_hilbert_order)
         node.x = cell_width * xy[0]
         node.y = cell_height * xy[1] 
@@ -150,6 +151,7 @@ function ClusterOverview({
         // node_coords[node.id] = node
         node.cell_width = cell_width,
         node.cell_height = cell_height
+        // node.radius = Math.min(cell_width, cell_height) / 2.8
     })
     // setPreviousNodeDict(node_coords)
     // entity nodes
@@ -384,7 +386,9 @@ function ClusterOverview({
     let border_paths: any[] = []
     Object.keys(graph.clusters).forEach(cluster_label => {
       const cluster_hyperedge_node_ids = graph.clusters[cluster_label]
+      console.log(cluster_label, graph.clusters[cluster_label])
       const hyperedge_nodes_data = graph.hyperedge_nodes.filter(node => cluster_hyperedge_node_ids.includes(node.id))
+      
       const border_path = generate_border(hyperedge_nodes_data)
       border_paths.push({
         "cluster_label": cluster_label,
