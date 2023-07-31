@@ -66,6 +66,8 @@ class EventHGraph:
             self.ravasz_partitions, 
             self.hyperedge_dict
         )
+        self.original_hyperedge_nodes = self.hyperedge_nodes
+        self.original_partition = self.ravasz_partitions 
         # self.entity_nodes_sorted = sorted(self.entity_nodes, key=lambda node: self.network_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
         # # add hyperedge node order
         # self.hyperedge_nodes = addOrder(self.hyperedge_nodes, atn_gpt_hierarchy, self.ravasz_partitions[0])
@@ -73,6 +75,12 @@ class EventHGraph:
         # self.hyperedge_nodes = sorted(self.hyperedge_dict.values(), key=lambda node: node['order'])
 
         # self.hierarchy_flattened = flatten_hierarchy(self.hierarchy)
+
+    def resetFiltering(self):
+        self.hyperedge_nodes = self.original_hyperedge_nodes
+        self.hyperedge_dict = {node['id']: node for node in self.hyperedge_nodes}
+        self.ravasz_partitions = self.original_partition
+        return
 
     def filter_hyperedge_nodes(self, target_hyperedge_ids):
         filtered_hyperedge_nodes = list(filter(lambda node: node['id'] in target_hyperedge_ids, self.hyperedge_nodes))
@@ -132,6 +140,14 @@ class EventHGraph:
             return res
         else:
             return self.hierarchy_flattened[cluster_labels]['children']
+    
+    # def filterClusters(self, cluster_labels):
+    #     res = {}
+    #     for sub_cluster_label, hyperedge_nodes in cluster_labels.items():
+    #         hyperedge_nodes = list(filter(lambda node: node['id'] in hyperedge_nodes, self.hyperedge_nodes))
+    #         if len(hyperedge_nodes) == 0: continue
+    #         res[sub_cluster_label] = hyperedge_nodes
+    #     return res
 
     def getSubClusters(self, cluster_labels, isList=False, filtered=False):
         if isList:

@@ -203,7 +203,7 @@ function App() {
       .then(res => res.json())
       .then(filtered_hgraph => {
         console.log({filtered_hgraph})
-        // setEventHGraph(expanded_hgraph)
+        setEventHGraph(filtered_hgraph)
         // setEventHGraphLoaded(true)
       })
 

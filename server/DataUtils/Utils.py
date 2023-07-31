@@ -40,6 +40,7 @@ def addClusterLabel(node_dict, clusters, subClusters=None):
 
 def addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict):
     for cluster_label in cluster_order:
+        if cluster_label not in clusters: continue
         hyperedge_node_ids = clusters[cluster_label]
         for hyperedge_node_id in hyperedge_node_ids:
             if hyperedge_node_id in node_dict:

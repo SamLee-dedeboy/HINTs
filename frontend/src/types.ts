@@ -38,6 +38,7 @@ export type t_HyperedgeNode = {
     cluster_label: string,
     sub_cluster_label: string,
     // optional
+    // radius?: number,
     trigger?: string,
     arguments?: string[],
     summary?: string,
