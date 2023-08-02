@@ -1,3 +1,41 @@
+def getArticleClusterEntities(user_hgraph, clusters):
+    cluster_entities_dict = {}
+    for cluster_label, article_nodes in clusters.items():
+        cluster_links = list(filter(lambda link: link['source'] in article_nodes or link['target'] in article_nodes, user_hgraph.entity_links))
+        cluster_link_sources = [link['source'] for link in cluster_links]
+        cluster_link_targets = [link['target'] for link in cluster_links]
+        cluster_entity_nodes = list(filter(lambda entity: entity['id'] in cluster_link_sources or entity['id'] in cluster_link_targets, user_hgraph.entity_nodes))
+        cluster_entities_dict[cluster_label] = cluster_entity_nodes 
+
+    return cluster_entities_dict
+def prepareData(user_hgraph, level, type='hyperedge'):
+    if type == 'hyperedge':
+        clusters = user_hgraph.binPartitions(level)
+        sub_clusters = user_hgraph.binPartitions(level - 1) if int(level) > 0 else None
+        # add cluster label to hyperedge nodes
+        hyperedge_node_dict = addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
+
+        # generate cluster order
+        cluster_order = generateClusterOrder(list(hyperedge_node_dict.values()))
+        update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+        # add cluster order to hyperedge nodes
+        hyperedge_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+        return clusters, hyperedge_node_dict, cluster_order, update_cluster_order
+    elif type == 'entity':
+        clusters = user_hgraph.binPartitions(level, type='entity')
+        sub_clusters = user_hgraph.binPartitions(level - 1, type="entity") if int(level) > 0 else None
+        # add cluster label to hyperedge nodes
+        entity_node_dict = addClusterLabel(user_hgraph.entity_dict, clusters, sub_clusters)
+
+        # generate cluster order
+        cluster_order = generateClusterOrder(list(entity_node_dict.values()))
+        update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+        # add cluster order to hyperedge nodes
+        entity_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, entity_node_dict)
+        return clusters, entity_node_dict, cluster_order, update_cluster_order
+
+
+    return
 def generateClusterOrder(nodes):
     nodes = sorted(nodes, key=lambda x: x['order'])
     cur_cluster = nodes[0]['cluster_label']

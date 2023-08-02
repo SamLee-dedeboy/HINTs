@@ -60,6 +60,7 @@ class EventHGraph:
         self.argument_nodes, \
         self.entity_nodes, \
         self.entity_dict, \
+        self.entity_links, \
         self.network_statistic = prepare_data(self.nodes, self.links)
 
         #################
@@ -268,10 +269,13 @@ def prepare_data(nodes, links):
     entity_nodes = list(filter(lambda node: node['type'] == 'entity' and node['id'] != node['title'], nodes))
     entity_node_ids = [node['id'] for node in entity_nodes]
     entity_dict = {node['id']: node for node in entity_nodes}
+
+    # entity links
+    entity_links = list(filter(lambda link: link['source'] in entity_node_ids or link['target'] in entity_node_ids, links))
     # compute statistics
     network_statistics = _network_statistics(hyperedge_node_ids, entity_node_ids, links)
 
-    return hyperedge_nodes, hyperedge_dict, node_dict, argument_nodes, entity_nodes, entity_dict, network_statistics
+    return hyperedge_nodes, hyperedge_dict, node_dict, argument_nodes, entity_nodes, entity_dict, entity_links, network_statistics
 
 def prepare_frontend(
         entity_nodes, 

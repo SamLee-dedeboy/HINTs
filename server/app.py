@@ -45,7 +45,8 @@ def generate_topic():
 @app.route("/user/article/partition//<uid>", methods=["POST"])
 def get_article_partition(uid):
     uid = int(uid)
-    level = request.json['level']
+    article_level = request.json['article_level']
+    entity_level = request.json['entity_level']
     # entity_node_num = request.json['entity_node_num']
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
@@ -53,31 +54,43 @@ def get_article_partition(uid):
     user_hgraph.resetFiltering()
     # candidate_entity_nodes = user_hgraph.entity_nodes_sorted[:entity_node_num]
 
-    # get clusters
-    clusters = user_hgraph.binPartitions(level)
-    sub_clusters = user_hgraph.binPartitions(level - 1) if int(level) > 0 else None
+    # hyperedge
+    clusters, hyperedge_node_dict, cluster_order, update_cluster_order = Utils.prepareData(user_hgraph, article_level, type='hyperedge')
+    # entity
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.prepareData(user_hgraph, entity_level, type='entity')
+    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    # # get clusters
+    # clusters = user_hgraph.binPartitions(level)
+    # sub_clusters = user_hgraph.binPartitions(level - 1) if int(level) > 0 else None
 
-    # add cluster label to hyperedge nodes
-    hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
+    # # add cluster label to hyperedge nodes
+    # hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
 
-    # generate cluster order
-    cluster_order = Utils.generateClusterOrder(list(hyperedge_node_dict.values()))
-    update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
-    # add cluster order to hyperedge nodes
-    hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+    # # generate cluster order
+    # cluster_order = Utils.generateClusterOrder(list(hyperedge_node_dict.values()))
+    # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+    # # add cluster order to hyperedge nodes
+    # hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
 
     # return result
     hgraph = {
-        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
-        # "entity_nodes": user_hgraph.entity_nodes,
         # "argument_nodes": user_hgraph.argument_nodes,
         # "candidate_entity_nodes": candidate_entity_nodes,
         # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
+        "links": user_hgraph.entity_links,
+        # articles
+        "hyperedge_nodes": data_transformer.transform_hyperedge(hyperedge_node_dict.values()),
         "clusters": clusters,
         "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.hierarchical_topics,
+        "article_cluster_entities": article_cluster_entities,
+        # entities
+        "entity_nodes": user_hgraph.entity_nodes,
+        "entity_clusters":  entity_clusters,
+        "entity_cluster_order": entity_cluster_order,
+        "entity_update_cluster_order": entity_update_cluster_order,
     }
     return json.dumps(hgraph, default=vars)
 
