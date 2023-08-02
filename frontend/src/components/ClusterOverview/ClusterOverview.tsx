@@ -4,7 +4,7 @@ import { usePrevious } from "@uidotdev/usehooks";
 
 import d3Hilbert from 'd3-hilbert';
 import "./ClusterOverview.css"
-import { t_EventHGraph, t_HyperedgeNode } from "../../types.ts"
+import { t_EventHGraph, t_HyperedgeNode, tooltipContent } from "../../types.ts"
 import concaveman from "concaveman"
 
 interface ClusterOverviewProps {
@@ -59,20 +59,16 @@ function ClusterOverview({
   const subClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   const [previousClusterColorDict, setPreviousClusterColorDict] = useState<any>(undefined)
   const [previousSubClusterColorDict, setPreviousSubClusterColorDict] = useState<any>(undefined)
-  const [previousNodeDict, setPreviousNodeDict] = useState<any>({}) 
+  const [tooltipData, setTooltipData] = useState<tooltipContent>()
   
   const clusterColorDict = useMemo(() => {
     let cluster_color_dict = {}
-    console.log(previousClusterColorDict, previousSubClusterColorDict)
     Object.keys(graph.clusters).forEach(cluster_label => {
       if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
-        console.log("kept original cluster color", cluster_label)
         cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
       } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
-        console.log("kept original sub cluster color", cluster_label)
         cluster_color_dict[cluster_label] = previousSubClusterColorDict[cluster_label]
       } else {
-        console.log("regenerated cluster color", cluster_label)
         cluster_color_dict[cluster_label] = clusterColorScale(cluster_label)
       }
     })
@@ -84,20 +80,28 @@ function ClusterOverview({
     let sub_cluster_color_dict = {}
     Object.keys(graph.clusters).forEach(cluster_label => {
       const cluster_color = d3.hsl(clusterColorDict[cluster_label])
-      const sub_clusters = graph.num_sub_clusters[cluster_label]
+      const sub_clusters = graph.sub_clusters[cluster_label]
       const sub_cluster_renumber_dict = {}
       sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
-      const sub_cluster_colorScale = d3.scaleLinear()
+      const sub_cluster_sScale = d3.scaleLinear()
         .domain([0,  sub_clusters.length - 1])
-        .range([0.4, 1]);
+        .range([0.5, 1]);
+      const sub_cluster_lScale = d3.scaleLinear()
+        .domain([0,  sub_clusters.length - 1])
+        .range([0.4, 0.8]);
+      
       sub_clusters.forEach((sub_cluster_label, i) => {
         // sub_cluster_color_dict[sub_cluster_label] = d3.hsl(cluster_color.h, sub_cluster_colorScale(i), 0.5)
         const offset_color = subClusterColorScale(sub_cluster_label)
         const offset_hsl = d3.hsl(offset_color)
-        const sub_cluster_color = d3.hsl(cluster_color.h + offset_hsl.h, offset_hsl.s, offset_hsl.l)
-        sub_cluster_color_dict[sub_cluster_label] = sub_cluster_color
+        offset_hsl.h = cluster_color.h + offset_hsl.h
+        offset_hsl.s = sub_cluster_sScale(i)
+        offset_hsl.l = sub_cluster_lScale(i)
+        // offset_hsl.s = cluster_color.s + offset_hsl.s
+        // offset_hsl.l = sub_cluster_lightnessScale(i)
+        // const sub_cluster_color = d3.hsl(cluster_color.h + offset_hsl.h, offset_hsl.s, offset_hsl.l)
+        sub_cluster_color_dict[sub_cluster_label] = offset_hsl
       })
-      console.log({sub_cluster_color_dict})
     })
     setPreviousSubClusterColorDict(sub_cluster_color_dict)
     return sub_cluster_color_dict
@@ -246,7 +250,6 @@ function ClusterOverview({
     addBrush()
   }
 
-
   function update_hyperedge_cluster() {
     const canvas = d3.select('#' + svgId).select("g.margin")
     // canvas.selectAll("circle.hyperedge-node").attr("opacity", 0)
@@ -295,6 +298,7 @@ function ClusterOverview({
     // cluster borders
     const cluster_borders = generate_cluster_borders(graph)
     const border_group = canvas.select("g.border-group")
+    const tooltipDiv = d3.select(".tooltip");
     border_group.selectAll("path.concave-hull")
       .data(cluster_borders, (d: any) => d.cluster_label)
       .join("path")
@@ -304,29 +308,32 @@ function ClusterOverview({
       .attr("stroke", "black")
       .attr("stroke-width", 1)
       .attr("cursor", "pointer")
+      // .on("mousemove", (e) => {
+      //   tooltipDiv
+      //     .style("left", e.offsetX  + 15 + "px")
+      //     .style("top", e.offsetY - 5 + "px")
+      // })
       .on("mouseover", function(e, d: any) {
-        console.log(d.cluster_label)
-        // d3.select(this)
-        //   .raise()
-        //   .attr("opacity", 0.5)
-        //   .transition().duration(200)
-        //   .attr("stroke-width", 3)
-        //   .attr("fill", "rgb(43, 42, 42)")
+        const tooltip_coord = SVGToScreen(d.max_x, d.min_y)
+        console.log(tooltip_coord.x, tooltip_coord.y, e.offsetX, e.offsetY)
+        tooltipDiv
+          .style("left", tooltip_coord.x  + 15 + "px")
+          .style("top", tooltip_coord.y + 10 + "px")
         canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
           .attr("fill", (d: any) => { 
             d.sub_cluster_color = subClusterColorDict[d.sub_cluster_label]
             return d.sub_cluster_color;
           })
+        setTooltipData({
+          cluster_label: graph.hierarchical_topics[d.cluster_label],
+          sub_cluster_labels: graph.sub_clusters[d.cluster_label].map((sub_cluster_label: string) => graph.hierarchical_topics[sub_cluster_label])
+        })
+        tooltipDiv.style("opacity", 1)
       })
       .on("mouseout", function(e, d) {
-        // d3.select(this)
-        //   .lower()
-        //   .transition().duration(100)
-        //   .attr("opacity", 1)
-        //   .attr("stroke-width", 1)
-        //   .attr("fill", "#e1e1e1")
         canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
           .attr("fill", (d: any) => d.cluster_color = clusterColorDict[d.cluster_label])
+        tooltipDiv.style("opacity", 0)
       })
       .on("click", (e, d) => onClusterClicked(d.cluster_label, graph.clusters))
       .filter((d: any) => d.update_cluster_order !== 0)
@@ -353,6 +360,14 @@ function ClusterOverview({
     //         .attr("cy", (d: any) => d.y),
     //   )
   }
+  function SVGToScreen(svgX, svgY) {
+    const svg = document.querySelector('#' + svgId) as any
+    let p = svg.createSVGPoint()
+    p.x = svgX
+    p.y = svgY
+    return p.matrixTransform(svg.getScreenCTM());
+  }
+
 
   function remove_highlight() {
     const canvas = d3.select('#' + svgId).select("g.margin")
@@ -364,7 +379,6 @@ function ClusterOverview({
   }
 
   function update_highlight() {
-    console.log("update highight", highlightNodeIds, searchMode)
     const canvas = d3.select('#' + svgId).select("g.margin")
     const hyperedge_node_group = canvas.select("g.hyperedge-node-group")
     if(highlightNodeIds.length === 0) {
@@ -409,15 +423,16 @@ function ClusterOverview({
     let border_paths: any[] = []
     Object.keys(graph.clusters).forEach(cluster_label => {
       const cluster_hyperedge_node_ids = graph.clusters[cluster_label]
-      console.log(cluster_label, graph.clusters[cluster_label])
       const hyperedge_nodes_data = graph.hyperedge_nodes.filter(node => cluster_hyperedge_node_ids.includes(node.id))
 
-      const border_path = generate_border(hyperedge_nodes_data)
+      const {path, max_x, min_y} = generate_border(hyperedge_nodes_data)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": graph.cluster_order.indexOf(cluster_label),
         "update_cluster_order": graph.update_cluster_order[cluster_label],
-        "path": border_path
+        "path": path,
+        "max_x": max_x,
+        "min_y": min_y,
       })
     })
     return border_paths
@@ -438,11 +453,13 @@ function ClusterOverview({
         points.push([node.x, node.y + offset_y]) // 8
         points.push([node.x + offset_x, node.y + offset_y]) // 9
       })
+      const max_x = Math.max(...points.map(p => p[0]))
+      const min_y = Math.min(...points.map(p => p[1]))
       // const polygon = concaveman(points, 0.5, 0)
       const polygon = concaveman(points, concavity, 0)
       // const path = createRoundedCornersFromPointsWithLines(polygon);
       const path = createSmoothPathFromPointsWithCurves(polygon);
-      return path
+      return { path, max_x, min_y }
   }
 
   function createSmoothPathFromPointsWithLines(points) {
@@ -557,7 +574,19 @@ function ClusterOverview({
         <div className="svg-container flex overflow-hidden"> 
             <svg id={svgId} className='event-cluster-svg'> </svg>
         </div>
-        <div className='tooltip'></div>
+        <div className='tooltip absolute opacity-0 border-2 bg-gray-100 p-0.5 pointer-events-none'>
+          { tooltipData &&
+            <div className='flex flex-col'>
+              <p className='w-fit'> Topic: { tooltipData.cluster_label } </p>
+              <ul className='w-fit list-disc list-inside'> 
+                <p className='w-fit'> Sub-topics: </p>
+                { tooltipData.sub_cluster_labels.map(sub_cluster_label => 
+                  <li className='w-fit pl-0'> { sub_cluster_label } </li> )
+                }
+              </ul>
+            </div>
+          }
+        </div>
       </div>
     </>
   )

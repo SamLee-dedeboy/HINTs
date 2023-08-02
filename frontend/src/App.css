@@ -6,3 +6,15 @@
   height: 98vh;
   overflow: visible;
 }
+
+.btn {
+  @apply bg-white border rounded mr-2 w-fit p-2 transition-colors hover:bg-sky-500/70;
+}
+
+.ant-btn {
+  @apply flex justify-center items-center;
+}
+
+.ant-btn-icon {
+  @apply w-fit h-fit;
+}
