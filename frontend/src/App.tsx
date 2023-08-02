@@ -14,8 +14,10 @@ const Search = Input.Search;
 
 function App() {
   const user_id = 0
-  const [event_hgraph, setEventHGraph] = useState<t_EventHGraph>()
-  const [eventHGraphLoaded, setEventHGraphLoaded] = useState(false)
+  const [article_hgraph, setArticleHGraph] = useState<t_EventHGraph>()
+  const [articleHGraphLoaded, setArticleHGraphLoaded] = useState(false)
+  const [entity_hgraph, setEntityHGraph] = useState<t_EventHGraph>()
+  const [entityHGraphLoaded, setEntityHGraphLoaded] = useState(false)
   const [hierarchy, setHierarchy] = useState<any[]>()
   // const [contents, setContents] = useState<any[]>()
 
@@ -37,6 +39,7 @@ function App() {
   // flags
   const [cluster_selected, setClusterSelected] = useState(false)
   const [cluster_data_fetched, setClusterDataFetched] = useState(false)
+  const [graph_type, setGraphType] = useState<String>("Article")
 
   useEffect(() => {
       // fetch_communities()
@@ -45,7 +48,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    fetchPartition()
+    fetchPartitionArticle()
+    fetchPartitionEntity()
   }, [level])
 
   // useEffect(() => {
@@ -62,9 +66,9 @@ function App() {
       })
   }
 
-  async function fetchPartition() {
-    console.log("fetching hgraph with partition", level)
-    fetch(`${server_address}/user/partition/${user_id}`, {
+  async function fetchPartitionArticle() {
+    console.log("fetching article with partition", level)
+    fetch(`${server_address}/user/article/partition/${user_id}`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
@@ -75,44 +79,32 @@ function App() {
       .then(res => res.json())
       .then((hgraph: t_EventHGraph) => {
         console.log({hgraph})
-        setEventHGraph(hgraph)
-        setEventHGraphLoaded(true)
+        setArticleHGraph(hgraph)
+        setArticleHGraphLoaded(true)
         // setEnabledCommunities(event_hgraph.communities)
       })
   }
 
-  async function handleHierarchyChecked(checkedHierarchy) {
-    return
-    fetch(`${server_address}/data/event_hgraph`, {
+  async function fetchPartitionEntity() {
+    console.log("fetching entity hgraph with partition", level)
+    fetch(`${server_address}/user/entity/partition/${user_id}`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify(checkedHierarchy)
+      // body: JSON.stringify({ level: level, entity_node_num: 5})
+      body: JSON.stringify({ level: 3 })
     })
-    .then(res => res.json())
-    .then(selected_communities_hgraph => {
-      console.log({selected_communities_hgraph})
-      setEventHGraph(selected_communities_hgraph)
-      setEventHGraphLoaded(true)
-      setEnabledCommunities(selected_communities_hgraph.communities)
-      // console.log({res})
-      let contents: any[] = []
-      selected_communities_hgraph.nodes.forEach(node => {
-        if(node.type === 'entity') return
-        const community_label = selected_communities_hgraph.communities[node.id]
-        if(contents[community_label] == undefined) contents[community_label] = []
-        contents[community_label].push({
-            trigger: node['trigger'],
-            arguments: node['argument_titles'].join(", "),
-            summary: node['summary']
-        })
+      .then(res => res.json())
+      .then((hgraph: t_EventHGraph) => {
+        console.log({hgraph})
+        setEntityHGraph(hgraph)
+        setEntityHGraphLoaded(true)
+        // setEnabledCommunities(event_hgraph.communities)
       })
-      console.log({contents})
-      setContents(contents)
-    })
   }
+
 
   async function fetchTopic(hyperedge_ids) {
     console.log("fetching topic", hyperedge_ids)
@@ -162,7 +154,7 @@ function App() {
     if(query === "") return
     setSearchLoading(true)
     setSearchMode(true)
-    const base = event_hgraph?.hyperedge_nodes.map(node => node.doc_id)
+    const base = article_hgraph?.hyperedge_nodes.map(node => node.doc_id)
     console.log("searching: ", query, base)
     fetch(`${server_address}/static/search/`, {
       method: "POST",
@@ -189,9 +181,9 @@ function App() {
   }
 
   async function applyFilter() {
-    if(event_hgraph === undefined) return
-    const hyperedge_ids = event_hgraph.hyperedge_nodes.filter(hyperedge => relevantDocIds.includes(hyperedge.doc_id)).map(hyperedge => hyperedge.id)
-    const clusters = event_hgraph.clusters
+    if(article_hgraph === undefined) return
+    const hyperedge_ids = article_hgraph.hyperedge_nodes.filter(hyperedge => relevantDocIds.includes(hyperedge.doc_id)).map(hyperedge => hyperedge.id)
+    const clusters = article_hgraph.clusters
     console.log("filtering: ", hyperedge_ids, clusters)
     fetch(`${server_address}/user/filter/${user_id}`, {
       method: "POST",
@@ -204,7 +196,7 @@ function App() {
       .then(res => res.json())
       .then(filtered_hgraph => {
         console.log({filtered_hgraph})
-        setEventHGraph(filtered_hgraph)
+        setArticleHGraph(filtered_hgraph)
         // setEventHGraphLoaded(true)
       })
 
@@ -224,6 +216,11 @@ function App() {
     if(searchMode) setSearchMode(false)
     else setSearchMode(true)
   }
+  function toggleGraphType() {
+    if(graph_type == "Article") setGraphType("Entity")
+    else setGraphType("Article")
+  }
+
 
 
 
@@ -232,20 +229,43 @@ function App() {
     <div className="App flex w-full h-full">
       <div className='left-panel flex basis-1/2 h-full'>
         {
-          !eventHGraphLoaded &&
-          <div className="loading-hint"> Loading... </div>
+          graph_type == "Article" && 
+          <div className="article-hgraph-container flex flex-1 h-full">
+          {
+            !articleHGraphLoaded &&
+            <div className="loading-hint"> Loading... </div>
+          }
+          {
+            articleHGraphLoaded && !cluster_selected && 
+            // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
+            <ClusterOverview svgId={"article-cluster-overview-svg"} 
+              graph={article_hgraph!} 
+              highlightNodeIds={relevantDocIds} 
+              onNodesSelected={fetchTopic} 
+              onClusterClicked={handleClusterClicked} 
+              searchMode={searchMode}
+              brushMode={brushMode} />
+          }
+          </div>
         }
         {
-          eventHGraphLoaded && !cluster_selected && 
-          // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
-          <ClusterOverview svgId={"cluster-overview-svg"} 
-            graph={event_hgraph!} 
-            highlightNodeIds={relevantDocIds} 
-            hierarchies={hierarchy} 
-            onNodesSelected={fetchTopic} 
-            onClusterClicked={handleClusterClicked} 
-            searchMode={searchMode}
-            brushMode={brushMode} />
+          graph_type == "Entity" &&
+          <div className="entity-hgraph-container flex flex-1 h-full">
+          {
+            !entityHGraphLoaded &&
+            <div className="loading-hint"> Loading... </div>
+          }
+          {
+            entityHGraphLoaded && !cluster_selected && 
+            <ClusterOverview svgId={"entity-cluster-overview-svg"} 
+              graph={entity_hgraph!} 
+              highlightNodeIds={relevantDocIds} 
+              onNodesSelected={fetchTopic} 
+              onClusterClicked={handleClusterClicked} 
+              searchMode={searchMode}
+              brushMode={brushMode} />
+          }
+          </div>
         }
         {/* {
           cluster_selected && !cluster_data_fetched && 
@@ -268,6 +288,10 @@ function App() {
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Search</span>
                 <Switch className={"toggle-searchMode bg-black/25"} onChange={toggleSearchMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
+              </div>
+              <div className='switch-container flex justify-center mr-2 w-fit'>
+                <span className='switch-label mr-2'>Graph</span>
+                <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
               </div>
             </div>
             <div className='search-container w-fit'>
