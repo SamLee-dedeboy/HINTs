@@ -49,7 +49,7 @@ function App() {
 
   useEffect(() => {
     fetchPartitionArticle()
-    fetchPartitionEntity()
+    // fetchPartitionEntity()
   }, [level])
 
   // useEffect(() => {
@@ -74,7 +74,7 @@ function App() {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify({ level: level, entity_node_num: 5})
+      body: JSON.stringify({ article_level: level, entity_level: 3, entity_node_num: 5})
     })
       .then(res => res.json())
       .then((hgraph: t_EventHGraph) => {
@@ -143,8 +143,8 @@ function App() {
       .then(res => res.json())
       .then(expanded_hgraph => {
         console.log({expanded_hgraph})
-        setEventHGraph(expanded_hgraph)
-        setEventHGraphLoaded(true)
+        setArticleHGraph(expanded_hgraph)
+        setArticleHGraphLoaded(true)
         // setClusterData(cluster_data)
         // setClusterDataFetched(true)
       })
@@ -289,10 +289,10 @@ function App() {
                 <span className='switch-label mr-2'>Search</span>
                 <Switch className={"toggle-searchMode bg-black/25"} onChange={toggleSearchMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
               </div>
-              <div className='switch-container flex justify-center mr-2 w-fit'>
+              {/* <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Graph</span>
                 <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
-              </div>
+              </div> */}
             </div>
             <div className='search-container w-fit'>
               <Search className={"search-bar w-fit"}
@@ -304,7 +304,7 @@ function App() {
                 loading={searchLoading} />
               <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
             </div>
-            <div className='search-container w-fit'>
+            {/* <div className='search-container w-fit'>
               <Search className={"search-bar w-fit"}
                 placeholder="input search text" 
                 // enterButton="Search" 
@@ -313,7 +313,7 @@ function App() {
                 onSearch={search} 
                 loading={searchLoading} />
               <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
-            </div>
+            </div> */}
             <div className='relevance-threshold-container w-fit'>
               <span className='relevance-label'> Relevance >= </span>
               <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
