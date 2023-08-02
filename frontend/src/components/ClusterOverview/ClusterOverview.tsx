@@ -11,7 +11,6 @@ interface ClusterOverviewProps {
   svgId: string
   graph: t_EventHGraph
   highlightNodeIds: string[]
-  hierarchies: any
   onNodesSelected: (node_ids: string[]) => void
   onClusterClicked: (cluster_label: string, clusters: any) => void
   brushMode: boolean
@@ -22,7 +21,6 @@ function ClusterOverview({
   svgId, 
   graph, 
   highlightNodeIds, 
-  hierarchies, 
   onNodesSelected, 
   onClusterClicked, 
   brushMode, 
@@ -159,7 +157,9 @@ function ClusterOverview({
       return gaps
     }
 
-    const gaps = centerGaps(cluster_order, total_volume, total_cluster_gap)
+    // const gaps = centerGaps(cluster_order, total_volume, total_cluster_gap)
+    const gaps = evenGaps(cluster_order, total_volume, total_cluster_gap)
+    console.log(gaps)
 
     // assign hilbert coord to hyperedge nodes
     hyperedge_nodes.sort((a, b) => a.order - b.order)

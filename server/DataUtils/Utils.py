@@ -1,4 +1,5 @@
 def generateClusterOrder(nodes):
+    nodes = sorted(nodes, key=lambda x: x['order'])
     cur_cluster = nodes[0]['cluster_label']
     cluster_count = 0
     cluster_order = [cur_cluster]
