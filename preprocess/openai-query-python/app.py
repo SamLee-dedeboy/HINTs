@@ -38,7 +38,7 @@ def request_gpt3_5():
             response = openai.ChatCompletion.create(
                 # model="text-davinci-003",
                 # model="gpt-4",
-                model="gpt-3.5-turbo-0613",
+                model="gpt-3.5-turbo-16k-0613",
                 messages=messages,
             )
             # except openai.InvalidRequestError:

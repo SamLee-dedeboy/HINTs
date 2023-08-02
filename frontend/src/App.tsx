@@ -7,7 +7,7 @@ import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import ClusterDetail from './components/ClusterDetail/ClusterDetail'
 import LevelInput from './components/LevelInput/LevelInput'
-import { Input, InputNumber } from 'antd';
+import { Input, InputNumber, Switch } from 'antd';
 
 
 const Search = Input.Search;
@@ -162,14 +162,15 @@ function App() {
     if(query === "") return
     setSearchLoading(true)
     setSearchMode(true)
-    console.log("searching: ", query)
+    const base = event_hgraph?.hyperedge_nodes.map(node => node.doc_id)
+    console.log("searching: ", query, base)
     fetch(`${server_address}/static/search/`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify({ query })
+      body: JSON.stringify({ query, base })
     })
       .then(res => res.json())
       .then(search_response => {
@@ -255,47 +256,75 @@ function App() {
           <ClusterDetail svgId={"cluster-detail-svg"} cluster_data={cluster_data} onNodesSelected={fetchTopic}/>
         } */}
       </div>
-      <div className='right-panel flex flex-col basis-1/2 w-1/12'>
+      <div className='right-panel flex basis-1/2 w-1/12'>
         {
-          hierarchy &&
-          <div>
+          <div className='utility-container flex flex-col w-fit h-fit space-y-4 pl-1 border rounded '>
             {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
-            <button className={"toggle-brush"} onClick={toggleBrush}> Brush {brushMode? "on":"off"}</button>
-            <button className={"toggle-searchMode"} onClick={toggleSearchMode}> SearchMode {searchMode? "on":"off"}</button>
-            <button className={"apply-filter"} onClick={applyFilter}>Apply Filter</button>
-            <Search className={"search-bar"}
-              placeholder="input search text" 
-              // enterButton="Search" 
-              size="large" 
-              onChange={(e) => setQuery(e.target.value)}
-              onSearch={search} 
-              loading={searchLoading} />
-            <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
+            <div className='toggler-container flex flex-col py-3'>
+              <div className='switch-container flex justify-center mr-2 w-fit '>
+                <span className='switch-label mr-2'>Brush</span>
+                <Switch className={"toggle-brush bg-black/25"} onChange={toggleBrush} checkedChildren="On" unCheckedChildren="Off"></Switch>
+              </div>
+              <div className='switch-container flex justify-center mr-2 w-fit'>
+                <span className='switch-label mr-2'>Search</span>
+                <Switch className={"toggle-searchMode bg-black/25"} onChange={toggleSearchMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
+              </div>
+            </div>
+            <div className='search-container w-fit'>
+              <Search className={"search-bar w-fit"}
+                placeholder="input search text" 
+                // enterButton="Search" 
+                size="large" 
+                onChange={(e) => setQuery(e.target.value)}
+                onSearch={search} 
+                loading={searchLoading} />
+              <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
+            </div>
+            <div className='search-container w-fit'>
+              <Search className={"search-bar w-fit"}
+                placeholder="input search text" 
+                // enterButton="Search" 
+                size="large" 
+                onChange={(e) => setQuery(e.target.value)}
+                onSearch={search} 
+                loading={searchLoading} />
+              <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
+            </div>
+            <div className='relevance-threshold-container w-fit'>
+              <span className='relevance-label'> Relevance >= </span>
+              <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
+            </div>
 
-            <LevelInput inputValue={level} onChange={setLevel} minValue={0} maxValue={7} />
-            <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector>
+            {/* <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector> */}
             <div className="topic-viewer w-full"> {topic} </div>
           </div>
         }
-        <div className='flex flex-col overflow-y-auto'>
-          {
+        {
+          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
+            {
             relevantDocs &&
-            relevantDocs.map(doc_data => {
+            relevantDocs.map((doc_data, index) => {
               return (
-                <div className="doc-card flex border-b">
-                  <div className="doc-card-header flex flex-col border-r justify-center items-center">
-                    <div className="doc-card-title"> {doc_data.doc_id} </div>
-                    <div className="doc-card-relevance"> {doc_data.relevance.toFixed(2)} </div>
+                <div className="doc-card flex flex-col  border-black/50 px-2">
+                  <div className="doc-card-header flex border-x items-center border-y border-black/50">
+                    <div className="doc-card-title px-1 mr-2 border-r border-black/50"> Doc Id: {doc_data.doc_id} </div>
+                    <div className="doc-card-relevance"> Relevance: {doc_data.relevance.toFixed(2)} </div>
+                    <div className="doc-card-index flex-right"> {index} </div>
                   </div>
-                  <div className="doc-card-content"> {doc_data.summary} </div>
+                  <span className="w-fit px-1 font-bold italic border-l border-black/50"> Summary: </span>
+                  <p className="doc-card-content text-left text-sm px-1 border-l border-black/50"> {doc_data.summary} </p>
                 </div>
               )
             })
           }
+          </div>
+        }
+        {/* <div className='flex flex-col overflow-y-auto'>
+          {
+          } */}
         </div>
 
       </div>
-    </div>
   )
 }
 

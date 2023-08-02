@@ -12,7 +12,9 @@ class EventHGraph:
         atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend.json'))
         atn_gpt_partitions = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions.json'))
         atn_gpt_hierarchy = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies.json'))
+        hierarchical_topics = json.load(open(data_path + 'AllTheNews/network/server/hierarchical_topics.json'))
         self.hierarchy = atn_gpt_hierarchy
+        self.hierarchical_topics = hierarchical_topics
 
         #################
         #################
@@ -66,7 +68,7 @@ class EventHGraph:
             self.ravasz_partitions, 
             self.hyperedge_dict
         )
-        self.original_hyperedge_nodes = self.hyperedge_nodes
+        self.original_hyperedge_nodes = copy.deepcopy(self.hyperedge_nodes)
         self.original_partition = self.ravasz_partitions 
         # self.entity_nodes_sorted = sorted(self.entity_nodes, key=lambda node: self.network_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
         # # add hyperedge node order
@@ -77,9 +79,10 @@ class EventHGraph:
         # self.hierarchy_flattened = flatten_hierarchy(self.hierarchy)
 
     def resetFiltering(self):
-        self.hyperedge_nodes = self.original_hyperedge_nodes
+        self.hyperedge_nodes = copy.deepcopy(self.original_hyperedge_nodes)
         self.hyperedge_dict = {node['id']: node for node in self.hyperedge_nodes}
         self.ravasz_partitions = self.original_partition
+        print("reset filtering: ", len(self.hyperedge_nodes), len(self.ravasz_partitions))
         return
 
     def filter_hyperedge_nodes(self, target_hyperedge_ids):

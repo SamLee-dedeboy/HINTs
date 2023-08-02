@@ -74,9 +74,10 @@ def get_partition(uid):
         # "candidate_entity_nodes": candidate_entity_nodes,
         # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
         "clusters": clusters,
-        "num_sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
+        "hierarchical_topics": user_hgraph.hierarchical_topics,
     }
     return json.dumps(hgraph, default=vars)
 
@@ -101,7 +102,7 @@ def filter_hgraph(uid: int):
     filtered_hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, filtered_hyperedge_node_dict)
 
     # record the filtered graph
-    user_hgraph.original_hyperedge_nodes = copy.deepcopy(user_hgraph.hyperedge_nodes)
+    # user_hgraph.original_hyperedge_nodes = copy.deepcopy(user_hgraph.hyperedge_nodes)
     user_hgraph.hyperedge_nodes = list(filtered_hyperedge_node_dict.values())
     user_hgraph.hyperedge_dict = filtered_hyperedge_node_dict
 
@@ -113,9 +114,10 @@ def filter_hgraph(uid: int):
         # "candidate_entity_nodes": candidate_entity_nodes,
         # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
         "clusters": clusters,
-        "num_sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
+        "hierarchical_topics": user_hgraph.hierarchical_topics,
     }
     return json.dumps(hgraph, default=vars)
 
@@ -166,16 +168,18 @@ def expand_cluster(uid):
         # "candidate_entity_nodes": candidate_entity_nodes,
         # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
         "clusters": clusters,
-        "num_sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
+        "hierarchical_topics": user_hgraph.hierarchical_topics,
     }
     return json.dumps(hgraph, default=vars)
 
 @app.route("/static/search/", methods=["POST"])
 def search():
     query = request.json['query']
-    doc_id_relevance = embedding_searcher.search(query=query)
+    base = request.json['base']
+    doc_id_relevance = embedding_searcher.search(query=query, base=base)
     # binary search to find the most appropriate threshold
     # suggested_threshold = GptUtils.binary_search_threshold(doc_id_relevance, query)
     suggested_threshold = 0.8

@@ -1,13 +1,13 @@
 export type t_EventHGraph = {
     hyperedge_nodes: t_HyperedgeNode[],
     clusters: any,
-    num_sub_clusters: any,
+    sub_clusters: any,
     cluster_order: any,
+    hierarchical_topics: any,
     links?: t_link[],
     candidate_entity_nodes?: t_EntityNode[]
     entity_nodes?: t_EntityNode[],
     argument_nodes?: t_EntityNode[],
-
 }
 
 export type t_Cluster = {
@@ -60,4 +60,9 @@ export type t_EntityNode = {
 export type t_link = {
     source: string,
     target: string,
+}
+
+export type tooltipContent = {
+    cluster_label: string,
+    sub_cluster_labels: string[]
 }
