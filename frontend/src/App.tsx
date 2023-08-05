@@ -5,9 +5,11 @@ import { server_address } from './shared'
 import type { t_EventHGraph } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
+import Storyline from './components/Storyline/Storyline'
 import ClusterDetail from './components/ClusterDetail/ClusterDetail'
-import LevelInput from './components/LevelInput/LevelInput'
 import { Input, InputNumber, Switch } from 'antd';
+import storyline_tmp from "./tmp_storylinedata.json"
+import HilbertTest from './components/HibertTest/HilbertTest'
 
 
 const Search = Input.Search;
@@ -24,6 +26,7 @@ function App() {
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [cluster_data, setClusterData] = useState<any>()
+  const [storyline_data, setStorylineData] = useState<any>()
   const [brushMode, setBrushMode] = useState<boolean>(false)
 
   // searching related
@@ -39,22 +42,17 @@ function App() {
   // flags
   const [cluster_selected, setClusterSelected] = useState(false)
   const [cluster_data_fetched, setClusterDataFetched] = useState(false)
+  const [storyline_fetched, setStorylineFetched] = useState(false)
   const [graph_type, setGraphType] = useState<String>("Article")
 
+  const [hilbert, setHilbert] = useState<any>() 
+  const [hilbert_fetched, setHilbertFetched] = useState(false)
+
   useEffect(() => {
-      // fetch_communities()
       fetch_hierarchy()
-      // fetch_event_hgraph(filters)
+      fetchPartitionArticle()
+      fetchPHilbert()
   }, [])
-
-  useEffect(() => {
-    fetchPartitionArticle()
-    // fetchPartitionEntity()
-  }, [level])
-
-  // useEffect(() => {
-  //   updateRelevantDocIds(docsRanked, relevanceThreshold)
-  // }, [relevanceThreshold])
 
   async function fetch_hierarchy() {
     console.log("fetching hierarchy")
@@ -199,15 +197,56 @@ function App() {
         setArticleHGraph(filtered_hgraph)
         // setEventHGraphLoaded(true)
       })
-
+  }
+  async function fetchStoryline() {
+    if(article_hgraph === undefined) {
+      return
+      console.log({storyline_tmp})
+      setStorylineData(storyline_tmp)
+      setStorylineFetched(true)
+      return
+    } 
+    const clusters = article_hgraph.clusters
+    fetch(`${server_address}/user/storyline/${user_id}`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ clusters })
+    })
+      .then(res => res.json())
+      .then(storyline => {
+        console.log({storyline})
+        setStorylineData(storyline)
+        setStorylineFetched(true)
+      })
+ 
   }
 
-  // function updateRelevantDocIds(doc_id_relevance_list, threshold) {
-  //   const relevant_doc_ids = doc_id_relevance_list.filter(doc_id_relevance => doc_id_relevance[1] >= threshold).map(doc_id_relevance => doc_id_relevance[0])
-  //   const relevant_docs = []
-  //   setRelevantDocs(relevant_docs)
-  // }
-
+  async function fetchPHilbert() {
+    const width = 120
+    const height = 12
+    fetch(`${server_address}/static/p_hilbert/`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ width, height })
+    })
+      .then(res => res.json())
+      .then(p_hilbert => {
+        console.log({p_hilbert})
+        setHilbert({
+          points: p_hilbert,
+          width: width,
+          height: height
+        })
+        setHilbertFetched(true)
+      })
+  }
+  
   function toggleBrush() {
     if(brushMode) setBrushMode(false)
     else setBrushMode(true)
@@ -221,25 +260,22 @@ function App() {
     else setGraphType("Article")
   }
 
-
-
-
-
   return (
     <div className="App flex w-full h-full">
       <div className='left-panel flex basis-1/2 h-full'>
         {
-          graph_type == "Article" && 
+          !storyline_fetched && 
           <div className="article-hgraph-container flex flex-1 h-full">
           {
             !articleHGraphLoaded &&
             <div className="loading-hint"> Loading... </div>
           }
           {
-            articleHGraphLoaded && !cluster_selected && 
+            articleHGraphLoaded && !cluster_selected && hilbert_fetched && 
             // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
             <ClusterOverview svgId={"article-cluster-overview-svg"} 
               graph={article_hgraph!} 
+              peripheral={hilbert}
               highlightNodeIds={relevantDocIds} 
               onNodesSelected={fetchTopic} 
               onClusterClicked={handleClusterClicked} 
@@ -249,6 +285,14 @@ function App() {
           </div>
         }
         {
+          storyline_fetched && 
+          <Storyline svgId={"storyline-svg"} data={storyline_data} article_num_threshold={10} />
+        }
+        {/* {
+          hilbert_fetched &&
+          <HilbertTest svgId={"hilbert-svg"} points={hilbert.points} width={hilbert.width} height={hilbert.height} />
+        } */}
+        {/* {
           graph_type == "Entity" &&
           <div className="entity-hgraph-container flex flex-1 h-full">
           {
@@ -266,7 +310,7 @@ function App() {
               brushMode={brushMode} />
           }
           </div>
-        }
+        } */}
         {/* {
           cluster_selected && !cluster_data_fetched && 
           <div className="loading-hint"> Loading... </div>
@@ -318,6 +362,7 @@ function App() {
               <span className='relevance-label'> Relevance >= </span>
               <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
             </div>
+            <button className={"transform-storyline btn ml-2"} onClick={fetchStoryline}>Storyline</button>
 
             {/* <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector> */}
             <div className="topic-viewer w-full"> {topic} </div>
@@ -332,8 +377,8 @@ function App() {
                 <div className="doc-card flex flex-col  border-black/50 px-2">
                   <div className="doc-card-header flex border-x items-center border-y border-black/50">
                     <div className="doc-card-title px-1 mr-2 border-r border-black/50"> Doc Id: {doc_data.doc_id} </div>
-                    <div className="doc-card-relevance"> Relevance: {doc_data.relevance.toFixed(2)} </div>
-                    <div className="doc-card-index flex-right"> {index} </div>
+                    <div className="doc-card-relevance mr-2"> Relevance: {doc_data.relevance.toFixed(2)} </div>
+                    <div className="doc-card-index ml-auto mr-2"> #{index} </div>
                   </div>
                   <span className="w-fit px-1 font-bold italic border-l border-black/50"> Summary: </span>
                   <p className="doc-card-content text-left text-sm px-1 border-l border-black/50"> {doc_data.summary} </p>

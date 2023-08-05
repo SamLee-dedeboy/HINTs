@@ -9,11 +9,11 @@ class GraphController:
     def getUserHGraph(self, uid):
         if uid not in self.user_hgraphs:
             print("creating user hgraph")
-            return self.create_user_hgraph(uid, hyperedge_ids=None)
+            return self.create_user_hgraph(uid)
         else:
             return self.user_hgraphs[uid]
 
-    def create_user_hgraph(self, uid, hyperedge_ids=None):
-        self.user_hgraphs[uid] = EventHGraph(self.data_path, target_hyperedge_ids=hyperedge_ids)
+    def create_user_hgraph(self, uid):
+        self.user_hgraphs[uid] = EventHGraph(self.data_path)
         return self.user_hgraphs[uid]
 

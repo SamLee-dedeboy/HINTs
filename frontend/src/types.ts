@@ -73,5 +73,15 @@ export type t_link = {
 
 export type tooltipContent = {
     cluster_label: string,
-    sub_cluster_labels: string[]
+    cluster_topic: string,
+    sub_clusters: tooltipContent[]
 }
+
+export type t_StorylineData = {
+    storyline: t_Storyline,
+    links: t_link[],
+    entity_data: any,
+    article_data: any,
+}
+
+export type t_Storyline = any
