@@ -1,3 +1,4 @@
+import json
 def getArticleClusterEntities(user_hgraph, clusters):
     cluster_entities_dict = {}
     for cluster_label, article_nodes in clusters.items():
@@ -8,6 +9,7 @@ def getArticleClusterEntities(user_hgraph, clusters):
         cluster_entities_dict[cluster_label] = cluster_entity_nodes 
 
     return cluster_entities_dict
+
 def prepareData(user_hgraph, level, type='hyperedge'):
     if type == 'hyperedge':
         clusters = user_hgraph.binPartitions(level)
@@ -94,3 +96,7 @@ def filterClusters(clusters, hyperedge_ids):
         if len(filtered_cluster_hyperedge_node_ids) > 0:
             res[cluster_label] = filtered_cluster_hyperedge_node_ids
     return res
+
+def save_json(data, filepath=r'new_data.json'):
+   with open(filepath, 'w') as fp:
+      json.dump(data, fp, indent=4)

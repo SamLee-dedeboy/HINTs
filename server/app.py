@@ -1,15 +1,9 @@
-import json
 from flask import Flask, request
 from flask_cors import CORS
 import json
-from datetime import datetime
 from pprint import pprint
-from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils
-import copy
-
+from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils, pHilbert
 from collections import defaultdict
-import sys
-import os
 
 app = Flask(__name__)
 CORS(app)
@@ -23,7 +17,7 @@ example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/
 
 users = [0]
 for uid in users:
-    graph_controller.create_user_hgraph(uid, hyperedge_ids=None)
+    graph_controller.create_user_hgraph(uid)
 # communities = event_hgraph.apply_filters(['L-0-4'], test=True)
 
 # @app.route("/data/communities", methods=["GET"])
@@ -57,20 +51,10 @@ def get_article_partition(uid):
     # hyperedge
     clusters, hyperedge_node_dict, cluster_order, update_cluster_order = Utils.prepareData(user_hgraph, article_level, type='hyperedge')
     # entity
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.prepareData(user_hgraph, entity_level, type='entity')
-    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
-    # # get clusters
-    # clusters = user_hgraph.binPartitions(level)
-    # sub_clusters = user_hgraph.binPartitions(level - 1) if int(level) > 0 else None
-
-    # # add cluster label to hyperedge nodes
-    # hyperedge_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
-
-    # # generate cluster order
-    # cluster_order = Utils.generateClusterOrder(list(hyperedge_node_dict.values()))
-    # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
-    # # add cluster order to hyperedge nodes
-    # hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
+    # TODO: restore after meeting
+    # entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.prepareData(user_hgraph, entity_level, type='entity')
+    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    #### TODO-end
 
     # return result
     hgraph = {
@@ -85,12 +69,12 @@ def get_article_partition(uid):
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.hierarchical_topics,
-        "article_cluster_entities": article_cluster_entities,
+        # "article_cluster_entities": article_cluster_entities,
         # entities
-        "entity_nodes": user_hgraph.entity_nodes,
-        "entity_clusters":  entity_clusters,
-        "entity_cluster_order": entity_cluster_order,
-        "entity_update_cluster_order": entity_update_cluster_order,
+        # "entity_nodes": user_hgraph.entity_nodes,
+        # "entity_clusters":  entity_clusters,
+        # "entity_cluster_order": entity_cluster_order,
+        # "entity_update_cluster_order": entity_update_cluster_order,
     }
     return json.dumps(hgraph, default=vars)
 
@@ -143,21 +127,19 @@ def filter_hgraph(uid: int):
     # filter clusters
     clusters = Utils.filterClusters(clusters, hyperedge_node_ids)
     sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
-    # get candidate entity nodes
-    filtered_hyperedge_nodes = user_hgraph.filter_hyperedge_nodes(hyperedge_node_ids)
 
-    filtered_hyperedge_node_dict = {node['id']: node for node in filtered_hyperedge_nodes}
+    # filter hyperdege nodes and links at the same time
+    # this changes the state of the user hgraph
+    user_hgraph.filter_hyperedge_nodes(hyperedge_node_ids)
+
+    # add cluster labels for front-end
+    filtered_hyperedge_node_dict = {node['id']: node for node in user_hgraph.hyperedge_nodes}
     filtered_hyperedge_node_dict = Utils.addClusterLabel(filtered_hyperedge_node_dict, clusters, sub_clusters)
     sorted_filtered_hyperedge_nodes = sorted(list(filtered_hyperedge_node_dict.values()), key=lambda x: x['order'])
     # generate cluster order
     cluster_order = Utils.generateClusterOrder(sorted_filtered_hyperedge_nodes)
     update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
     filtered_hyperedge_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, filtered_hyperedge_node_dict)
-
-    # record the filtered graph
-    # user_hgraph.original_hyperedge_nodes = copy.deepcopy(user_hgraph.hyperedge_nodes)
-    user_hgraph.hyperedge_nodes = list(filtered_hyperedge_node_dict.values())
-    user_hgraph.hyperedge_dict = filtered_hyperedge_node_dict
 
     # return result
     hgraph = {
@@ -166,6 +148,7 @@ def filter_hgraph(uid: int):
         # "argument_nodes": user_hgraph.argument_nodes,
         # "candidate_entity_nodes": candidate_entity_nodes,
         # "links": user_hgraph.filter_links(user_hgraph.hyperedge_nodes + candidate_entity_nodes, user_hgraph.links),
+        "links": user_hgraph.entity_links,
         "clusters": clusters,
         "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
         "cluster_order": cluster_order,
@@ -228,6 +211,46 @@ def expand_cluster(uid):
     }
     return json.dumps(hgraph, default=vars)
 
+    
+@app.route("/user/storyline/<uid>", methods=["POST"])
+def get_storyline(uid):
+    uid = int(uid)
+    clusters = request.json['clusters']
+    user_hgraph = graph_controller.getUserHGraph(uid)
+    article_node_dict = Utils.addClusterLabel(user_hgraph.hyperedge_dict, clusters)
+    entity_node_dict = user_hgraph.entity_dict
+    entity_links = user_hgraph.entity_links
+
+    storyline = defaultdict(lambda :defaultdict(list))
+    for entity_link in entity_links:
+        source = entity_link['source']
+        target = entity_link['target']
+        if source in article_node_dict:
+            article_node = article_node_dict[source]
+            entity_node = entity_node_dict[target]
+        else:
+            article_node = article_node_dict[target]
+            entity_node = entity_node_dict[source]
+
+        # bin article nodes by cluster
+        cluster_label = article_node['cluster_label']
+        storyline[entity_node['id']][cluster_label].append(article_node['id'])
+    res = {
+        "storyline": storyline,
+        "links": entity_links,
+        "entity_data": entity_node_dict,
+        "article_data": article_node_dict,
+    }
+    Utils.save_json(res, 'tmp_storylinedata.json')
+    return json.dumps(res)
+
+@app.route("/static/p_hilbert/", methods=["POST"])
+def peripheral_hilbert():
+    width = request.json['width']
+    height = request.json['height']
+    p_hilbert = pHilbert.peripheral_hilbert(width, height)
+    return json.dumps(p_hilbert)
+
 @app.route("/static/search/", methods=["POST"])
 def search():
     query = request.json['query']
@@ -247,7 +270,6 @@ def search():
 
     # res = { doc_id: relatedness for doc_id, relatedness in docs }
     return json.dumps({"docs": doc_data, "suggested_threshold": suggested_threshold})
-    
 
 # @app.route("/data/cluster", methods=["POST"])
 # def get_cluster():

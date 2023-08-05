@@ -11,6 +11,7 @@ interface ClusterOverviewProps {
   svgId: string
   graph: t_EventHGraph
   highlightNodeIds: string[]
+  peripheral: any
   onNodesSelected: (node_ids: string[]) => void
   onClusterClicked: (cluster_label: string, clusters: any) => void
   brushMode: boolean
@@ -21,15 +22,16 @@ function ClusterOverview({
   svgId, 
   graph, 
   highlightNodeIds, 
+  peripheral,
   onNodesSelected, 
   onClusterClicked, 
   brushMode, 
   searchMode}: ClusterOverviewProps) {
   const margin = {
-      left: 30,
-      right: 0,
-      top: 30,
-      bottom: 0
+      left: 220,
+      right: 200,
+      top: 220,
+      bottom: 220
     }
   
   const svgSize = useMemo(() => {
@@ -50,7 +52,7 @@ function ClusterOverview({
   }, [])
 
   // scales & constants
-  const node_radius = 5.5
+  const node_radius = 4
   // const clusterColorScale = d3.scaleOrdinal(d3.schemeCategory10)
   // const clusterColorScale = d3.scaleOrdinal(d3.schemeAccent)
   const articleClusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
@@ -73,6 +75,7 @@ function ClusterOverview({
       }
     })
     setPreviousClusterColorDict(cluster_color_dict)
+    console.log(cluster_color_dict)
     return cluster_color_dict
   }, [graph])
 
@@ -287,11 +290,13 @@ function ClusterOverview({
   }, [brushMode])
 
   useEffect(() => {
+    console.log("searchMode changed", searchMode)
     if(searchMode) update_highlight(highlightNodeIds, [])
     if(!searchMode)remove_highlight() 
   }, [searchMode])
 
   useEffect(() => {
+    console.log("highlight changed", highlightNodeIds)
     update_highlight(highlightNodeIds, [])
   }, [highlightNodeIds])
 
@@ -308,6 +313,7 @@ function ClusterOverview({
     const canvas = svg.append("g")
       .attr("class", "margin")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    svg.append("g").attr("class", "peripheral-group")
     canvas.append("g").attr("class", "article-border-group")
     canvas.append("g").attr("class", "hyperedge-node-group")
     canvas.append("g").attr("class", "entity-border-group")
@@ -315,7 +321,32 @@ function ClusterOverview({
     canvas.append("path").attr("class", "highlight-border")
     canvas.append("g").attr("class", "link-group")
     addBrush()
+    updatePreipheral()
   }
+
+  function updatePreipheral() {
+    const width = peripheral.width
+    const height = peripheral.height
+    const cell_width = Math.floor(svgSize.width/(width+2*height))
+    const cell_height = Math.floor(svgSize.height/(width+2*height))
+    const svg = d3.select('#' + svgId)
+    const point_group = svg.select("g.peripheral-group").attr("transform", "translate(30, 30)")
+    point_group.selectAll("circle.point")
+      .data(peripheral.points)
+      .enter()
+      .append("circle").attr("class", "point")
+      .attr("r", node_radius)
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .attr("fill", "white")
+      .attr("pointer-events", "none")
+      .attr("opacity", 0)
+      .attr("cx", (d: any) => d[0]*cell_width)
+      .attr("cy", (d: any) => d[1]*cell_height)
+      // .transition().delay((d, i) => i*2).duration(5)
+      .attr("opacity", 1)
+  }
+
 
   function update_hyperedge_cluster() {
     const canvas = d3.select('#' + svgId).select("g.margin")
@@ -367,36 +398,40 @@ function ClusterOverview({
       // })
       .on("mouseover", function(e, d: any) {
         // highlight nodes in this cluster
-        const highlightNodeIds = graph.clusters[d.cluster_label]
-        update_highlight(highlightNodeIds, [d.cluster_label], 'id')
+        // const highlightNodeIds = graph.clusters[d.cluster_label]
+        // update_highlight(highlightNodeIds, [d.cluster_label], 'id')
 
         // show connected entities
         // show_connected_entities(d.cluster_label)
 
         // tooltip
-        const tooltip_coord = SVGToScreen(d.max_x, d.min_y)
+        const tooltip_coord = SVGToScreen(d.max_x+margin.left, d.min_y+margin.top)
         tooltipDiv
-          .style("left", tooltip_coord.x  + 15 + "px")
-          .style("top", tooltip_coord.y + 10 + "px")
+          .style("left", tooltip_coord.x + "px")
+          .style("top", tooltip_coord.y + "px")
         canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
           .attr("fill", (d: any) => { 
             d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
             return d.sub_cluster_color;
           })
         setTooltipData({
-          cluster_label: graph.hierarchical_topics[d.cluster_label],
-          sub_cluster_labels: graph.sub_clusters[d.cluster_label].map((sub_cluster_label: string) => graph.hierarchical_topics[sub_cluster_label])
+          cluster_label: d.cluster_label,
+          cluster_topic: graph.hierarchical_topics[d.cluster_label],
+          sub_clusters: graph.sub_clusters[d.cluster_label].map(
+            (sub_cluster_label: string) => {
+              return {
+                cluster_label: sub_cluster_label,
+                cluster_topic: graph.hierarchical_topics[sub_cluster_label]
+              }
+            })
         })
         tooltipDiv.style("opacity", 1)
       })
       .on("mouseout", function(e, d) {
-        // remove highlight
-        remove_highlight()
-
         // remove connected entities
-        canvas.select("g.entity-node-group").selectAll("circle.entity-node").attr("opacity", 0)
-        canvas.select("g.entity-border-group").selectAll("path").attr("opacity", 0)
-        canvas.select("g.link-group").selectAll("line.link").attr("opacity", 0)
+        // canvas.select("g.entity-node-group").selectAll("circle.entity-node").attr("opacity", 0)
+        // canvas.select("g.entity-border-group").selectAll("path").attr("opacity", 0)
+        // canvas.select("g.link-group").selectAll("line.link").attr("opacity", 0)
         
         // reset hovered cluster color
         canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
@@ -641,18 +676,18 @@ function ClusterOverview({
     hyperedge_node_group.selectAll("circle.hyperedge-node")
       .attr("stroke-width", 1)
       .attr("opacity", 0.5)
-      // .attr("opacity", 0.1)
 
     // update highlighted nodes 
     hyperedge_node_group.selectAll("circle.hyperedge-node")
       .filter((node: any) => highlightNodeIds.includes(node[attr]))
       .attr("stroke-width", 2)
       .attr("opacity", 1)
-    const article_borders = canvas.select("g.article-border-group")
-      .selectAll("path")
-    article_borders.attr("opacity", 0.1)
-    article_borders.filter((node: any) => highlightClusters.includes(node[attr]))
-      .attr("opacity", 1)
+
+    // const article_borders = canvas.select("g.article-border-group")
+    //   .selectAll("path")
+    // article_borders.attr("opacity", 0.1)
+    // article_borders.filter((node: any) => highlightClusters.includes(node[attr]))
+    //   .attr("opacity", 1)
 
 
     // highlight hyperedge borders
@@ -813,7 +848,7 @@ function ClusterOverview({
           d3.select(this).attr("stroke-width", 1.5)
         }
       }
-    });
+    })
   }
   return (
     <>
@@ -827,11 +862,20 @@ function ClusterOverview({
         <div className='tooltip absolute opacity-0 border-2 bg-gray-100 p-0.5 pointer-events-none z-50'>
           { tooltipData &&
             <div className='flex flex-col'>
-              <p className='w-fit'> Topic: { tooltipData.cluster_label } </p>
+              <p className='flex items-center w-fit'>
+                <span className='mr-2'> Topic: </span>
+                <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
+                <span className='ml-2'> { tooltipData.cluster_topic } </span>
+              </p>
+              {/* <p className='w-fit' style={{ background: 'blue' }}> Topic: { tooltipData.cluster_topic } </p> */}
               <ul className='w-fit list-disc list-inside'> 
                 <p className='w-fit'> Sub-topics: </p>
-                { tooltipData.sub_cluster_labels.map(sub_cluster_label => 
-                  <li className='w-fit pl-0'> { sub_cluster_label } </li> )
+                { tooltipData.sub_clusters.map(sub_cluster => 
+                  <li className='flex items-center w-fit pl-1'> 
+                    <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={articleSubClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
+                    <span className='ml-2'> { sub_cluster.cluster_topic } </span>
+                  </li> 
+                  )
                 }
               </ul>
             </div>
