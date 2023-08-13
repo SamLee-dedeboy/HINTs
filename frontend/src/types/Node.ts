@@ -4,6 +4,7 @@ export type d_HilbertNode = {
     update_cluster_order: number,
     cluster_label: string,
     sub_cluster_label: string,
+    hilbert_order: number
 }
 
 export type d_ArticleNode = {
@@ -31,6 +32,9 @@ export type v_Node = {
     sub_cluster_color? :string,
     x? : number,
     y? : number,
+    cell_width?: number,
+    cell_height?: number,
+
 }
 
 export type t_ArticleNode = d_ArticleNode & v_Node & d_HilbertNode
