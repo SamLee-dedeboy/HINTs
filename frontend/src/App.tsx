@@ -160,8 +160,8 @@ function App() {
   }
 
   async function fetchPHilbert() {
-    const width = 120
-    const height = 12
+    const width = 128
+    const height = 20
     fetch(`${server_address}/static/p_hilbert/`, {
       method: "POST",
       headers: {
