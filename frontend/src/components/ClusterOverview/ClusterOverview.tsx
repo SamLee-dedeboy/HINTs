@@ -4,8 +4,9 @@ import { usePrevious } from "@uidotdev/usehooks";
 
 import d3Hilbert from 'd3-hilbert';
 import "./ClusterOverview.css"
-import { t_EntityNode, t_EventHGraph, t_HyperedgeNode, tooltipContent } from "../../types.ts"
-import concaveman from "concaveman"
+import { t_EntityNode, t_EventHGraph, t_ArticleNode, tooltipContent } from "../../types";
+import borders from "./BorderUtils";
+import spacing from "./SpacingUtils";
 
 interface ClusterOverviewProps {
   svgId: string
@@ -53,8 +54,6 @@ function ClusterOverview({
 
   // scales & constants
   const node_radius = 4
-  // const clusterColorScale = d3.scaleOrdinal(d3.schemeCategory10)
-  // const clusterColorScale = d3.scaleOrdinal(d3.schemeAccent)
   const articleClusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
   const articleSubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   const entityClusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
@@ -110,56 +109,20 @@ function ClusterOverview({
     return sub_cluster_color_dict
   }, [graph])
 
-  // const entityClusterColorDict = useMemo(() => {
-  //   let cluster_color_dict = {}
-  //   Object.keys(graph.entity_clusters).forEach(cluster_label => {
-  //     if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
-  //       cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
-  //     } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
-  //       cluster_color_dict[cluster_label] = previousSubClusterColorDict[cluster_label]
-  //     } else {
-  //       cluster_color_dict[cluster_label] = entityClusterColorScale(cluster_label)
-  //     }
-  //   })
-  //   setPreviousClusterColorDict(cluster_color_dict)
-  //   return cluster_color_dict
-  // }, [graph])
-
-  function evenGaps(clusters, cluster_order, total_volume, total_cluster_gap) {
-    total_volume = 2*total_volume - clusters[cluster_order[0]].length - clusters[cluster_order[cluster_order.length-1]].length
-    let gaps: number[] = [0]
-    let accumulative_gap = 0
-    // generate cluster gaps
-    for(let i = 0; i < cluster_order.length-1; i++) {
-      const cluster1 = cluster_order[i]
-      const cluster2 = cluster_order[i+1]
-      const cluster1_volume = clusters[cluster1].length
-      const cluster2_volume = clusters[cluster2].length
-      const volume_ratio = (cluster1_volume + cluster2_volume) / total_volume
-      const gap_num = total_cluster_gap * volume_ratio
-      accumulative_gap += Math.round(gap_num)
-      gaps.push(accumulative_gap)
-    }
-    return gaps
-  }
-
-  function centerGaps(clusters, cluster_order, total_volume, total_cluster_gap, padding) {
-    total_volume = 2*total_volume
-    const remain_cluster_gap = total_cluster_gap - padding
-    let gaps: number[] = [padding / 2]
-    let accumulative_gap = 0
-    for(let i = 0; i < cluster_order.length-1; i++) {
-      const cluster1 = cluster_order[i]
-      const cluster2 = cluster_order[i+1]
-      const cluster1_volume = clusters[cluster1].length
-      const cluster2_volume = clusters[cluster2].length
-      const volume_ratio = (cluster1_volume + cluster2_volume) / total_volume
-      const gap_num = remain_cluster_gap * volume_ratio
-      accumulative_gap += Math.round(gap_num)
-      gaps.push(accumulative_gap)
-    }
-    return gaps
-  }
+  const entityClusterColorDict = useMemo(() => {
+    let cluster_color_dict = {}
+    Object.keys(graph.entity_clusters).forEach(cluster_label => {
+      if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
+        cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
+      } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
+        cluster_color_dict[cluster_label] = previousSubClusterColorDict[cluster_label]
+      } else {
+        cluster_color_dict[cluster_label] = entityClusterColorScale(cluster_label)
+      }
+    })
+    setPreviousClusterColorDict(cluster_color_dict)
+    return cluster_color_dict
+  }, [graph])
 
 
   function generate_entity_hilbert_coord(nodes, clusters, cluster_order, articles) {
@@ -175,7 +138,7 @@ function ClusterOverview({
     const total_volume = nodes.length + articles.length
     
     const padding = total_cluster_gap * 0.2
-    const gaps = centerGaps(clusters, cluster_order, total_volume, total_cluster_gap, padding)
+    const gaps = spacing.centerGaps(clusters, cluster_order, total_volume, total_cluster_gap, padding)
     console.log({articles})
     const articles_coord_start = Math.min(...articles.map(article => article.hilbert_order))
     console.log({articles_coord_start})
@@ -206,16 +169,10 @@ function ClusterOverview({
 
   }
 
-  function generate_hilbert_coord(nodes, clusters, cluster_order, spacing='even') {
-    // // hyperedge nodes
-    // const hyperedge_nodes = graph.hyperedge_nodes
-    // let hyperedge_dict = {}
-    // graph.hyperedge_nodes.forEach(node => { hyperedge_dict[node.id] = node })
+  function generate_hilbert_coord(nodes, clusters, cluster_order, spacing_flag='even') {
     let node_dict = {}
     nodes.forEach(node => { node_dict[node.id] = node })
-    // let entity_node_dict = {}
-    // graph.candidate_entity_nodes.forEach(node => { entity_node_dict[node.id] = node })
-    // const hilbert_order = Math.ceil(Math.log(hyperedge_nodes.length) / Math.log(4))+0 // log_4(nodes.length)
+    // const hilbert_order = Math.ceil(Math.log(nodes.length) / Math.log(4))+0 // log_4(nodes.length)
     const hilbert_order = Math.ceil(Math.log(7546) / Math.log(4))+0 // log_4(nodes.length)
     const hilbert = d3Hilbert().order(hilbert_order)
     const grid_length = Math.pow(2, hilbert_order)
@@ -227,9 +184,9 @@ function ClusterOverview({
     // const gaps = centerGaps(cluster_order, total_volume, total_cluster_gap)
     const padding = total_cluster_gap / nodes.length 
     console.log(padding, total_cluster_gap * 0.2, nodes.length, total_cluster_gap)
-    const gaps = spacing === 'even' ? evenGaps(clusters, cluster_order, total_volume, total_cluster_gap) : centerGaps(clusters, cluster_order, total_volume, total_cluster_gap, padding)
+    const gaps = spacing_flag === 'even' ? spacing.evenGaps(clusters, cluster_order, total_volume, total_cluster_gap) : spacing.centerGaps(clusters, cluster_order, total_volume, total_cluster_gap, padding)
 
-    // assign hilbert coord to hyperedge nodes
+    // assign hilbert coord to nodes
     nodes.sort((a, b) => a.order - b.order)
     const node_coords = {}
     nodes.forEach((node, index) => {
@@ -271,7 +228,7 @@ function ClusterOverview({
     //         x: target_coords[0],
     //         y: target_coords[1]
     //     }
-    //     const hyperedge_node = hyperedge_dict[link.source.id] || hyperedge_dict[link.target.id]
+    //     const article_node = hyperedge_dict[link.source.id] || hyperedge_dict[link.target.id]
     //     const cluster_color = clusterColorScale(hyperedge_node.cluster_label)
     //     link.color = cluster_color
     // })
@@ -301,7 +258,7 @@ function ClusterOverview({
   }, [highlightNodeIds])
 
   useEffect(() => {
-    update_hyperedge_cluster()
+    update_article_cluster()
     // update_entity_cluster()
     update_highlight(highlightNodeIds, [])
   }, [graph]);
@@ -315,7 +272,7 @@ function ClusterOverview({
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     svg.append("g").attr("class", "peripheral-group")
     canvas.append("g").attr("class", "article-border-group")
-    canvas.append("g").attr("class", "hyperedge-node-group")
+    canvas.append("g").attr("class", "article-node-group")
     canvas.append("g").attr("class", "entity-border-group")
     canvas.append("g").attr("class", "entity-node-group")
     canvas.append("path").attr("class", "highlight-border")
@@ -343,24 +300,24 @@ function ClusterOverview({
       .attr("opacity", 0)
       .attr("cx", (d: any) => d[0]*cell_width)
       .attr("cy", (d: any) => d[1]*cell_height)
-      // .transition().delay((d, i) => i*2).duration(5)
+      .transition().delay((d, i) => i*2).duration(5)
       .attr("opacity", 1)
   }
 
 
-  function update_hyperedge_cluster() {
+  function update_article_cluster() {
     const canvas = d3.select('#' + svgId).select("g.margin")
-    // canvas.selectAll("circle.hyperedge-node").attr("opacity", 0)
-    generate_hilbert_coord(graph.hyperedge_nodes, graph.clusters, graph.cluster_order, 'center')
+    // canvas.selectAll("circle.article-node").attr("opacity", 0)
+    generate_hilbert_coord(graph.article_nodes, graph.clusters, graph.cluster_order, 'center')
     const t_delay = 1000
     const t_duration = 1000
-    // hyperedges 
-    const hyperedge_node_group = canvas.select("g.hyperedge-node-group")
-    hyperedge_node_group.selectAll("circle.hyperedge-node")
-      .data(graph.hyperedge_nodes, (d: any, i) => { d.i = i; return d.doc_id })
+    // articles 
+    const article_node_group = canvas.select("g.article-node-group")
+    article_node_group.selectAll("circle.article-node")
+      .data(graph.article_nodes, (d: any, i) => { d.i = i; return d.doc_id })
       .join(
         enter => enter.append("circle")
-            .attr("class", "hyperedge-node")
+            .attr("class", "article-node")
             .attr("r", node_radius)
             .attr("stroke", "black")
             .attr("stroke-width", 1)
@@ -381,7 +338,7 @@ function ClusterOverview({
             ,
       )
     // cluster borders
-    const cluster_borders = generate_cluster_borders(graph.hyperedge_nodes, graph.clusters, graph.cluster_order, graph.update_cluster_order)
+    const cluster_borders = generate_cluster_borders(graph.article_nodes, graph.clusters, graph.cluster_order, graph.update_cluster_order)
     const border_group = canvas.select("g.article-border-group")
     const tooltipDiv = d3.select(".tooltip");
     border_group.selectAll("path.concave-hull")
@@ -409,7 +366,7 @@ function ClusterOverview({
         tooltipDiv
           .style("left", tooltip_coord.x + "px")
           .style("top", tooltip_coord.y + "px")
-        canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
+        canvas.selectAll("circle.article-node").filter((node: any) => node.cluster_label === d.cluster_label)
           .attr("fill", (d: any) => { 
             d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
             return d.sub_cluster_color;
@@ -434,7 +391,7 @@ function ClusterOverview({
         // canvas.select("g.link-group").selectAll("line.link").attr("opacity", 0)
         
         // reset hovered cluster color
-        canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
+        canvas.selectAll("circle.article-node").filter((node: any) => node.cluster_label === d.cluster_label)
           .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
         
         // hide tooltip
@@ -504,7 +461,7 @@ function ClusterOverview({
   //       tooltipDiv
   //         .style("left", tooltip_coord.x  + 15 + "px")
   //         .style("top", tooltip_coord.y + 10 + "px")
-  //       canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
+  //       canvas.selectAll("circle.article-node").filter((node: any) => node.cluster_label === d.cluster_label)
   //         .attr("fill", (d: any) => { 
   //           d.sub_cluster_color = subClusterColorDict[d.sub_cluster_label]
   //           return d.sub_cluster_color;
@@ -518,7 +475,7 @@ function ClusterOverview({
   //     .on("mouseout", function(e, d) {
   //       return
   //       remove_highlight()
-  //       canvas.selectAll("circle.hyperedge-node").filter((node: any) => node.cluster_label === d.cluster_label)
+  //       canvas.selectAll("circle.article-node").filter((node: any) => node.cluster_label === d.cluster_label)
   //         .attr("fill", (d: any) => d.cluster_color = clusterColorDict[d.cluster_label])
   //       tooltipDiv.style("opacity", 0)
   //     })
@@ -531,7 +488,7 @@ function ClusterOverview({
 
   function show_connected_entities(article_cluster_label) {
     const canvas = d3.select('#' + svgId).select("g.margin")
-    const cluster_entity_ids: string[] = graph.article_cluster_entities[article_cluster_label].map(entity => entity.id)
+    const cluster_entity_ids: string[] = graph.article_cluster_linked_entities[article_cluster_label].map(entity => entity.id)
     const cluster_entities: t_EntityNode[] = graph.entity_nodes.filter(entity => cluster_entity_ids.includes(entity.id))
 
     let filtered_clusters = {}
@@ -543,7 +500,7 @@ function ClusterOverview({
     })
     const filtered_cluster_order = graph.entity_cluster_order.filter(cluster_label => Object.keys(filtered_clusters).includes(cluster_label))
     const cluster_article_ids = graph.clusters[article_cluster_label]
-    const cluster_articles = graph.hyperedge_nodes.filter(article => cluster_article_ids.includes(article.id))
+    const cluster_articles = graph.article_nodes.filter(article => cluster_article_ids.includes(article.id))
     generate_entity_hilbert_coord(cluster_entities, filtered_clusters, filtered_cluster_order, cluster_articles)
 
     const t_delay = 1000
@@ -646,8 +603,8 @@ function ClusterOverview({
 
   function remove_highlight() {
     const canvas = d3.select('#' + svgId).select("g.margin")
-    const hyperedge_node_group = canvas.select("g.hyperedge-node-group")
-    hyperedge_node_group.selectAll("circle.hyperedge-node")
+    const article_node_group = canvas.select("g.article-node-group")
+    article_node_group.selectAll("circle.article-node")
       .attr("stroke-width", 1)
       .attr("opacity", 1)
     const article_borders = canvas.select("g.article-border-group")
@@ -658,27 +615,27 @@ function ClusterOverview({
 
   function update_highlight(highlightNodeIds, highlightClusters, attr='doc_id') {
     const canvas = d3.select('#' + svgId).select("g.margin")
-    const hyperedge_node_group = canvas.select("g.hyperedge-node-group")
+    const article_node_group = canvas.select("g.article-node-group")
     if(highlightNodeIds.length === 0) {
       if(searchMode) {
-        hyperedge_node_group.selectAll("circle.hyperedge-node")
+        article_node_group.selectAll("circle.article-node")
           .attr("stroke-width", 1)
           .attr("opacity", 0.5)
           return
       } else {
-        hyperedge_node_group.selectAll("circle.hyperedge-node")
+        article_node_group.selectAll("circle.article-node")
           .attr("stroke-width", 1)
           .attr("opacity", 1)
           return
       }
     }
     // set normal nodes to background
-    hyperedge_node_group.selectAll("circle.hyperedge-node")
+    article_node_group.selectAll("circle.article-node")
       .attr("stroke-width", 1)
       .attr("opacity", 0.5)
 
     // update highlighted nodes 
-    hyperedge_node_group.selectAll("circle.hyperedge-node")
+    article_node_group.selectAll("circle.article-node")
       .filter((node: any) => highlightNodeIds.includes(node[attr]))
       .attr("stroke-width", 2)
       .attr("opacity", 1)
@@ -690,7 +647,7 @@ function ClusterOverview({
     //   .attr("opacity", 1)
 
 
-    // highlight hyperedge borders
+    // highlight article borders
     // const highlight_hyperedge_nodes = graph.hyperedge_nodes.filter(node => highlightNodeIds.includes(node.doc_id))
     // if(highlight_hyperedge_nodes.length > 0) {
     //   const highlight_path = generate_border(highlight_hyperedge_nodes, 2)
@@ -710,7 +667,7 @@ function ClusterOverview({
       const nodes_data = nodes.filter(node => cluster_node_ids.includes(node.id))
       // if(nodes_data.length === 0) return
 
-      const {path, max_x, min_y} = generate_border(nodes_data)
+      const {path, max_x, min_y} = borders.generate_border(nodes_data)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": cluster_order.indexOf(cluster_label),
@@ -723,92 +680,11 @@ function ClusterOverview({
     return border_paths
   }
 
-  function generate_border(nodes_data, concavity=0.2) {
-      const offset_x = (nodes_data[0] as any).cell_width
-      const offset_y = (nodes_data[0] as any).cell_height
-      // add concave hull forst to make its z-index lower
-      let points: any[] = []
-      nodes_data.forEach((node: any) => {
-        points.push([node.x - offset_x, node.y - offset_y]) // 1
-        points.push([node.x, node.y - offset_y]) // 2
-        points.push([node.x + offset_x, node.y - offset_y]) // 3
-        points.push([node.x - offset_x, node.y]) // 4
-        points.push([node.x + offset_x, node.y]) // 6
-        points.push([node.x - offset_x, node.y + offset_y]) // 7
-        points.push([node.x, node.y + offset_y]) // 8
-        points.push([node.x + offset_x, node.y + offset_y]) // 9
-      })
-      const max_x = Math.max(...points.map(p => p[0]))
-      const min_y = Math.min(...points.map(p => p[1]))
-      // const polygon = concaveman(points, 0.5, 0)
-      const polygon = concaveman(points, concavity, 0)
-      // const path = createRoundedCornersFromPointsWithLines(polygon);
-      const path = createSmoothPathFromPointsWithCurves(polygon);
-      return { path, max_x, min_y }
-  }
-
-  function createSmoothPathFromPointsWithLines(points) {
-    let path = `M ${points[0][0]},${points[0][1]}`;
-    for (let i = 1; i < points.length; i++) {
-      path += ` L ${points[i][0]},${points[i][1]}`;
-    }
-    path += ' Z';
-    return path;
-  }
-
-  function createSmoothPathFromPointsWithCurves(points) {
-    // Function to create a smooth path from points using Bezier curves
-    // This turns out to be unexpectedly aesthetic (sketchy style) 
-    let path = `M ${points[0][0]},${points[0][1]}`;
-    const numPoints = points.length;
-
-    for (let i = 1; i < numPoints; i++) {
-      const smoothing = 0.5;
-      // Calculate control points for cubic Bezier curves
-      const p0 = points[i-1]
-      const p1 = points[i]
-      const p2 = points[(i+1)%numPoints]
-      const x0 = smoothing*p0[0] + (1-smoothing)*p1[0]
-      const y0 = smoothing*p0[1] + (1-smoothing)*p1[1]
-
-      const x1 = smoothing*p2[0] + (1-smoothing)*p1[0]
-      const y1 = smoothing*p2[1] + (1-smoothing)*p1[1]
-      path += ` C ${x0},${y0} ${x1},${y1} ${p2[0]},${p2[1]}`;
-    }
-
-    path += ' Z';
-    return path;
-  }
-
-  function createRoundedCornersFromPointsWithLines(points) {
-    // Create a smooth path based on the concave hull points with rounded corners
-    let path = `M ${points[0][0]},${points[0][1]}`;
-    const numPoints = points.length;
-
-    for (let i = 1; i < numPoints; i++) {
-      const prevPoint = points[i - 1];
-      const curPoint = points[i];
-      const nextPoint = points[(i + 1) % numPoints];
-
-      const x0 = (curPoint[0] + prevPoint[0]) / 2;
-      const y0 = (curPoint[1] + prevPoint[1]) / 2;
-
-      const x1 = (curPoint[0] + nextPoint[0]) / 2;
-      const y1 = (curPoint[1] + nextPoint[1]) / 2;
-
-      path += ` L ${x0},${y0}`;
-      path += ` Q ${curPoint[0]},${curPoint[1]} ${x1},${y1}`;
-    }
-
-    path += ' Z';
-    return path
-  }
-
   function addBrush() {
     const brush = d3.brush()
       .on("brush", brushing)
       .on("end", brushed);
-    const svg = d3.select('#' + svgId)
+   const svg = d3.select('#' + svgId)
     svg.append("g").attr("class", "brush").call(brush);
   }
 
@@ -819,14 +695,14 @@ function ClusterOverview({
 
   function brushing({selection}) {
     const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.hyperedge-node").attr("stroke-width", 1)
+    const circles = svg.selectAll("circle.article-node").attr("stroke-width", 1)
     circles.each((d: any) => d.scanned = d.selected = false);
     if (selection) search(circles, selection, "brushing");
   }
 
   function brushed({selection}) {
     const svg = d3.select('#' + svgId)
-    const circles = svg.selectAll("circle.hyperedge-node").attr("stroke-width", 1)
+    const circles = svg.selectAll("circle.article-node").attr("stroke-width", 1)
     circles.each((d: any) => d.scanned = d.selected = false);
     if (selection) search(circles, selection, "end");
     const selected_circle = circles.filter((d: any) => d.selected)

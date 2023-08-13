@@ -10,34 +10,43 @@ def getArticleClusterEntities(user_hgraph, clusters):
 
     return cluster_entities_dict
 
-def prepareData(user_hgraph, level, type='hyperedge'):
-    if type == 'hyperedge':
+def prepareData(user_hgraph, level, type='article'):
+    if type == 'article':
         clusters = user_hgraph.binPartitions(level)
         sub_clusters = user_hgraph.binPartitions(level - 1) if int(level) > 0 else None
-        # add cluster label to hyperedge nodes
-        hyperedge_node_dict = addClusterLabel(user_hgraph.hyperedge_dict, clusters, sub_clusters)
 
-        # generate cluster order
-        cluster_order = generateClusterOrder(list(hyperedge_node_dict.values()))
-        update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
-        # add cluster order to hyperedge nodes
-        hyperedge_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, hyperedge_node_dict)
-        return clusters, hyperedge_node_dict, cluster_order, update_cluster_order
+        return addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)
+        # add cluster label to article nodes
+        # article_node_dict = addClusterLabel(user_hgraph.article_dict, clusters, sub_clusters)
+        # # generate cluster order
+        # cluster_order = generateClusterOrder(list(article_node_dict.values()))
+        # update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+        # # add cluster order to article nodes
+        # article_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, article_node_dict)
+        # return clusters, article_node_dict, cluster_order, update_cluster_order
     elif type == 'entity':
         clusters = user_hgraph.binPartitions(level, type='entity')
         sub_clusters = user_hgraph.binPartitions(level - 1, type="entity") if int(level) > 0 else None
-        # add cluster label to hyperedge nodes
+        return addClusterLabelAndOrder(user_hgraph.entity_dict, clusters, sub_clusters)
+        # add cluster label to article nodes
         entity_node_dict = addClusterLabel(user_hgraph.entity_dict, clusters, sub_clusters)
-
         # generate cluster order
         cluster_order = generateClusterOrder(list(entity_node_dict.values()))
         update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
-        # add cluster order to hyperedge nodes
+        # add cluster order to article nodes
         entity_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, entity_node_dict)
         return clusters, entity_node_dict, cluster_order, update_cluster_order
 
+def addClusterLabelAndOrder(node_dict, clusters, sub_clusters):
+    node_dict = addClusterLabel(node_dict, clusters, sub_clusters)
+    # generate cluster order
+    cluster_order = generateClusterOrder(list(node_dict.values()))
+    update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
+    # add cluster order to article nodes
+    node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict)
 
-    return
+    return clusters, node_dict, cluster_order, update_cluster_order
+
 def generateClusterOrder(nodes):
     nodes = sorted(nodes, key=lambda x: x['order'])
     cur_cluster = nodes[0]['cluster_label']
@@ -82,19 +91,19 @@ def addClusterLabel(node_dict, clusters, subClusters=None):
 def addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict):
     for cluster_label in cluster_order:
         if cluster_label not in clusters: continue
-        hyperedge_node_ids = clusters[cluster_label]
-        for hyperedge_node_id in hyperedge_node_ids:
-            if hyperedge_node_id in node_dict:
-                node_dict[hyperedge_node_id]['cluster_order'] = cluster_order.index(cluster_label)
-                node_dict[hyperedge_node_id]['update_cluster_order'] = update_cluster_order[cluster_label]
+        article_node_ids = clusters[cluster_label]
+        for article_node_id in article_node_ids:
+            if article_node_id in node_dict:
+                node_dict[article_node_id]['cluster_order'] = cluster_order.index(cluster_label)
+                node_dict[article_node_id]['update_cluster_order'] = update_cluster_order[cluster_label]
     return node_dict
 
-def filterClusters(clusters, hyperedge_ids):
+def filterClusters(clusters, article_ids):
     res = {}
-    for cluster_label, cluster_hyperedge_node_ids in clusters.items():
-        filtered_cluster_hyperedge_node_ids = [id for id in cluster_hyperedge_node_ids if id in hyperedge_ids]
-        if len(filtered_cluster_hyperedge_node_ids) > 0:
-            res[cluster_label] = filtered_cluster_hyperedge_node_ids
+    for cluster_label, cluster_article_node_ids in clusters.items():
+        filtered_cluster_article_node_ids = [id for id in cluster_article_node_ids if id in article_ids]
+        if len(filtered_cluster_article_node_ids) > 0:
+            res[cluster_label] = filtered_cluster_article_node_ids
     return res
 
 def save_json(data, filepath=r'new_data.json'):
