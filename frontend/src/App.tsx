@@ -1,15 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-// import EventHgraph from './components/EventHGraph'
-import HierarchyInspector from './components/HierarchyInspector/HierarchyInspector'
 import { server_address } from './shared'
 import type { t_EventHGraph } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
-import Storyline from './components/Storyline/Storyline'
-import ClusterDetail from './components/ClusterDetail/ClusterDetail'
 import { Input, InputNumber, Switch } from 'antd';
-import storyline_tmp from "./tmp_storylinedata.json"
-import HilbertTest from './components/HibertTest/HilbertTest'
 
 
 const Search = Input.Search;
@@ -18,15 +12,10 @@ function App() {
   const user_id = 0
   const [article_hgraph, setArticleHGraph] = useState<t_EventHGraph>()
   const [articleHGraphLoaded, setArticleHGraphLoaded] = useState(false)
-  const [entity_hgraph, setEntityHGraph] = useState<t_EventHGraph>()
-  const [entityHGraphLoaded, setEntityHGraphLoaded] = useState(false)
-  const [hierarchy, setHierarchy] = useState<any[]>()
-  // const [contents, setContents] = useState<any[]>()
+  const [hierarchy, setHierarchy] = useState<any>()
 
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
-  const [cluster_data, setClusterData] = useState<any>()
-  const [storyline_data, setStorylineData] = useState<any>()
   const [brushMode, setBrushMode] = useState<boolean>(false)
 
   // searching related
@@ -39,14 +28,7 @@ function App() {
   const relevantDocs = useMemo(() => docsRanked.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked, relevanceThreshold])
   const relevantDocIds = useMemo(() => relevantDocs.map(doc => doc.doc_id), [relevantDocs])
 
-  // flags
-  const [cluster_selected, setClusterSelected] = useState(false)
-  const [cluster_data_fetched, setClusterDataFetched] = useState(false)
-  const [storyline_fetched, setStorylineFetched] = useState(false)
-  const [graph_type, setGraphType] = useState<String>("Article")
-
   const [hilbert, setHilbert] = useState<any>() 
-  const [hilbert_fetched, setHilbertFetched] = useState(false)
 
   useEffect(() => {
       fetch_hierarchy()
@@ -79,34 +61,12 @@ function App() {
         console.log({hgraph})
         setArticleHGraph(hgraph)
         setArticleHGraphLoaded(true)
-        // setEnabledCommunities(event_hgraph.communities)
       })
   }
 
-  async function fetchPartitionEntity() {
-    console.log("fetching entity hgraph with partition", level)
-    fetch(`${server_address}/user/entity/partition/${user_id}`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      // body: JSON.stringify({ level: level, entity_node_num: 5})
-      body: JSON.stringify({ level: 3 })
-    })
-      .then(res => res.json())
-      .then((hgraph: t_EventHGraph) => {
-        console.log({hgraph})
-        setEntityHGraph(hgraph)
-        setEntityHGraphLoaded(true)
-        // setEnabledCommunities(event_hgraph.communities)
-      })
-  }
-
-
-  async function fetchTopic(hyperedge_ids) {
-    console.log("fetching topic", hyperedge_ids)
-    if(hyperedge_ids.length === 0) {
+  async function fetchTopic(article_ids) {
+    console.log("fetching topic", article_ids)
+    if(article_ids.length === 0) {
       setTopic("No article selected")
       return
     }
@@ -116,7 +76,7 @@ function App() {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify(hyperedge_ids)
+      body: JSON.stringify(article_ids)
     })
       .then(res => res.json())
       .then(topic => {
@@ -152,7 +112,7 @@ function App() {
     if(query === "") return
     setSearchLoading(true)
     setSearchMode(true)
-    const base = article_hgraph?.hyperedge_nodes.map(node => node.doc_id)
+    const base = article_hgraph?.article_nodes.map(node => node.doc_id)
     console.log("searching: ", query, base)
     fetch(`${server_address}/static/search/`, {
       method: "POST",
@@ -180,16 +140,16 @@ function App() {
 
   async function applyFilter() {
     if(article_hgraph === undefined) return
-    const hyperedge_ids = article_hgraph.hyperedge_nodes.filter(hyperedge => relevantDocIds.includes(hyperedge.doc_id)).map(hyperedge => hyperedge.id)
+    const article_ids = article_hgraph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
     const clusters = article_hgraph.clusters
-    console.log("filtering: ", hyperedge_ids, clusters)
+    console.log("filtering: ", article_ids, clusters)
     fetch(`${server_address}/user/filter/${user_id}`, {
       method: "POST",
       headers: {
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      body: JSON.stringify({ hyperedge_ids, clusters })
+      body: JSON.stringify({ article_ids, clusters })
     })
       .then(res => res.json())
       .then(filtered_hgraph => {
@@ -197,31 +157,6 @@ function App() {
         setArticleHGraph(filtered_hgraph)
         // setEventHGraphLoaded(true)
       })
-  }
-  async function fetchStoryline() {
-    if(article_hgraph === undefined) {
-      return
-      console.log({storyline_tmp})
-      setStorylineData(storyline_tmp)
-      setStorylineFetched(true)
-      return
-    } 
-    const clusters = article_hgraph.clusters
-    fetch(`${server_address}/user/storyline/${user_id}`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ clusters })
-    })
-      .then(res => res.json())
-      .then(storyline => {
-        console.log({storyline})
-        setStorylineData(storyline)
-        setStorylineFetched(true)
-      })
- 
   }
 
   async function fetchPHilbert() {
@@ -243,7 +178,6 @@ function App() {
           width: width,
           height: height
         })
-        setHilbertFetched(true)
       })
   }
   
@@ -255,23 +189,18 @@ function App() {
     if(searchMode) setSearchMode(false)
     else setSearchMode(true)
   }
-  function toggleGraphType() {
-    if(graph_type == "Article") setGraphType("Entity")
-    else setGraphType("Article")
-  }
 
   return (
     <div className="App flex w-full h-full">
       <div className='left-panel flex basis-1/2 h-full'>
         {
-          !storyline_fetched && 
           <div className="article-hgraph-container flex flex-1 h-full">
           {
             !articleHGraphLoaded &&
             <div className="loading-hint"> Loading... </div>
           }
           {
-            articleHGraphLoaded && !cluster_selected && hilbert_fetched && 
+            articleHGraphLoaded && 
             // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
             <ClusterOverview svgId={"article-cluster-overview-svg"} 
               graph={article_hgraph!} 
@@ -284,41 +213,6 @@ function App() {
           }
           </div>
         }
-        {
-          storyline_fetched && 
-          <Storyline svgId={"storyline-svg"} data={storyline_data} article_num_threshold={10} />
-        }
-        {/* {
-          hilbert_fetched &&
-          <HilbertTest svgId={"hilbert-svg"} points={hilbert.points} width={hilbert.width} height={hilbert.height} />
-        } */}
-        {/* {
-          graph_type == "Entity" &&
-          <div className="entity-hgraph-container flex flex-1 h-full">
-          {
-            !entityHGraphLoaded &&
-            <div className="loading-hint"> Loading... </div>
-          }
-          {
-            entityHGraphLoaded && !cluster_selected && 
-            <ClusterOverview svgId={"entity-cluster-overview-svg"} 
-              graph={entity_hgraph!} 
-              highlightNodeIds={relevantDocIds} 
-              onNodesSelected={fetchTopic} 
-              onClusterClicked={handleClusterClicked} 
-              searchMode={searchMode}
-              brushMode={brushMode} />
-          }
-          </div>
-        } */}
-        {/* {
-          cluster_selected && !cluster_data_fetched && 
-          <div className="loading-hint"> Loading... </div>
-        }
-        {
-          cluster_selected && cluster_data_fetched && 
-          <ClusterDetail svgId={"cluster-detail-svg"} cluster_data={cluster_data} onNodesSelected={fetchTopic}/>
-        } */}
       </div>
       <div className='right-panel flex basis-1/2 w-1/12'>
         {
@@ -362,9 +256,7 @@ function App() {
               <span className='relevance-label'> Relevance >= </span>
               <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
             </div>
-            <button className={"transform-storyline btn ml-2"} onClick={fetchStoryline}>Storyline</button>
 
-            {/* <HierarchyInspector hierarchies={hierarchy} handleChecked={handleHierarchyChecked} ></HierarchyInspector> */}
             <div className="topic-viewer w-full"> {topic} </div>
           </div>
         }
