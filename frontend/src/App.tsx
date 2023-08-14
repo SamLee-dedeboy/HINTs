@@ -17,6 +17,8 @@ function App() {
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [brushMode, setBrushMode] = useState<boolean>(false)
+  const [selectionMode, setSelectionMode] = useState<boolean>(false)
+  // let selectionMode = false
 
   // searching related
   const [searchMode, setSearchMode] = useState<boolean>(false)
@@ -29,12 +31,18 @@ function App() {
   const relevantDocIds = useMemo(() => relevantDocs.map(doc => doc.doc_id), [relevantDocs])
 
   const [hilbert, setHilbert] = useState<any>() 
+  const [selectedClusters, setSelectedClusters] = useState<string[]>([])
+  const [mergedClusters, setMergedClusters] = useState<string[]>([])
 
   useEffect(() => {
       fetch_hierarchy()
       fetchPartitionArticle()
       fetchPHilbert()
   }, [])
+
+  useEffect(() => {
+    setSelectedClusters([])
+  }, [selectionMode])
 
   async function fetch_hierarchy() {
     console.log("fetching hierarchy")
@@ -87,6 +95,21 @@ function App() {
   }
 
   async function handleClusterClicked(cluster_id, clusters) {
+    console.log("cluster clicked", cluster_id, clusters, selectionMode)
+    if(selectionMode) {
+      if(selectedClusters.includes(cluster_id)) {
+        // remove from selected clusters
+        const updated_array = selectedClusters.filter(ele => ele !== cluster_id)
+        setSelectedClusters(updated_array)
+      } else {
+        // add to selected clusters
+        setSelectedClusters(prev => [...prev, cluster_id])
+      }
+    } else {
+      fetchExpandCluster(cluster_id, clusters)
+    }
+  }
+  async function fetchExpandCluster(cluster_id, clusters) {
     // setClusterSelected(true)
     // setClusterDataFetched(false)
     console.log("fetching for cluster", cluster_id)
@@ -138,6 +161,14 @@ function App() {
       })
   }
 
+  async function applyMerge() {
+    if(article_hgraph === undefined) return
+    console.log("merging: ", selectedClusters)
+    setMergedClusters(prev => [...prev, selectedClusters])
+    setSelectedClusters([])
+  }
+
+
   async function applyFilter() {
     if(article_hgraph === undefined) return
     const article_ids = article_hgraph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
@@ -181,15 +212,6 @@ function App() {
       })
   }
   
-  function toggleBrush() {
-    if(brushMode) setBrushMode(false)
-    else setBrushMode(true)
-  }
-  function toggleSearchMode() {
-    if(searchMode) setSearchMode(false)
-    else setSearchMode(true)
-  }
-
   return (
     <div className="App flex w-full h-full">
       <div className='left-panel flex basis-1/2 h-full'>
@@ -209,7 +231,11 @@ function App() {
               onNodesSelected={fetchTopic} 
               onClusterClicked={handleClusterClicked} 
               searchMode={searchMode}
-              brushMode={brushMode} />
+              brushMode={brushMode} 
+              selectionMode={selectionMode}
+              selectedClusters={selectedClusters}
+              mergedClusters={mergedClusters}
+              />
           }
           </div>
         }
@@ -221,12 +247,17 @@ function App() {
             <div className='toggler-container flex flex-col py-3'>
               <div className='switch-container flex justify-center mr-2 w-fit '>
                 <span className='switch-label mr-2'>Brush</span>
-                <Switch className={"toggle-brush bg-black/25"} onChange={toggleBrush} checkedChildren="On" unCheckedChildren="Off"></Switch>
+                <Switch className={"toggle-brush bg-black/25"} onChange={setBrushMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
               </div>
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Search</span>
-                <Switch className={"toggle-searchMode bg-black/25"} onChange={toggleSearchMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
+                <Switch className={"toggle-searchMode bg-black/25"} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
               </div>
+              <div className='switch-container flex justify-center mr-2 w-fit'>
+                <span className='switch-label mr-2'>Selection</span>
+                <Switch className={"toggle-selectionMode bg-black/25"} onChange={setSelectionMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
+              </div>
+              <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
               {/* <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Graph</span>
                 <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>

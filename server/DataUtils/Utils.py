@@ -1,4 +1,5 @@
 import json
+import random
 def getArticleClusterEntities(user_hgraph, clusters):
     cluster_entities_dict = {}
     for cluster_label, article_nodes in clusters.items():
@@ -105,6 +106,21 @@ def filterClusters(clusters, article_ids):
         if len(filtered_cluster_article_node_ids) > 0:
             res[cluster_label] = filtered_cluster_article_node_ids
     return res
+
+def flattenClusters(clusters, targeted_cluster_labels):
+    res = []
+    for cluster_label, cluster_article_node_ids in clusters.items():
+        if cluster_label in targeted_cluster_labels:
+            res += cluster_article_node_ids
+    return res
+def generateNewClusterLabel(existing_cluster_labels):
+    level = 5
+    while True:
+        new_cluster_label = random.randint(1, 8000)
+        if "L-{}-{}".format(level, new_cluster_label) in existing_cluster_labels:
+            continue
+        else:
+            return "L-{}-{}".format(level, new_cluster_label)
 
 def save_json(data, filepath=r'new_data.json'):
    with open(filepath, 'w') as fp:

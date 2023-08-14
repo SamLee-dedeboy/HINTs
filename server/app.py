@@ -198,6 +198,58 @@ def expand_cluster(uid):
     }
     return json.dumps(hgraph, default=vars)
 
+@app.route("/user/merge_cluster/<uid>", methods=["POST"])
+def expand_cluster(uid):
+    uid = int(uid)
+    # retain original setups
+    selectedClusterLabels = request.json['selectedClusters']
+    clusters = request.json['clusters']
+    user_hgraph = graph_controller.getUserHGraph(uid)
+    ###############
+    # merge cluster
+    # generate a new cluster that has the selected clusters as sub-clusters
+    merged_article_node_ids = Utils.flattenClusters(clusters, selectedClusterLabels)
+    new_cluster_label = Utils.generateNewClusterLabel(clusters.keys())
+    clusters[new_cluster_label] = merged_article_node_ids
+    # delete selected clusters
+    for selectedClusterLabel in selectedClusterLabels:
+        del clusters[selectedClusterLabel]
+
+    sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
+    # article
+    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)
+    print("--------- article nodes post-process done. ----------")
+
+    # entity
+    # TODO: add entity cluster expansion
+    entity_level = 3
+    entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
+    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters)
+    print("--------- entity nodes post-process done. ----------")
+
+    # link entities to clusters
+    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    print("--------- Entity links extraction done. ----------")
+
+    # return result
+    hgraph = {
+        "links": user_hgraph.entity_links,
+        "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
+        "clusters": clusters,
+        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+        "cluster_order": cluster_order,
+        "update_cluster_order": update_cluster_order,   
+        "hierarchical_topics": user_hgraph.hierarchical_topics,
+        # "article_cluster_linked_entities": article_cluster_entities,
+        # entities
+        "entity_nodes": user_hgraph.entity_nodes,
+        "entity_clusters":  entity_clusters,
+        "entity_cluster_order": entity_cluster_order,
+        "entity_update_cluster_order": entity_update_cluster_order,
+    }
+    return json.dumps(hgraph, default=vars)
+
     
 @app.route("/user/storyline/<uid>", methods=["POST"])
 def get_storyline(uid):
