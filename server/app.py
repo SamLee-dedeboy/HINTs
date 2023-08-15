@@ -97,13 +97,13 @@ def filter_hgraph(uid: int):
     # cluster_order = Utils.generateClusterOrder(sorted_filtered_article_nodes)
     # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
     # filtered_article_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, filtered_article_node_dict)
-    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)    
+    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points)    
 
     # entity
     entity_level = 3
     entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
     entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters)
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
 
     # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
 

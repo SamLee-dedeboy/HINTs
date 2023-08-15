@@ -204,10 +204,12 @@ function ClusterOverview({
   }, [highlightNodeIds])
 
   useEffect(() => {
-    update_article_cluster()
     update_entity_cluster()
-    // update_highlight(highlightNodeIds, [])
-  }, [graph]);
+  }, [graph.entity_nodes]);
+
+  useEffect(() => {
+    update_article_cluster()
+  }, [graph.article_nodes])
 
   function init() {
     const svg = d3.select('#' + svgId)
@@ -244,8 +246,8 @@ function ClusterOverview({
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
     // sfc.generate_hilbert_coord(graph.article_nodes, graph.clusters, graph.cluster_order, centerAreaSize, 'center')
     sfc.generate_gosper_coord(graph.article_nodes, centerAreaSize)
-    const t_delay = 1000
-    const t_duration = 1000
+    const t_delay = 100
+    const t_duration = 1500
     // articles 
     const article_node_group = centerArea.select("g.article-node-group")
     article_node_group.selectAll("circle.article-node")
@@ -558,10 +560,8 @@ function ClusterOverview({
     const canvas = d3.select('#' + svgId).select("g.margin")
     const article_node_group = canvas.select("g.article-node-group")
     article_node_group.selectAll("circle.article-node")
-      .attr("stroke-width", 1)
-      .attr("opacity", 1)
-    const article_borders = canvas.select("g.article-border-group")
-      .selectAll("path")
+      .attr("stroke", "white")
+      .attr("stroke-width", 0.5)
       .attr("opacity", 1)
     
   }
@@ -569,28 +569,30 @@ function ClusterOverview({
   function update_highlight(highlightNodeIds, highlightClusters, attr='doc_id') {
     const canvas = d3.select('#' + svgId).select("g.margin")
     const article_node_group = canvas.select("g.article-node-group")
-    if(highlightNodeIds.length === 0) {
-      if(searchMode) {
-        article_node_group.selectAll("circle.article-node")
-          .attr("stroke-width", 1)
-          .attr("opacity", 0.5)
-          return
-      } else {
-        article_node_group.selectAll("circle.article-node")
-          .attr("stroke-width", 1)
-          .attr("opacity", 1)
-          return
-      }
-    }
+    // if(highlightNodeIds.length === 0) {
+    //   if(searchMode) {
+    //     article_node_group.selectAll("circle.article-node")
+    //       .attr("stroke", 'black')
+    //       .attr("stroke-width", 1)
+    //       .attr("opacity", 0.5)
+    //       return
+    //   } else {
+    //     article_node_group.selectAll("circle.article-node")
+    //       .attr("stroke-width", 1)
+    //       .attr("opacity", 1)
+    //       return
+    //   }
+    // }
     // set normal nodes to background
     article_node_group.selectAll("circle.article-node")
-      .attr("stroke-width", 1)
+      .attr("stroke", 'white')
       .attr("opacity", 0.5)
 
     // update highlighted nodes 
     article_node_group.selectAll("circle.article-node")
       .filter((node: any) => highlightNodeIds.includes(node[attr]))
-      .attr("stroke-width", 2)
+      .attr("stroke", 'black')
+      .attr("stroke-width", 1)
       .attr("opacity", 1)
 
     // const article_borders = canvas.select("g.article-border-group")
