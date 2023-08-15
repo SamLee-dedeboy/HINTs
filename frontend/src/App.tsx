@@ -291,7 +291,7 @@ function App() {
               </div>
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Search</span>
-                <Switch className={"toggle-searchMode bg-black/25"} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+                <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
               </div>
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Selection</span>
