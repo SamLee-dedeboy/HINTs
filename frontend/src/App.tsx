@@ -13,6 +13,7 @@ function App() {
   const [article_hgraph, setArticleHGraph] = useState<t_EventHGraph>()
   const [articleHGraphLoaded, setArticleHGraphLoaded] = useState(false)
   const [hierarchy, setHierarchy] = useState<any>()
+  const [gosper, setGosper] = useState<any>()
 
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
@@ -32,47 +33,56 @@ function App() {
 
   const [hilbert, setHilbert] = useState<any>() 
   const [selectedClusters, setSelectedClusters] = useState<string[]>([])
-  const [mergedClusters, setMergedClusters] = useState<string[]>([])
+  const [mergedClusters, setMergedClusters] = useState<any[]>([])
 
   useEffect(() => {
-      fetch_hierarchy()
-      fetchPartitionArticle()
-      fetchPHilbert()
+    const promises = [fetchPHilbert(), fetchGosper(), fetch_hierarchy(), fetchPartitionArticle()]
+    Promise.all(promises)
+      .then(() => {
+        console.log("all fetched", article_hgraph)
+        setArticleHGraphLoaded(true)
+      })
   }, [])
 
   useEffect(() => {
     setSelectedClusters([])
   }, [selectionMode])
 
-  async function fetch_hierarchy() {
-    console.log("fetching hierarchy")
-    fetch(`${server_address}/static/hierarchy`)
-      .then(res => res.json())
-      .then(hierarchy => {
-        console.log({hierarchy})
-        setHierarchy(hierarchy)
-      })
-  }
-
-  async function fetchPartitionArticle() {
-    console.log("fetching article with partition", level)
-    fetch(`${server_address}/user/article/partition/${user_id}`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ article_level: level, entity_level: 3, entity_node_num: 5})
+  function fetch_hierarchy() {
+    return new Promise((resolve, reject) => {
+      console.log("fetching hierarchy")
+      fetch(`${server_address}/static/hierarchy`)
+        .then(res => res.json())
+        .then(hierarchy => {
+          console.log({hierarchy})
+          setHierarchy(hierarchy)
+          resolve("success")
+        })
     })
-      .then(res => res.json())
-      .then((hgraph: t_EventHGraph) => {
-        console.log({hgraph})
-        setArticleHGraph(hgraph)
-        setArticleHGraphLoaded(true)
-      })
   }
 
-  async function fetchTopic(article_ids) {
+  function fetchPartitionArticle() {
+    return new Promise((resolve, reject) => {
+      console.log("fetching article with partition", level)
+      fetch(`${server_address}/user/article/partition/${user_id}`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ article_level: level, entity_level: 3, entity_node_num: 5})
+      })
+        .then(res => res.json())
+        .then((hgraph: t_EventHGraph) => {
+          console.log({hgraph})
+          setArticleHGraph(hgraph)
+          resolve("success")
+        })
+
+    })
+  }
+
+  function fetchTopic(article_ids) {
     console.log("fetching topic", article_ids)
     if(article_ids.length === 0) {
       setTopic("No article selected")
@@ -86,12 +96,12 @@ function App() {
       },
       body: JSON.stringify(article_ids)
     })
-      .then(res => res.json())
-      .then(topic => {
-        console.log({topic})
-        setTopic(topic)
-        // setEnabledCommunities(event_hgraph.communities)
-      })
+    .then(res => res.json())
+    .then(topic => {
+      console.log({topic})
+      setTopic(topic)
+      // setEnabledCommunities(event_hgraph.communities)
+    })
   }
 
   async function handleClusterClicked(cluster_id, clusters) {
@@ -106,29 +116,32 @@ function App() {
         setSelectedClusters(prev => [...prev, cluster_id])
       }
     } else {
-      fetchExpandCluster(cluster_id, clusters)
+      await fetchExpandCluster(cluster_id, clusters)
     }
   }
   async function fetchExpandCluster(cluster_id, clusters) {
-    // setClusterSelected(true)
-    // setClusterDataFetched(false)
-    console.log("fetching for cluster", cluster_id)
-    fetch(`${server_address}/user/expand_cluster/${user_id}`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
-    })
-      .then(res => res.json())
-      .then(expanded_hgraph => {
-        console.log({expanded_hgraph})
-        setArticleHGraph(expanded_hgraph)
-        setArticleHGraphLoaded(true)
-        // setClusterData(cluster_data)
-        // setClusterDataFetched(true)
+    return new Promise((resolve, reject) => {
+      // setClusterSelected(true)
+      // setClusterDataFetched(false)
+      console.log("fetching for cluster", cluster_id)
+      fetch(`${server_address}/user/expand_cluster/${user_id}`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
       })
+        .then(res => res.json())
+        .then(expanded_hgraph => {
+          console.log({expanded_hgraph})
+          setArticleHGraph(expanded_hgraph)
+          setArticleHGraphLoaded(true)
+          resolve("success")
+          // setClusterData(cluster_data)
+          // setClusterDataFetched(true)
+        })
+    })
   }
 
   async function search() {
@@ -145,20 +158,20 @@ function App() {
       },
       body: JSON.stringify({ query, base })
     })
-      .then(res => res.json())
-      .then(search_response => {
-        console.log({search_response})
-        const docs_ranked = search_response.docs
-        const suggested_threshold = search_response.suggested_threshold
-        setSearchLoading(false)
-        setDocsRanked(docs_ranked)
-        setRelevanceThreshold(Number(suggested_threshold.toFixed(2)))
-        // updateRelevantDocIds(docs_ranked, relevanceThreshold)
-        // setEventHGraph(expanded_hgraph)
-        // setEventHGraphLoaded(true)
-        // setClusterData(cluster_data)
-        // setClusterDataFetched(true)
-      })
+    .then(res => res.json())
+    .then(search_response => {
+      console.log({search_response})
+      const docs_ranked = search_response.docs
+      const suggested_threshold = search_response.suggested_threshold
+      setSearchLoading(false)
+      setDocsRanked(docs_ranked)
+      setRelevanceThreshold(Number(suggested_threshold.toFixed(2)))
+      // updateRelevantDocIds(docs_ranked, relevanceThreshold)
+      // setEventHGraph(expanded_hgraph)
+      // setEventHGraphLoaded(true)
+      // setClusterData(cluster_data)
+      // setClusterDataFetched(true)
+    })
   }
 
   async function applyMerge() {
@@ -169,47 +182,73 @@ function App() {
   }
 
 
-  async function applyFilter() {
+  function applyFilter() {
     if(article_hgraph === undefined) return
-    const article_ids = article_hgraph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
-    const clusters = article_hgraph.clusters
-    console.log("filtering: ", article_ids, clusters)
-    fetch(`${server_address}/user/filter/${user_id}`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ article_ids, clusters })
-    })
-      .then(res => res.json())
-      .then(filtered_hgraph => {
-        console.log({filtered_hgraph})
-        setArticleHGraph(filtered_hgraph)
-        // setEventHGraphLoaded(true)
+    return new Promise((resolve, reject) => {
+      const article_ids = article_hgraph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
+      const clusters = article_hgraph.clusters
+      console.log("filtering: ", article_ids, clusters)
+      fetch(`${server_address}/user/filter/${user_id}`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ article_ids, clusters })
       })
+        .then(res => res.json())
+        .then(filtered_hgraph => {
+          console.log({filtered_hgraph})
+          setArticleHGraph(filtered_hgraph)
+          // setEventHGraphLoaded(true)
+          resolve("success")
+        })
+    })
   }
 
-  async function fetchPHilbert() {
-    const width = 128
-    const height = 20
-    fetch(`${server_address}/static/p_hilbert/`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ width, height })
-    })
-      .then(res => res.json())
-      .then(p_hilbert => {
-        console.log({p_hilbert})
-        setHilbert({
-          points: p_hilbert,
-          width: width,
-          height: height
-        })
+  function fetchPHilbert() {
+    return new Promise((resolve, reject) => {
+      const width = 128
+      const height = 20
+      fetch(`${server_address}/static/p_hilbert/`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ width, height })
       })
+        .then(res => res.json())
+        .then(p_hilbert => {
+          console.log({p_hilbert})
+          setHilbert({
+            points: p_hilbert,
+            width: width,
+            height: height
+          })
+          resolve("success")
+        })
+    })
+  }
+
+  function fetchGosper() {
+    return new Promise((resolve, reject) => {
+      const level = 5
+      fetch(`${server_address}/static/gosper/`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ level })
+      })
+        .then(res => res.json())
+        .then(gosper => {
+          console.log({gosper})
+          setGosper(gosper)
+          resolve("success")
+        })
+    })
   }
   
   return (
@@ -235,6 +274,7 @@ function App() {
               selectionMode={selectionMode}
               selectedClusters={selectedClusters}
               mergedClusters={mergedClusters}
+              gosper={gosper}
               />
           }
           </div>
@@ -251,11 +291,11 @@ function App() {
               </div>
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Search</span>
-                <Switch className={"toggle-searchMode bg-black/25"} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
+                <Switch className={"toggle-searchMode bg-black/25"} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
               </div>
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Selection</span>
-                <Switch className={"toggle-selectionMode bg-black/25"} onChange={setSelectionMode} checkedChildren="On" unCheckedChildren="Off"> </Switch>
+                <Switch className={"toggle-selectionMode bg-black/25"} onChange={setSelectionMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
               </div>
               <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
               {/* <div className='switch-container flex justify-center mr-2 w-fit'>
@@ -284,7 +324,7 @@ function App() {
               <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
             </div> */}
             <div className='relevance-threshold-container w-fit'>
-              <span className='relevance-label'> Relevance >= </span>
+              <span className='relevance-label'> Relevance &gt;= </span>
               <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
             </div>
 

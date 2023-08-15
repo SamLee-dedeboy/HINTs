@@ -1,5 +1,7 @@
 import json
 import random
+import math
+import itertools
 def getArticleClusterEntities(user_hgraph, clusters):
     cluster_entities_dict = {}
     for cluster_label, article_nodes in clusters.items():
@@ -38,13 +40,14 @@ def prepareData(user_hgraph, level, type='article'):
         entity_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, entity_node_dict)
         return clusters, entity_node_dict, cluster_order, update_cluster_order
 
-def addClusterLabelAndOrder(node_dict, clusters, sub_clusters):
+def addClusterLabelAndOrder(node_dict, clusters, sub_clusters, sfc_points, expanded_cluster=None):
     node_dict = addClusterLabel(node_dict, clusters, sub_clusters)
     # generate cluster order
     cluster_order = generateClusterOrder(list(node_dict.values()))
     update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
     # add cluster order to article nodes
     node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict)
+    node_dict = addSFCOrder(clusters, cluster_order, node_dict, sfc_points, expanded_cluster)
 
     return clusters, node_dict, cluster_order, update_cluster_order
 
@@ -121,6 +124,76 @@ def generateNewClusterLabel(existing_cluster_labels):
             continue
         else:
             return "L-{}-{}".format(level, new_cluster_label)
+
+def addSFCOrder(clusters, cluster_order, node_dict, sfc_points, expanded_cluster=None):
+    total_volume = len(node_dict)
+    total_spaces = len(sfc_points)
+    gaps = evenGaps(clusters, cluster_order, total_volume, total_spaces, expanded_cluster)
+    sorted_nodes = sorted(list(node_dict.values()), key=lambda x: x['order'])
+    for index, node in enumerate(sorted_nodes):
+        node_sfc_order = min(index + gaps[node['cluster_order']], total_spaces - 1)
+        node['sfc_order'] = node_sfc_order
+    return node_dict
+
+def evenGaps(clusters, cluster_order, total_volume, total_spaces, expanded_cluster=None):
+    gaps = []
+    accumulative_gap = 0
+    spaces = {}
+    if expanded_cluster:
+        # remove expanded cluster from cluster_order
+        parent_cluster_label = expanded_cluster['parent']
+        sub_cluster_labels = expanded_cluster['sub_clusters']
+        replaced_cluster_order = [parent_cluster_label if cluster_label in sub_cluster_labels else cluster_label for cluster_label in cluster_order]
+        merged_cluster_order = merge_consecutive_duplicates(replaced_cluster_order)
+        clusters[parent_cluster_label] = list(itertools.chain(*[clusters[sub_cluster_label] for sub_cluster_label in sub_cluster_labels]))
+        # calculate spacing for merged cluster order
+        for cluster_label in merged_cluster_order:
+            nodes = clusters[cluster_label]
+            cluster_volume = len(nodes)
+            ratio = cluster_volume / total_volume
+            cluster_space = total_spaces * ratio
+            spaces[cluster_label] = cluster_space
+        # re-distribute the space of merged cluster evenly to sub clusters
+        parent_cluster_volume = len(clusters[parent_cluster_label])
+        parent_clusters_space = spaces[parent_cluster_label]
+        for sub_cluster_label in sub_cluster_labels:
+            nodes = clusters[sub_cluster_label]
+            sub_cluster_volume = len(nodes)
+            ratio = sub_cluster_volume / parent_cluster_volume
+            sub_cluster_space = parent_clusters_space * ratio
+            spaces[sub_cluster_label] = sub_cluster_space
+        # remove parent cluster spaces from spaces
+        del spaces[parent_cluster_label]
+        del clusters[parent_cluster_label]
+        # calculate gaps
+        for cluster_label in cluster_order:
+            cluster_space = spaces[cluster_label]
+            cluster_volume = len(clusters[cluster_label])
+            padding = (cluster_space - cluster_volume)/2
+            gaps.append(math.floor(accumulative_gap + padding))
+            accumulative_gap += 2*padding
+        return gaps
+    else:
+        # calculate gaps
+        for cluster_label in cluster_order:
+            nodes = clusters[cluster_label]
+            cluster_volume = len(nodes)
+            ratio = cluster_volume / total_volume
+            cluster_space = total_spaces * ratio
+            padding = (cluster_space - cluster_volume) / 2
+            gaps.append(math.floor(accumulative_gap + padding))
+            accumulative_gap += 2*padding
+        return gaps
+def merge_consecutive_duplicates(lst):
+    merged_list = []
+    prev_element = None
+    
+    for element in lst:
+        if element != prev_element:
+            merged_list.append(element)
+            prev_element = element
+    
+    return merged_list
 
 def save_json(data, filepath=r'new_data.json'):
    with open(filepath, 'w') as fp:

@@ -12,7 +12,8 @@ class DataTransformer:
                 'date': article['date'],
                 'doc_id': article['doc_id'],
                 # 'leaf_label': article['leaf_label'],
-                'order': article['order'],
+                # 'order': article['order'],
+                'sfc_order': article['sfc_order'],
                 'cluster_order': article['cluster_order'],
                 'update_cluster_order': article['update_cluster_order'],
             }, articles))
@@ -28,7 +29,8 @@ class DataTransformer:
                 'cluster_label': entity['cluster_label'],
                 'sub_cluster_label': entity['sub_cluster_label'],
                 # 'leaf_label': article['leaf_label'],
-                'order': entity['order'],
+                # 'order': entity['order'],
+                'sfc_order': entity['sfc_order'],
                 'cluster_order': entity['cluster_order'],
                 'update_cluster_order': entity['update_cluster_order'],
             }, entities))

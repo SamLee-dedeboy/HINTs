@@ -1,10 +1,10 @@
-export type d_HilbertNode = {
-    order: number,
+export type d_SFCNode = {
+    // order: number,
     cluster_order: number,
     update_cluster_order: number,
     cluster_label: string,
     sub_cluster_label: string,
-    hilbert_order: number
+    sfc_order: number
 }
 
 export type d_ArticleNode = {
@@ -37,5 +37,5 @@ export type v_Node = {
 
 }
 
-export type t_ArticleNode = d_ArticleNode & v_Node & d_HilbertNode
-export type t_EntityNode = d_EntityNode & v_Node & d_HilbertNode
+export type t_ArticleNode = d_ArticleNode & v_Node & d_SFCNode
+export type t_EntityNode = d_EntityNode & v_Node & d_SFCNode
