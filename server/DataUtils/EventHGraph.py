@@ -90,15 +90,15 @@ class EventHGraph:
         article_id = self.doc_id_to_article_id[doc_id]
         return self.article_dict[article_id][fieldName]
 
-    def binPartitions(self, level, type='article'):
-        if type == 'article':
+    def binPartitions(self, level, cluster_type='article'):
+        if cluster_type == 'article':
             return _binPartitions(self.partitions_article[int(level)], level)
-        elif type == 'entity':
+        elif cluster_type == 'entity':
             return _binPartitions(self.partitions_entity[int(level)], level)
         
     
-    def getSubClusterNumDict(self, cluster_labels, type='article'):
-        if type == 'article':
+    def getSubClusterNumDict(self, cluster_labels, cluster_type='article'):
+        if cluster_type == 'article':
             hierarchy_flattened = self.hierarchy_flattened_article
         else:
             hierarchy_flattened = self.hierarchy_flattened_entity
@@ -109,8 +109,8 @@ class EventHGraph:
             sub_cluster_num_dict[cluster_label] = hierarchy_of_cluster['children']
         return sub_cluster_num_dict
 
-    def getSubClusterLabels(self, cluster_labels, isList=False, type='article'):
-        if type == 'article':
+    def getSubClusterLabels(self, cluster_labels, isList=False, cluster_type='article'):
+        if cluster_type == 'article':
             hierarchy_flattened = self.hierarchy_flattened_article
         else:
             hierarchy_flattened = self.hierarchy_flattened_entity
@@ -130,30 +130,30 @@ class EventHGraph:
     #         res[sub_cluster_label] = article_nodes
     #     return res
 
-    def getSubClusters(self, cluster_labels, isList=False, filtered=False):
+    def getSubClusters(self, cluster_labels, isList=False, cluster_type='article'):
         # TODO: add support for entity sub clusters
         if isList:
             targeted_sub_clusters = {}
             for cluster_label in cluster_labels:
-                targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_label)
+                targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_label, cluster_type=cluster_type)
                 # some of the targeted sub clusters might not exist
                 # user article ids to filter out the non-existing sub clusters
                 sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
-                if filtered:
-                    targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
-                all_sub_cluster_at_level = self.binPartitions(sub_cluster_level)
+                # if filtered:
+                #     targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
+                all_sub_cluster_at_level = self.binPartitions(sub_cluster_level, cluster_type=cluster_type)
                 # keep only the sub clusters that are in the sub_cluster_labels
                 for sub_cluster_label in targeted_sub_cluster_labels:
                     targeted_sub_clusters[sub_cluster_label] = all_sub_cluster_at_level[sub_cluster_label]
             return targeted_sub_clusters
         else:
-            targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_labels) 
+            targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_labels, cluster_type=cluster_type) 
             # some of the targeted sub clusters might not exist
             # user article ids to filter out the non-existing sub clusters
             sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
-            if filtered:
-                targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
-            all_sub_cluster_at_level = self.binPartitions(sub_cluster_level)
+            # if filtered:
+            #     targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
+            all_sub_cluster_at_level = self.binPartitions(sub_cluster_level, cluster_type=cluster_type)
             # keep only the sub clusters that are in the sub_cluster_labels
             targeted_sub_clusters = {sub_cluster_label: all_sub_cluster_at_level[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
             return targeted_sub_clusters
@@ -200,7 +200,6 @@ class EventHGraph:
                 None
 
 def filter_network(nodes, links, partitions_article, partitions_entity, target_article_ids=None):
-    print("target articles: ", target_article_ids)
     if target_article_ids != None:
         links = [link for link in links if link['source'] in target_article_ids or link['target'] in target_article_ids]
         nodes = [node for node in nodes if node['id'] in target_article_ids or node['id'] in list(map(lambda link: link['source'], links)) or node['id'] in list(map(lambda link: link['target'], links))]

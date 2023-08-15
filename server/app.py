@@ -49,32 +49,33 @@ def get_article_partition(uid):
     # candidate_entity_nodes = user_hgraph.entity_nodes_sorted[:entity_node_num]
 
     # article
-    clusters = user_hgraph.binPartitions(article_level, type='article')
-    sub_clusters = user_hgraph.binPartitions(article_level - 1, type="article") if int(article_level) > 0 else None
+    clusters = user_hgraph.binPartitions(article_level, cluster_type='article')
+    sub_clusters = user_hgraph.binPartitions(article_level - 1, cluster_type="article") if int(article_level) > 0 else None
     clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points)    
     # entity
-    entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
-    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
+    entity_clusters = user_hgraph.binPartitions(entity_level, cluster_type='entity')
+    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, cluster_type="entity") if int(entity_level) > 0 else None
     entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
 
     article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, article_node_dict)
 
     # return result
     hgraph = {
-        "links": user_hgraph.entity_links,
-        # articles
-        "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
-        "clusters": clusters,
-        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
-        "cluster_order": cluster_order,
-        "update_cluster_order": update_cluster_order,   
-        "hierarchical_topics": user_hgraph.hierarchical_topics,
-        "article_cluster_linked_entities": article_cluster_entities,
-        # entities
-        "entity_nodes": user_hgraph.entity_nodes,
-        "entity_clusters":  entity_clusters,
-        "entity_cluster_order": entity_cluster_order,
-        "entity_update_cluster_order": entity_update_cluster_order,
+        "article_graph": {
+            "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
+            "clusters": clusters,
+            "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+            "cluster_order": cluster_order,
+            "update_cluster_order": update_cluster_order,   
+            "hierarchical_topics": user_hgraph.hierarchical_topics,
+            "article_cluster_linked_entities": article_cluster_entities,
+        },
+        "entity_graph": {
+            "entity_nodes": user_hgraph.entity_nodes,
+            "entity_clusters":  entity_clusters,
+            "entity_cluster_order": entity_cluster_order,
+            "entity_update_cluster_order": entity_update_cluster_order,
+        }
     }
     return json.dumps(hgraph, default=vars)
 
@@ -101,33 +102,34 @@ def filter_hgraph(uid: int):
 
     # entity
     entity_level = 3
-    entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
-    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
+    entity_clusters = user_hgraph.binPartitions(entity_level, cluster_type='entity')
+    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, cluster_type="entity") if int(entity_level) > 0 else None
     entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
 
     article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, article_node_dict)
 
     # return result
     hgraph = {
-        "links": user_hgraph.entity_links,
-        # articles
-        "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
-        "clusters": clusters,
-        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
-        "cluster_order": cluster_order,
-        "update_cluster_order": update_cluster_order,   
-        "hierarchical_topics": user_hgraph.hierarchical_topics,
-        "article_cluster_linked_entities": article_cluster_entities,
-        # entities
-        "entity_nodes": user_hgraph.entity_nodes,
-        "entity_clusters":  entity_clusters,
-        "entity_cluster_order": entity_cluster_order,
-        "entity_update_cluster_order": entity_update_cluster_order,
+        "article_graph": {
+            "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
+            "clusters": clusters,
+            "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+            "cluster_order": cluster_order,
+            "update_cluster_order": update_cluster_order,   
+            "hierarchical_topics": user_hgraph.hierarchical_topics,
+            "article_cluster_linked_entities": article_cluster_entities,
+        },
+        "entity_graph": {
+            "entity_nodes": user_hgraph.entity_nodes,
+            "entity_clusters":  entity_clusters,
+            "entity_cluster_order": entity_cluster_order,
+            "entity_update_cluster_order": entity_update_cluster_order,
+        }
     }
     return json.dumps(hgraph, default=vars)
 
-@app.route("/user/expand_cluster/<uid>", methods=["POST"])
-def expand_cluster(uid):
+@app.route("/user/expand_cluster/article/<uid>", methods=["POST"])
+def expand_article_cluster(uid):
     uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
@@ -172,20 +174,19 @@ def expand_cluster(uid):
     clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points, expanded_cluster)
     print("--------- article nodes post-process done. ----------")
 
-    # entity
-    # TODO: add entity cluster expansion
-    entity_level = 3
-    entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
-    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
-    print("--------- entity nodes post-process done. ----------")
+    # # entity
+    # entity_level = 3
+    # entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
+    # entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
+    # entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
+    # print("--------- entity nodes post-process done. ----------")
 
     # link entities to clusters
-    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, article_node_dict)
+    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, user_hgraph.entity_dict, article_node_dict)
     print("--------- Entity links extraction done. ----------")
 
     # return result
-    hgraph = {
+    article_graph = {
         "links": user_hgraph.entity_links,
         "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
         "clusters": clusters,
@@ -194,58 +195,63 @@ def expand_cluster(uid):
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.hierarchical_topics,
         "article_cluster_linked_entities": article_cluster_entities,
-        # entities
-        "entity_nodes": user_hgraph.entity_nodes,
-        "entity_clusters":  entity_clusters,
-        "entity_cluster_order": entity_cluster_order,
-        "entity_update_cluster_order": entity_update_cluster_order,
     }
-    return json.dumps(hgraph, default=vars)
+    return json.dumps(article_graph, default=vars)
 
-@app.route("/user/merge_cluster/<uid>", methods=["POST"])
-def merge_cluster(uid):
+@app.route("/user/expand_cluster/entity/<uid>", methods=["POST"])
+def expand_entity_cluster(uid):
     uid = int(uid)
     # retain original setups
-    selectedClusterLabels = request.json['selectedClusters']
-    clusters = request.json['clusters']
+    cluster_label = request.json['cluster_label']
+    entity_clusters = request.json['clusters']
     user_hgraph = graph_controller.getUserHGraph(uid)
+    entity_sub_clusters = user_hgraph.getSubClusters(entity_clusters.keys(), isList=True, cluster_type='entity')
     ###############
-    # merge cluster
-    # generate a new cluster that has the selected clusters as sub-clusters
-    merged_article_node_ids = Utils.flattenClusters(clusters, selectedClusterLabels)
-    new_cluster_label = Utils.generateNewClusterLabel(clusters.keys())
-    clusters[new_cluster_label] = merged_article_node_ids
-    # delete selected clusters
-    for selectedClusterLabel in selectedClusterLabels:
-        del clusters[selectedClusterLabel]
+    # expand cluster
+    # generate sub clusters of targeted cluster
+    entity_node_ids = list(map(lambda node: node['id'], user_hgraph.entity_nodes)) 
+    targeted_sub_clusters = user_hgraph.getSubClusters(cluster_label, cluster_type='entity')
+    targeted_sub_clusters = Utils.filterClusters(targeted_sub_clusters, entity_node_ids)
+    # replace the targeted cluster with targeted_sub_clusters
+    del entity_clusters[cluster_label]
+    for targeted_sub_cluster_label, targeted_sub_cluster_node_ids in targeted_sub_clusters.items():
+        entity_clusters[targeted_sub_cluster_label] = targeted_sub_cluster_node_ids
+    # generate sub-clusters of sub_clusters
+    # filter out targeted sub-sub-clusters
+    targeted_sub_sub_clusters = user_hgraph.getSubClusters(targeted_sub_clusters.keys(), isList=True, cluster_type='entity')
+    targeted_sub_sub_clusters = Utils.filterClusters(targeted_sub_sub_clusters, entity_node_ids)
+    # replace the sub-clusters of targeted cluster with its sub-sub-clusters
+    for targeted_sub_cluster_key in targeted_sub_clusters.keys():
+        del entity_sub_clusters[targeted_sub_cluster_key]
+    for sub_sub_cluster_label, sub_sub_cluster_node_ids in targeted_sub_sub_clusters.items():
+        entity_sub_clusters[sub_sub_cluster_label] = sub_sub_cluster_node_ids
+    print("--------- expansion done. ----------")
+    ###############
+    ###############
+    # post-process
+    # # add cluster label to article nodes
+    # article_node_dict = Utils.addClusterLabel(user_hgraph.article_dict, clusters, sub_clusters)
 
-    sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
+    # # generate cluster order
+    # cluster_order = Utils.generateClusterOrder(user_hgraph.article_nodes)
+    # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, targeted_sub_clusters.keys())
+    # # add cluster order to article nodes
+    # article_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, article_node_dict)
+    expanded_cluster = {}
+    expanded_cluster['parent'] = cluster_label
+    expanded_cluster['sub_clusters'] = list(targeted_sub_clusters.keys())
     # article
-    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)
     print("--------- article nodes post-process done. ----------")
-
     # entity
-    # TODO: add entity cluster expansion
-    entity_level = 3
-    entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
-    entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters)
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points, expanded_cluster)
     print("--------- entity nodes post-process done. ----------")
 
     # link entities to clusters
-    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, user_hgraph.article_dict)
     print("--------- Entity links extraction done. ----------")
 
     # return result
     hgraph = {
-        "links": user_hgraph.entity_links,
-        "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
-        "clusters": clusters,
-        "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
-        "cluster_order": cluster_order,
-        "update_cluster_order": update_cluster_order,   
-        "hierarchical_topics": user_hgraph.hierarchical_topics,
-        # "article_cluster_linked_entities": article_cluster_entities,
         # entities
         "entity_nodes": user_hgraph.entity_nodes,
         "entity_clusters":  entity_clusters,
@@ -253,6 +259,58 @@ def merge_cluster(uid):
         "entity_update_cluster_order": entity_update_cluster_order,
     }
     return json.dumps(hgraph, default=vars)
+
+# @app.route("/user/merge_cluster/<uid>", methods=["POST"])
+# def merge_cluster(uid):
+#     uid = int(uid)
+#     # retain original setups
+#     selectedClusterLabels = request.json['selectedClusters']
+#     clusters = request.json['clusters']
+#     user_hgraph = graph_controller.getUserHGraph(uid)
+#     ###############
+#     # merge cluster
+#     # generate a new cluster that has the selected clusters as sub-clusters
+#     merged_article_node_ids = Utils.flattenClusters(clusters, selectedClusterLabels)
+#     new_cluster_label = Utils.generateNewClusterLabel(clusters.keys())
+#     clusters[new_cluster_label] = merged_article_node_ids
+#     # delete selected clusters
+#     for selectedClusterLabel in selectedClusterLabels:
+#         del clusters[selectedClusterLabel]
+
+#     sub_clusters = user_hgraph.getSubClusters(clusters.keys(), isList=True)
+#     # article
+#     clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)
+#     print("--------- article nodes post-process done. ----------")
+
+#     # entity
+#     # TODO: add entity cluster expansion
+#     entity_level = 3
+#     entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
+#     entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
+#     entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters)
+#     print("--------- entity nodes post-process done. ----------")
+
+#     # link entities to clusters
+#     # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+#     print("--------- Entity links extraction done. ----------")
+
+#     # return result
+#     hgraph = {
+#         "links": user_hgraph.entity_links,
+#         "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
+#         "clusters": clusters,
+#         "sub_clusters": user_hgraph.getSubClusterNumDict(clusters.keys()),
+#         "cluster_order": cluster_order,
+#         "update_cluster_order": update_cluster_order,   
+#         "hierarchical_topics": user_hgraph.hierarchical_topics,
+#         # "article_cluster_linked_entities": article_cluster_entities,
+#         # entities
+#         "entity_nodes": user_hgraph.entity_nodes,
+#         "entity_clusters":  entity_clusters,
+#         "entity_cluster_order": entity_cluster_order,
+#         "entity_update_cluster_order": entity_update_cluster_order,
+#     }
+#     return json.dumps(hgraph, default=vars)
 
     
 @app.route("/user/storyline/<uid>", methods=["POST"])

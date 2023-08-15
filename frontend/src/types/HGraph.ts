@@ -18,4 +18,7 @@ export type d_EntityGraph = {
     entity_update_cluster_order: any,
     links: t_Link[],
 }
-export type t_EventHGraph = d_ArticleGraph & d_EntityGraph
+export type t_EventHGraph = {
+    article_graph: d_ArticleGraph,
+    entity_graph: d_EntityGraph
+}
