@@ -2,7 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 import json
 from pprint import pprint
-from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils, pHilbert
+from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils, pHilbert, gosper
 from collections import defaultdict
 
 app = Flask(__name__)
@@ -15,14 +15,14 @@ embedding_searcher = EmbeddingSearch(r'../preprocess/data/result/', openai_api_k
 data_transformer = DataTransformer()
 example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example.json'))
 
+# global vars
 users = [0]
 for uid in users:
     graph_controller.create_user_hgraph(uid)
-# communities = event_hgraph.apply_filters(['L-0-4'], test=True)
 
-# @app.route("/data/communities", methods=["GET"])
-# def get_communities():
-#     return json.dumps(event_hgraph.communities)
+gosper_curve_points = gosper.plot_level(5)
+philbert_curve_points = pHilbert.peripheral_hilbert(128, 20)
+
 @app.route("/static/hierarchy", methods=["GET"])
 def get_hierarcy():
     return json.dumps(event_hgraph.hierarchy_article)
@@ -51,11 +51,11 @@ def get_article_partition(uid):
     # article
     clusters = user_hgraph.binPartitions(article_level, type='article')
     sub_clusters = user_hgraph.binPartitions(article_level - 1, type="article") if int(article_level) > 0 else None
-    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)    
+    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points)    
     # entity
     entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
     entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters)
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
 
     # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
 
@@ -164,8 +164,11 @@ def expand_cluster(uid):
     # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, targeted_sub_clusters.keys())
     # # add cluster order to article nodes
     # article_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, article_node_dict)
+    expanded_cluster = {}
+    expanded_cluster['parent'] = cluster_label
+    expanded_cluster['sub_clusters'] = list(targeted_sub_clusters.keys())
     # article
-    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters)
+    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points, expanded_cluster)
     print("--------- article nodes post-process done. ----------")
 
     # entity
@@ -173,7 +176,7 @@ def expand_cluster(uid):
     entity_level = 3
     entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
     entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters)
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
     print("--------- entity nodes post-process done. ----------")
 
     # link entities to clusters
@@ -199,7 +202,7 @@ def expand_cluster(uid):
     return json.dumps(hgraph, default=vars)
 
 @app.route("/user/merge_cluster/<uid>", methods=["POST"])
-def expand_cluster(uid):
+def merge_cluster(uid):
     uid = int(uid)
     # retain original setups
     selectedClusterLabels = request.json['selectedClusters']
@@ -289,6 +292,13 @@ def peripheral_hilbert():
     height = request.json['height']
     p_hilbert = pHilbert.peripheral_hilbert(width, height)
     return json.dumps(p_hilbert)
+
+@app.route("/static/gosper/", methods=["POST"])
+def gosper_curve():
+    level = request.json['level']
+    coords = gosper.plot_level(level)
+    return json.dumps(coords)
+
 
 @app.route("/static/search/", methods=["POST"])
 def search():

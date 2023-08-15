@@ -6,7 +6,7 @@ import "./ClusterOverview.css"
 import { t_EntityNode, t_EventHGraph, t_ArticleNode, tooltipContent } from "../../types";
 import borders from "./BorderUtils";
 import spacing from "./SpacingUtils";
-import hilbert from "./HilbertUtils"
+import sfc from "./SFCUtils"
 import * as DragUtils from "./DragUtils"
 
 interface ClusterOverviewProps {
@@ -20,7 +20,8 @@ interface ClusterOverviewProps {
   searchMode: boolean
   selectionMode: boolean
   selectedClusters: string[]
-  mergedClusters: [string[]]
+  mergedClusters: any[]
+  gosper: any[]
 }
 
 function ClusterOverview({
@@ -35,6 +36,7 @@ function ClusterOverview({
   selectionMode,
   selectedClusters,
   mergedClusters,
+  gosper,
 }: ClusterOverviewProps) {
   const margin = {
       left: 30,
@@ -78,7 +80,8 @@ function ClusterOverview({
   }, [])
 
   // scales & constants
-  const node_radius = 4
+  const article_node_radius = 4.5
+  const entity_node_radius = 4
   const articleClusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
   const articleSubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   const entityClusterColorScale = d3.scaleOrdinal(d3.schemeSet2)
@@ -91,20 +94,18 @@ function ClusterOverview({
   
   const articleClusterColorDict = useMemo(() => {
     let cluster_color_dict = {}
+    if(!graph) return cluster_color_dict
     Object.keys(graph.clusters).forEach(cluster_label => {
-      console.log({previousClusterColorDict})
       if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
         cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
       } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
         cluster_color_dict[cluster_label] = previousSubClusterColorDict[cluster_label]
       } else {
         cluster_color_dict[cluster_label] = articleClusterColorScale(cluster_label)
-        console.log("cluster_label: ", cluster_label, cluster_color_dict[cluster_label])
       }
     })
     mergedClusters.forEach(merged_set => {
       const merged_set_color = previousClusterColorDict[merged_set[0]]
-      console.log(merged_set_color)
       merged_set.forEach(cluster_label => {
         cluster_color_dict[cluster_label] = merged_set_color
       })
@@ -119,6 +120,7 @@ function ClusterOverview({
 
   const articleSubClusterColorDict = useMemo(() => {
     let sub_cluster_color_dict = {}
+    if(!graph) return sub_cluster_color_dict
     Object.keys(graph.clusters).forEach(cluster_label => {
       const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
       const sub_clusters = graph.sub_clusters[cluster_label]
@@ -150,6 +152,7 @@ function ClusterOverview({
 
   const entityClusterColorDict = useMemo(() => {
     let cluster_color_dict = {}
+    if(!graph) return cluster_color_dict
     Object.keys(graph.entity_clusters).forEach(cluster_label => {
       cluster_color_dict[cluster_label] = entityClusterColorScale(cluster_label)
       return
@@ -197,14 +200,13 @@ function ClusterOverview({
   }, [selectionMode, selectedClusters])
 
   useEffect(() => {
-    console.log("highlight changed", highlightNodeIds)
     update_highlight(highlightNodeIds, [])
   }, [highlightNodeIds])
 
   useEffect(() => {
     update_article_cluster()
     update_entity_cluster()
-    update_highlight(highlightNodeIds, [])
+    // update_highlight(highlightNodeIds, [])
   }, [graph]);
 
   function init() {
@@ -227,54 +229,8 @@ function ClusterOverview({
     center_area.append("path").attr("class", "highlight-border")
     center_area.append("g").attr("class", "link-group")
     addBrush()
-    hilbert.initPeripheral(peripheral)
-  }
-
-  function update_entity_cluster() {
-    const canvas = d3.select('#' + svgId).select("g.margin")
-    hilbert.generate_entity_hilbert_coord(graph.entity_nodes, graph.entity_clusters, graph.entity_cluster_order, canvasSize)
-    const t_delay = 1000
-    const t_duration = 1000
-    // entities 
-    const entity_node_group = canvas.select("g.entity-node-group")
-    entity_node_group.selectAll("circle.entity-node")
-      .data(graph.entity_nodes, (d: any, i) => { d.i = i; return d.id })
-      .join(
-        enter => enter.append("circle")
-            .attr("class", "entity-node")
-            .attr("r", node_radius)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1)
-            .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
-            .attr("pointer-events", "none")
-            .attr("cx", 0)
-            .attr("cy", 0)
-            .attr("opacity", 0)
-            .attr("cx", (d: any) => d.x)
-            .attr("cy", (d: any) => d.y)
-            .attr("opacity", 1)
-            .selection(),
-        update => update.transition().delay((d, i) => (d.update_cluster_order || 0)*t_delay).duration(t_duration)
-            .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
-            .attr("cx", (d: any) => d.x)
-            .attr("cy", (d: any) => d.y)
-            // .attr("opacity", 1)
-            ,
-      )
-    // cluster borders
-    const cluster_borders = generate_cluster_borders(graph.entity_nodes, graph.entity_clusters, graph.entity_cluster_order, graph.entity_update_cluster_order)
-    const border_group = canvas.select("g.entity-border-group")
-    const tooltipDiv = d3.select(".tooltip");
-    border_group.selectAll("path.concave-hull")
-      .data(cluster_borders, (d: any) => d.cluster_label)
-      .join("path")
-      .attr("class", "concave-hull")
-      .attr("d", d => d.path)
-      .attr("fill", "#e1e1e1")
-      .attr("stroke", "black")
-      .attr("stroke-width", 1)
-      .attr("cursor", "pointer")
-
+    sfc.initPeripheral(peripheral)
+    sfc.initGosper(gosper)  
   }
 
   function update_article_color() {
@@ -286,7 +242,8 @@ function ClusterOverview({
 
   function update_article_cluster() {
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-    hilbert.generate_hilbert_coord(graph.article_nodes, graph.clusters, graph.cluster_order, centerAreaSize, 'center')
+    // sfc.generate_hilbert_coord(graph.article_nodes, graph.clusters, graph.cluster_order, centerAreaSize, 'center')
+    sfc.generate_gosper_coord(graph.article_nodes, centerAreaSize)
     const t_delay = 1000
     const t_duration = 1000
     // articles 
@@ -296,9 +253,9 @@ function ClusterOverview({
       .join(
         enter => enter.append("circle")
             .attr("class", "article-node")
-            .attr("r", node_radius)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1)
+            .attr("r", article_node_radius)
+            .attr("stroke", "white")
+            .attr("stroke-width", 0.5)
             .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
             .attr("pointer-events", "none")
             .attr("cx", 0)
@@ -317,7 +274,14 @@ function ClusterOverview({
             ,
       )
     // cluster borders
-    const cluster_borders = generate_cluster_borders(graph.article_nodes, graph.clusters, graph.cluster_order, graph.update_cluster_order)
+    const cluster_borders = generate_cluster_borders(
+      graph.article_nodes, 
+      graph.clusters, 
+      graph.cluster_order, 
+      graph.update_cluster_order,
+      1.5, // concavity
+      "rounded" // smoothing
+      )
     const border_group = centerArea.select("g.article-border-group")
     const tooltipDiv = d3.select(".tooltip");
     border_group.selectAll("path.concave-hull")
@@ -345,7 +309,7 @@ function ClusterOverview({
   }
 
   function bindDrag(eles) {
-    const drag = d3.drag()
+    const drag: any = d3.drag()
         .clickDistance(100)
         .on("start", DragUtils.dragStarted)
         .on("drag", DragUtils.dragged)
@@ -356,7 +320,6 @@ function ClusterOverview({
   // border event handlers
   
   const border_mouseover = function(e, d) {
-    console.log("border_mouseover", d.cluster_label, articleClusterColorDict)
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
     const tooltipDiv = d3.select(".tooltip");
     // highlight nodes in this cluster
@@ -421,6 +384,58 @@ function ClusterOverview({
       console.log("on click")
       onClusterClicked(d.cluster_label, graph.clusters)
     }
+  }
+
+  function update_entity_cluster() {
+    const canvas = d3.select('#' + svgId).select("g.margin")
+    sfc.generate_entity_hilbert_coord(graph.entity_nodes, canvasSize)
+    const t_delay = 1000
+    const t_duration = 1000
+    // entities 
+    const entity_node_group = canvas.select("g.entity-node-group")
+    entity_node_group.selectAll("circle.entity-node")
+      .data(graph.entity_nodes, (d: any, i) => { d.i = i; return d.id })
+      .join(
+        enter => enter.append("circle")
+            .attr("class", "entity-node")
+            .attr("r", entity_node_radius)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
+            .attr("pointer-events", "none")
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .attr("opacity", 0)
+            .attr("cx", (d: any) => d.x)
+            .attr("cy", (d: any) => d.y)
+            .attr("opacity", 1)
+            .selection(),
+        update => update.transition().delay((d, i) => (d.update_cluster_order || 0)*t_delay).duration(t_duration)
+            .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
+            .attr("cx", (d: any) => d.x)
+            .attr("cy", (d: any) => d.y)
+            // .attr("opacity", 1)
+            ,
+      )
+    // cluster borders
+    const cluster_borders = generate_cluster_borders(
+      graph.entity_nodes,
+      graph.entity_clusters, 
+      graph.entity_cluster_order, graph.entity_update_cluster_order, 
+      0.2,  // concavity
+      'sketch' // smoothing
+    )
+    const border_group = canvas.select("g.entity-border-group")
+    const tooltipDiv = d3.select(".tooltip");
+    border_group.selectAll("path.concave-hull")
+      .data(cluster_borders, (d: any) => d.cluster_label)
+      .join("path")
+      .attr("class", "concave-hull")
+      .attr("d", d => d.path)
+      .attr("fill", "#e1e1e1")
+      .attr("stroke", "black")
+      .attr("stroke-width", 1)
+      .attr("cursor", "pointer")
   }
 
 
@@ -598,14 +613,14 @@ function ClusterOverview({
     // }
   }
 
-  function generate_cluster_borders(nodes, clusters, cluster_order, update_cluster_order) {
+  function generate_cluster_borders(nodes, clusters, cluster_order, update_cluster_order, concavity=0.2, smoothing='rounded') {
     let border_paths: any[] = []
     Object.keys(clusters).forEach(cluster_label => {
       const cluster_node_ids = clusters[cluster_label]
       const nodes_data = nodes.filter(node => cluster_node_ids.includes(node.id))
       // if(nodes_data.length === 0) return
 
-      const {path, max_x, min_y} = borders.generate_border(nodes_data)
+      const {path, max_x, min_y} = borders.generate_border(nodes_data, concavity, smoothing)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": cluster_order.indexOf(cluster_label),

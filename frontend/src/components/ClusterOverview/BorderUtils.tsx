@@ -1,26 +1,34 @@
 import concaveman from "concaveman"
 const borders = {
-    generate_border(nodes_data, concavity=0.2) {
+    generate_border(nodes_data, concavity=0.2, smoothing='rounded') {
         const offset_x = (nodes_data[0] as any).cell_width
         const offset_y = (nodes_data[0] as any).cell_height
         // add concave hull forst to make its z-index lower
         let points: any[] = []
         nodes_data.forEach((node: any) => {
-        points.push([node.x - offset_x, node.y - offset_y]) // 1
-        points.push([node.x, node.y - offset_y]) // 2
-        points.push([node.x + offset_x, node.y - offset_y]) // 3
-        points.push([node.x - offset_x, node.y]) // 4
-        points.push([node.x + offset_x, node.y]) // 6
-        points.push([node.x - offset_x, node.y + offset_y]) // 7
-        points.push([node.x, node.y + offset_y]) // 8
-        points.push([node.x + offset_x, node.y + offset_y]) // 9
+            points.push([node.x - offset_x, node.y - offset_y]) // 1
+            points.push([node.x, node.y - offset_y]) // 2
+            points.push([node.x + offset_x, node.y - offset_y]) // 3
+            points.push([node.x - offset_x, node.y]) // 4
+            points.push([node.x + offset_x, node.y]) // 6
+            points.push([node.x - offset_x, node.y + offset_y]) // 7
+            points.push([node.x, node.y + offset_y]) // 8
+            points.push([node.x + offset_x, node.y + offset_y]) // 9
         })
         const max_x = Math.max(...points.map(p => p[0]))
         const min_y = Math.min(...points.map(p => p[1]))
-        // const polygon = concaveman(points, 0.5, 0)
+        // const polygon = concaveman(points, concavity, 0)
         const polygon = concaveman(points, concavity, 0)
         // const path = createRoundedCornersFromPointsWithLines(polygon);
-        const path = this.createSmoothPathFromPointsWithCurves(polygon);
+        // const path = this.createSmoothPathFromPointsWithCurves(polygon);
+        let path;
+        if(smoothing === 'rounded') {
+            path = this.createRoundedCornersFromPointsWithLines(polygon)
+        } else if(smoothing === 'sketch') {
+            path = this.createSmoothPathFromPointsWithCurves(polygon)
+        } else {
+            path = this.createSmoothPathFromPointsWithLines(polygon)
+        }
         return { path, max_x, min_y }
     },
 
