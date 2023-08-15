@@ -2,16 +2,29 @@ import json
 import random
 import math
 import itertools
-def getArticleClusterEntities(user_hgraph, clusters):
-    cluster_entities_dict = {}
-    for cluster_label, article_nodes in clusters.items():
-        cluster_links = list(filter(lambda link: link['source'] in article_nodes or link['target'] in article_nodes, user_hgraph.entity_links))
-        cluster_link_sources = [link['source'] for link in cluster_links]
-        cluster_link_targets = [link['target'] for link in cluster_links]
-        cluster_entity_nodes = list(filter(lambda entity: entity['id'] in cluster_link_sources or entity['id'] in cluster_link_targets, user_hgraph.entity_nodes))
-        cluster_entities_dict[cluster_label] = cluster_entity_nodes 
-
+from collections import defaultdict
+def getArticleClusterEntities(links, article_dict, entity_dict):
+    cluster_entities_dict = defaultdict(list)
+    for link in links:
+        source = link['source']
+        target = link['target']
+        source_node = entity_dict[source] if source in entity_dict else article_dict[source]
+        target_node = entity_dict[target] if target in entity_dict else article_dict[target]
+        entity_node = source_node if source_node['type'] == 'entity' else target_node
+        article_node = source_node if source_node['type'] == 'hyper_edge' else target_node
+        cluster_label = article_node['cluster_label']
+        cluster_entities_dict[cluster_label].append(entity_node['id'])
     return cluster_entities_dict
+
+    # cluster_entities_dict = {}
+    # for cluster_label, article_nodes in clusters.items():
+    #     cluster_links = list(filter(lambda link: link['source'] in article_nodes or link['target'] in article_nodes, user_hgraph.entity_links))
+    #     cluster_link_sources = [link['source'] for link in cluster_links]
+    #     cluster_link_targets = [link['target'] for link in cluster_links]
+    #     cluster_entity_nodes = list(filter(lambda entity: entity['id'] in cluster_link_sources or entity['id'] in cluster_link_targets, user_hgraph.entity_nodes))
+    #     cluster_entities_dict[cluster_label] = cluster_entity_nodes 
+
+    # return cluster_entities_dict
 
 def prepareData(user_hgraph, level, type='article'):
     if type == 'article':

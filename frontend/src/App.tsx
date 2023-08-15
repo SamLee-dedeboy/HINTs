@@ -18,7 +18,6 @@ function App() {
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [brushMode, setBrushMode] = useState<boolean>(false)
-  const [selectionMode, setSelectionMode] = useState<boolean>(false)
   // let selectionMode = false
 
   // searching related
@@ -39,14 +38,9 @@ function App() {
     const promises = [fetchPHilbert(), fetchGosper(), fetch_hierarchy(), fetchPartitionArticle()]
     Promise.all(promises)
       .then(() => {
-        console.log("all fetched", article_hgraph)
         setArticleHGraphLoaded(true)
       })
   }, [])
-
-  useEffect(() => {
-    setSelectedClusters([])
-  }, [selectionMode])
 
   function fetch_hierarchy() {
     return new Promise((resolve, reject) => {
@@ -104,9 +98,8 @@ function App() {
     })
   }
 
-  async function handleClusterClicked(cluster_id, clusters) {
-    console.log("cluster clicked", cluster_id, clusters, selectionMode)
-    if(selectionMode) {
+  async function handleClusterClicked(e, cluster_id, clusters) {
+    if(e.ctrlKey || e.metaKey) {
       if(selectedClusters.includes(cluster_id)) {
         // remove from selected clusters
         const updated_array = selectedClusters.filter(ele => ele !== cluster_id)
@@ -271,7 +264,6 @@ function App() {
               onClusterClicked={handleClusterClicked} 
               searchMode={searchMode}
               brushMode={brushMode} 
-              selectionMode={selectionMode}
               selectedClusters={selectedClusters}
               mergedClusters={mergedClusters}
               gosper={gosper}
@@ -292,10 +284,6 @@ function App() {
               <div className='switch-container flex justify-center mr-2 w-fit'>
                 <span className='switch-label mr-2'>Search</span>
                 <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
-              </div>
-              <div className='switch-container flex justify-center mr-2 w-fit'>
-                <span className='switch-label mr-2'>Selection</span>
-                <Switch className={"toggle-selectionMode bg-black/25"} onChange={setSelectionMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
               </div>
               <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
               {/* <div className='switch-container flex justify-center mr-2 w-fit'>
