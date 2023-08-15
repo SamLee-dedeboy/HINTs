@@ -57,7 +57,7 @@ def get_article_partition(uid):
     entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
     entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
 
-    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, article_node_dict)
 
     # return result
     hgraph = {
@@ -69,7 +69,7 @@ def get_article_partition(uid):
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.hierarchical_topics,
-        # "article_cluster_linked_entities": article_cluster_entities,
+        "article_cluster_linked_entities": article_cluster_entities,
         # entities
         "entity_nodes": user_hgraph.entity_nodes,
         "entity_clusters":  entity_clusters,
@@ -105,7 +105,7 @@ def filter_hgraph(uid: int):
     entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
     entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
 
-    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, article_node_dict)
 
     # return result
     hgraph = {
@@ -117,6 +117,7 @@ def filter_hgraph(uid: int):
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.hierarchical_topics,
+        "article_cluster_linked_entities": article_cluster_entities,
         # entities
         "entity_nodes": user_hgraph.entity_nodes,
         "entity_clusters":  entity_clusters,
@@ -180,7 +181,7 @@ def expand_cluster(uid):
     print("--------- entity nodes post-process done. ----------")
 
     # link entities to clusters
-    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph, clusters)
+    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, article_node_dict)
     print("--------- Entity links extraction done. ----------")
 
     # return result
@@ -192,7 +193,7 @@ def expand_cluster(uid):
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.hierarchical_topics,
-        # "article_cluster_linked_entities": article_cluster_entities,
+        "article_cluster_linked_entities": article_cluster_entities,
         # entities
         "entity_nodes": user_hgraph.entity_nodes,
         "entity_clusters":  entity_clusters,
