@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { usePrevious } from "@uidotdev/usehooks";
 
 import "./ClusterOverview.css"
-import { t_EntityNode, t_EventHGraph, t_ArticleNode, tooltipContent } from "../../types";
+import { t_EntityNode, t_EventHGraph, t_ArticleNode, tooltipContent, d_ArticleGraph, d_EntityGraph } from "../../types";
 import borders from "./BorderUtils";
 import spacing from "./SpacingUtils";
 import sfc from "./SFCUtils"
@@ -11,11 +11,13 @@ import * as DragUtils from "./DragUtils"
 
 interface ClusterOverviewProps {
   svgId: string
-  graph: t_EventHGraph
+  article_graph: d_ArticleGraph
+  entity_graph: d_EntityGraph
   highlightNodeIds: string[]
   peripheral: any
   onNodesSelected: (node_ids: string[]) => void
-  onClusterClicked: (e: any, cluster_label: string, clusters: any) => void
+  onArticleClusterClicked: (e: any, cluster_label: string, clusters: any) => void
+  onEntityClusterClicked: (e: any, cluster_label: string, clusters: any) => void
   brushMode: boolean
   searchMode: boolean
   selectedClusters: string[]
@@ -25,11 +27,13 @@ interface ClusterOverviewProps {
 
 function ClusterOverview({
   svgId, 
-  graph, 
+  article_graph, 
+  entity_graph,
   highlightNodeIds, 
   peripheral,
   onNodesSelected, 
-  onClusterClicked, 
+  onArticleClusterClicked, 
+  onEntityClusterClicked,
   brushMode, 
   searchMode,
   selectedClusters,
@@ -92,8 +96,8 @@ function ClusterOverview({
   
   const articleClusterColorDict = useMemo(() => {
     let cluster_color_dict = {}
-    if(!graph) return cluster_color_dict
-    Object.keys(graph.clusters).forEach(cluster_label => {
+    if(!article_graph) return cluster_color_dict
+    Object.keys(article_graph.clusters).forEach(cluster_label => {
       if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
         cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
       } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
@@ -110,7 +114,7 @@ function ClusterOverview({
     })
     setPreviousClusterColorDict(cluster_color_dict)
     return cluster_color_dict
-  }, [graph, mergedClusters])
+  }, [article_graph, mergedClusters])
 
   useEffect(() => {
     update_article_color()
@@ -118,10 +122,10 @@ function ClusterOverview({
 
   const articleSubClusterColorDict = useMemo(() => {
     let sub_cluster_color_dict = {}
-    if(!graph) return sub_cluster_color_dict
-    Object.keys(graph.clusters).forEach(cluster_label => {
+    if(!article_graph) return sub_cluster_color_dict
+    Object.keys(article_graph.clusters).forEach(cluster_label => {
       const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
-      const sub_clusters = graph.sub_clusters[cluster_label]
+      const sub_clusters = article_graph.sub_clusters[cluster_label]
       const sub_cluster_renumber_dict = {}
       sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
       const sub_cluster_sScale = d3.scaleLinear()
@@ -146,12 +150,12 @@ function ClusterOverview({
     })
     setPreviousSubClusterColorDict(sub_cluster_color_dict)
     return sub_cluster_color_dict
-  }, [graph])
+  }, [article_graph])
 
   const entityClusterColorDict = useMemo(() => {
     let cluster_color_dict = {}
-    if(!graph) return cluster_color_dict
-    Object.keys(graph.entity_clusters).forEach(cluster_label => {
+    if(!entity_graph) return cluster_color_dict
+    Object.keys(entity_graph.entity_clusters).forEach(cluster_label => {
       cluster_color_dict[cluster_label] = entityClusterColorScale(cluster_label)
       return
 
@@ -164,7 +168,7 @@ function ClusterOverview({
     })
     setPreviousEntityClusterColorDict(cluster_color_dict)
     return cluster_color_dict
-  }, [graph])
+  }, [entity_graph])
   
   useEffect(() => {
     init()
@@ -201,12 +205,12 @@ function ClusterOverview({
 
   useEffect(() => {
     update_entity_cluster()
-  }, [graph.entity_nodes]);
+  }, [entity_graph.entity_nodes]);
 
   useEffect(() => {
     update_article_cluster()
     update_selected_cluster()
-  }, [graph.article_nodes])
+  }, [article_graph.article_nodes])
 
   function init() {
     const svg = d3.select('#' + svgId)
@@ -251,13 +255,13 @@ function ClusterOverview({
   function update_article_cluster() {
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
     // sfc.generate_hilbert_coord(graph.article_nodes, graph.clusters, graph.cluster_order, centerAreaSize, 'center')
-    sfc.generate_gosper_coord(graph.article_nodes, centerAreaSize)
+    sfc.generate_gosper_coord(article_graph.article_nodes, centerAreaSize)
     const t_delay = 100
     const t_duration = 1500
     // articles 
     const article_node_group = centerArea.select("g.article-node-group")
     article_node_group.selectAll("circle.article-node")
-      .data(graph.article_nodes, (d: any, i) => { d.i = i; return d.doc_id })
+      .data(article_graph.article_nodes, (d: any, i) => { d.i = i; return d.doc_id })
       .join(
         enter => enter.append("circle")
             .attr("class", "article-node")
@@ -283,10 +287,10 @@ function ClusterOverview({
       )
     // cluster borders
     const cluster_borders = generate_cluster_borders(
-      graph.article_nodes, 
-      graph.clusters, 
-      graph.cluster_order, 
-      graph.update_cluster_order,
+      article_graph.article_nodes, 
+      article_graph.clusters, 
+      article_graph.cluster_order, 
+      article_graph.update_cluster_order,
       1.5, // concavity
       "rounded" // smoothing
       )
@@ -309,10 +313,8 @@ function ClusterOverview({
       .on("mouseout", border_mouseout)
       .call(bindDrag)
       .on("click", border_click)
-      // .on("click", (e, d) => onClusterClicked(d.cluster_label, graph.clusters))
-      .filter((d: any) => d.update_cluster_order !== 0)
       .attr("opacity", 0)
-      .transition().delay(d => d.update_cluster_order*t_delay).duration(t_duration)
+      .transition().delay(t_delay).duration(t_duration)
       .attr("opacity", 1)
   }
 
@@ -335,15 +337,24 @@ function ClusterOverview({
     // update_highlight(highlightNodeIds, [d.cluster_label], 'id')
 
     // show connected entities
-    show_connected_entities(d.cluster_label)
+    d3.select(this).style("z-index", 100)
     if(e.ctrlKey || e.metaKey) {
       d3.select(this).attr("stroke-width", 4)
     } else {
-      centerArea.selectAll("circle.article-node").filter((node: any) => node.cluster_label === d.cluster_label)
+      show_connected_entities(d.cluster_label)
+      // highlight nodes
+      centerArea.selectAll("circle.article-node")
+        .attr("opacity", 0.5)
+        .filter((node: any) => node.cluster_label === d.cluster_label)
         .attr("fill", (d: any) => { 
           d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
           return d.sub_cluster_color;
         })
+        .attr("opacity", 1)
+      // highlight border
+      centerArea.selectAll("path.concave-hull")
+        .attr("opacity", 0.5)
+      d3.select(this).attr("opacity", 1)
     }
     // tooltip
     const tooltip_coord = SVGToScreen(d.max_x+margin.left, d.min_y+margin.top)
@@ -352,12 +363,12 @@ function ClusterOverview({
       .style("top", tooltip_coord.y + "px")
     setTooltipData({
       cluster_label: d.cluster_label,
-      cluster_topic: graph.hierarchical_topics[d.cluster_label],
-      sub_clusters: graph.sub_clusters[d.cluster_label].map(
+      cluster_topic: article_graph.hierarchical_topics[d.cluster_label],
+      sub_clusters: article_graph.sub_clusters[d.cluster_label].map(
         (sub_cluster_label: string) => {
           return {
             cluster_label: sub_cluster_label,
-            cluster_topic: graph.hierarchical_topics[sub_cluster_label]
+            cluster_topic: article_graph.hierarchical_topics[sub_cluster_label]
           }
         })
     })
@@ -373,9 +384,16 @@ function ClusterOverview({
     // canvas.select("g.entity-border-group").selectAll("path").attr("opacity", 0)
     // canvas.select("g.link-group").selectAll("line.link").attr("opacity", 0)
     
+    d3.select(this).attr("z-index", "auto")
     // reset hovered cluster color
-    centerArea.selectAll("circle.article-node").filter((node: any) => node.cluster_label === d.cluster_label)
+    const article_nodes = centerArea.selectAll("circle.article-node")
+    article_nodes
+      .attr("opacity", 1)
+      .filter((node: any) => node.cluster_label === d.cluster_label)
       .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
+    // border
+    centerArea.selectAll("path.concave-hull")
+      .attr("opacity", 1)
     
     // hide tooltip
     tooltipDiv.style("opacity", 0)
@@ -388,19 +406,19 @@ function ClusterOverview({
   function border_click(e, d) {
     if(!e.defaultPrevented) {
       console.log("on click")
-      onClusterClicked(e, d.cluster_label, graph.clusters)
+      onArticleClusterClicked(e, d.cluster_label, article_graph.clusters)
     }
   }
 
   function update_entity_cluster() {
     const canvas = d3.select('#' + svgId).select("g.margin")
-    sfc.generate_entity_hilbert_coord(graph.entity_nodes, canvasSize)
+    sfc.generate_entity_hilbert_coord(entity_graph.entity_nodes, canvasSize)
     const t_delay = 1000
     const t_duration = 1000
     // entities 
     const entity_node_group = canvas.select("g.entity-node-group")
     entity_node_group.selectAll("circle.entity-node")
-      .data(graph.entity_nodes, (d: any, i) => { d.i = i; return d.id })
+      .data(entity_graph.entity_nodes, (d: any, i) => { d.i = i; return d.id })
       .join(
         enter => enter.append("circle")
             .attr("class", "entity-node")
@@ -425,9 +443,9 @@ function ClusterOverview({
       )
     // cluster borders
     const cluster_borders = generate_cluster_borders(
-      graph.entity_nodes,
-      graph.entity_clusters, 
-      graph.entity_cluster_order, graph.entity_update_cluster_order, 
+      entity_graph.entity_nodes,
+      entity_graph.entity_clusters, 
+      entity_graph.entity_cluster_order, entity_graph.entity_update_cluster_order, 
       0.2,  // concavity
       'sketch' // smoothing
     )
@@ -456,8 +474,8 @@ function ClusterOverview({
 
   function show_connected_entities(article_cluster_label) {
     const canvas = d3.select('#' + svgId).select("g.margin")
-    const cluster_entity_ids: string[] = graph.article_cluster_linked_entities[article_cluster_label]
-    const cluster_entities: t_EntityNode[] = graph.entity_nodes.filter(entity => cluster_entity_ids.includes(entity.id))
+    const cluster_entity_ids: string[] = article_graph.article_cluster_linked_entities[article_cluster_label]
+    const cluster_entities: t_EntityNode[] = entity_graph.entity_nodes.filter(entity => cluster_entity_ids.includes(entity.id))
     const entity_node_group = canvas.select("g.entity-node-group")
     // put normal nodes to back
     const entity_nodes = entity_node_group.selectAll("circle.entity-node")

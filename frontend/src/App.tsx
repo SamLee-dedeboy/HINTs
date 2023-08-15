@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { server_address } from './shared'
-import type { t_EventHGraph } from './types'
+import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import { Input, InputNumber, Switch } from 'antd';
@@ -10,9 +10,10 @@ const Search = Input.Search;
 
 function App() {
   const user_id = 0
-  const [article_hgraph, setArticleHGraph] = useState<t_EventHGraph>()
-  const [articleHGraphLoaded, setArticleHGraphLoaded] = useState(false)
-  const [hierarchy, setHierarchy] = useState<any>()
+  const [article_graph, setArticleGraph] = useState<d_ArticleGraph>()
+  const [entity_graph, setEntityGraph] = useState<d_EntityGraph>()
+  const [HGraphLoaded, setHGraphLoaded] = useState(false)
+  // const [hierarchy, setHierarchy] = useState<any>()
   const [gosper, setGosper] = useState<any>()
 
   const [topic, setTopic] = useState<any>()
@@ -35,25 +36,25 @@ function App() {
   const [mergedClusters, setMergedClusters] = useState<any[]>([])
 
   useEffect(() => {
-    const promises = [fetchPHilbert(), fetchGosper(), fetch_hierarchy(), fetchPartitionArticle()]
+    const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
     Promise.all(promises)
       .then(() => {
-        setArticleHGraphLoaded(true)
+        setHGraphLoaded(true)
       })
   }, [])
 
-  function fetch_hierarchy() {
-    return new Promise((resolve, reject) => {
-      console.log("fetching hierarchy")
-      fetch(`${server_address}/static/hierarchy`)
-        .then(res => res.json())
-        .then(hierarchy => {
-          console.log({hierarchy})
-          setHierarchy(hierarchy)
-          resolve("success")
-        })
-    })
-  }
+  // function fetch_hierarchy() {
+  //   return new Promise((resolve, reject) => {
+  //     console.log("fetching hierarchy")
+  //     fetch(`${server_address}/static/hierarchy`)
+  //       .then(res => res.json())
+  //       .then(hierarchy => {
+  //         console.log({hierarchy})
+  //         setHierarchy(hierarchy)
+  //         resolve("success")
+  //       })
+  //   })
+  // }
 
   function fetchPartitionArticle() {
     return new Promise((resolve, reject) => {
@@ -69,7 +70,8 @@ function App() {
         .then(res => res.json())
         .then((hgraph: t_EventHGraph) => {
           console.log({hgraph})
-          setArticleHGraph(hgraph)
+          setArticleGraph(hgraph.article_graph)
+          setEntityGraph(hgraph.entity_graph)
           resolve("success")
         })
 
@@ -98,7 +100,7 @@ function App() {
     })
   }
 
-  async function handleClusterClicked(e, cluster_id, clusters) {
+  async function handleArticleClusterClicked(e, cluster_id, clusters) {
     if(e.ctrlKey || e.metaKey) {
       if(selectedClusters.includes(cluster_id)) {
         // remove from selected clusters
@@ -109,15 +111,20 @@ function App() {
         setSelectedClusters(prev => [...prev, cluster_id])
       }
     } else {
-      await fetchExpandCluster(cluster_id, clusters)
+      await fetchExpandArticleCluster(cluster_id, clusters)
     }
   }
-  async function fetchExpandCluster(cluster_id, clusters) {
+
+  async function handleEntityClusterClicked(e, cluster_id, clusters) {
+    return
+  }
+
+  async function fetchExpandArticleCluster(cluster_id, clusters) {
     return new Promise((resolve, reject) => {
       // setClusterSelected(true)
       // setClusterDataFetched(false)
       console.log("fetching for cluster", cluster_id)
-      fetch(`${server_address}/user/expand_cluster/${user_id}`, {
+      fetch(`${server_address}/user/expand_cluster/article/${user_id}`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
@@ -126,10 +133,9 @@ function App() {
         body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
       })
         .then(res => res.json())
-        .then(expanded_hgraph => {
-          console.log({expanded_hgraph})
-          setArticleHGraph(expanded_hgraph)
-          setArticleHGraphLoaded(true)
+        .then(expanded_graph => {
+          console.log({expanded_graph})
+          setArticleGraph(expanded_graph)
           resolve("success")
           // setClusterData(cluster_data)
           // setClusterDataFetched(true)
@@ -141,7 +147,7 @@ function App() {
     if(query === "") return
     setSearchLoading(true)
     setSearchMode(true)
-    const base = article_hgraph?.article_nodes.map(node => node.doc_id)
+    const base = article_graph?.article_nodes.map(node => node.doc_id)
     console.log("searching: ", query, base)
     fetch(`${server_address}/static/search/`, {
       method: "POST",
@@ -168,7 +174,7 @@ function App() {
   }
 
   async function applyMerge() {
-    if(article_hgraph === undefined) return
+    if(article_graph === undefined) return
     console.log("merging: ", selectedClusters)
     setMergedClusters(prev => [...prev, selectedClusters])
     setSelectedClusters([])
@@ -176,10 +182,10 @@ function App() {
 
 
   function applyFilter() {
-    if(article_hgraph === undefined) return
+    if(article_graph === undefined) return
     return new Promise((resolve, reject) => {
-      const article_ids = article_hgraph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
-      const clusters = article_hgraph.clusters
+      const article_ids = article_graph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
+      const clusters = article_graph.clusters
       console.log("filtering: ", article_ids, clusters)
       fetch(`${server_address}/user/filter/${user_id}`, {
         method: "POST",
@@ -192,7 +198,8 @@ function App() {
         .then(res => res.json())
         .then(filtered_hgraph => {
           console.log({filtered_hgraph})
-          setArticleHGraph(filtered_hgraph)
+          // TODO: this may be wrong
+          setArticleGraph(filtered_hgraph)
           // setEventHGraphLoaded(true)
           resolve("success")
         })
@@ -250,18 +257,20 @@ function App() {
         {
           <div className="article-hgraph-container flex flex-1 h-full">
           {
-            !articleHGraphLoaded &&
+            !HGraphLoaded &&
             <div className="loading-hint"> Loading... </div>
           }
           {
-            articleHGraphLoaded && 
+            HGraphLoaded && 
             // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
             <ClusterOverview svgId={"article-cluster-overview-svg"} 
-              graph={article_hgraph!} 
+              article_graph={article_graph!} 
+              entity_graph={entity_graph!}
               peripheral={hilbert}
               highlightNodeIds={relevantDocIds} 
               onNodesSelected={fetchTopic} 
-              onClusterClicked={handleClusterClicked} 
+              onArticleClusterClicked={handleArticleClusterClicked} 
+              onEntityClusterClicked={handleEntityClusterClicked} 
               searchMode={searchMode}
               brushMode={brushMode} 
               selectedClusters={selectedClusters}
@@ -339,9 +348,6 @@ function App() {
           }
           </div>
         }
-        {/* <div className='flex flex-col overflow-y-auto'>
-          {
-          } */}
         </div>
 
       </div>

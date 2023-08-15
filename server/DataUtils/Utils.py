@@ -115,12 +115,12 @@ def addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict):
                 node_dict[article_node_id]['update_cluster_order'] = update_cluster_order[cluster_label]
     return node_dict
 
-def filterClusters(clusters, article_ids):
+def filterClusters(clusters, targeted_node_ids):
     res = {}
-    for cluster_label, cluster_article_node_ids in clusters.items():
-        filtered_cluster_article_node_ids = [id for id in cluster_article_node_ids if id in article_ids]
-        if len(filtered_cluster_article_node_ids) > 0:
-            res[cluster_label] = filtered_cluster_article_node_ids
+    for cluster_label, node_ids in clusters.items():
+        filtered_cluster_node_ids = [id for id in node_ids if id in targeted_node_ids]
+        if len(filtered_cluster_node_ids) > 0:
+            res[cluster_label] = filtered_cluster_node_ids
     return res
 
 def flattenClusters(clusters, targeted_cluster_labels):
