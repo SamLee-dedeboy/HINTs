@@ -679,6 +679,7 @@ INPUT ./sections/03_Design_Rationale.tex
 INPUT sections/03_Design_Rationale.tex
 INPUT ./sections/03_Design_Rationale.tex
 INPUT sections/03_Design_Rationale.tex
+INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8c.tfm
 INPUT ./sections/04_Methodology.tex
 INPUT sections/04_Methodology.tex
 INPUT ./sections/04_Methodology.tex
@@ -708,6 +709,7 @@ INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmb7t.vf
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/vf/adobe/helvetic/phvb7t.vf
+INPUT /usr/local/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/vf/adobe/helvetic/phvr7t.vf
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/vf/adobe/times/ptmr8c.vf
