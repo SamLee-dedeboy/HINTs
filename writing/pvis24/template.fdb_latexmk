@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex template"] 1692144978 "template.aux" "template.bbl" "template" 1692145162
+["bibtex template"] 1692164432 "template.aux" "template.bbl" "template" 1692165261
   "./abbrv-doi.bst" 1692142219 27244 4c23ed8d63be63dc39b9aab722083c7e ""
-  "template.aux" 1692145162 2631 c2edc914d77b53df7f3a1ed08e0b7e48 "pdflatex"
+  "template.aux" 1692165261 2799 5ee97deb9a3cfa484d4e6f28b1448d7e "pdflatex"
   "template.bib" 1692142219 3237 a2261f7090df39c0eff087dd0dee6c76 ""
   (generated)
   "template.bbl"
   "template.blg"
-["pdflatex"] 1692145162 "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" "template.pdf" "template" 1692145162
-  "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" 1692144952 8203 edb4ba648661995d3df927103ce26f28 ""
+["pdflatex"] 1692165260 "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" "template.pdf" "template" 1692165261
+  "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" 1692164295 8413 3301590c75d2a9c6618c803dcf08bb70 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvb7t.tfm" 1136768653 2240 eb56c13537f4d8a0bd3fafc25572b1bd ""
@@ -103,15 +103,15 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1649968814 2826452 5e3683d83fafe90848c4dd5e0c179f3c ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "sections/01_Introduction.tex" 1692143058 100 e9abfbdb6e20bd82926804498c732193 ""
+  "sections/01_Introduction.tex" 1692164222 22 5c23bcd9d46cf48d2292896666a8a8fc ""
   "sections/02_Related_Works.tex" 1692142752 23 c34695755fa223c22049a05e5986e4e4 ""
-  "sections/03_Design_Rationale.tex" 0 -1 0 ""
+  "sections/03_Design_Rationale.tex" 1692165260 429 f84c5f072fa1abd77c912573149614eb ""
   "sections/04_Methodology.tex" 1692145078 613 4ee590bae816ee0eedbedd157f1e0dc9 ""
-  "sections/05_Visualization.tex" 1692145162 426 090c1751065193a925711293183dba7a ""
-  "template.aux" 1692145162 2631 c2edc914d77b53df7f3a1ed08e0b7e48 "pdflatex"
-  "template.bbl" 1692144978 272 17b948ee7084b6dbf37bc0c9dd0777a5 "bibtex template"
-  "template.out" 1692145162 2161 7fcdf47f2de7bd5dc2f98057ca1fd0d2 "pdflatex"
-  "template.tex" 1692144952 8203 edb4ba648661995d3df927103ce26f28 ""
+  "sections/05_Visualization.tex" 1692164100 426 090c1751065193a925711293183dba7a ""
+  "template.aux" 1692165261 2799 5ee97deb9a3cfa484d4e6f28b1448d7e "pdflatex"
+  "template.bbl" 1692164432 49 0eba253fc001332e731e8aba3f23127b "bibtex template"
+  "template.out" 1692165261 2389 fe9141ed000a39106a2e71f0502c8c6a "pdflatex"
+  "template.tex" 1692164295 8413 3301590c75d2a9c6618c803dcf08bb70 ""
   "vgtc.cls" 1692142219 35095 91517982a783a504db257b8ff9ade447 ""
   (generated)
   "template.aux"
