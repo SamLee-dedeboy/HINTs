@@ -1,0 +1,47 @@
+\begin{thebibliography}{1}
+
+\bibitem{Isenberg:2017:VMC}
+P.~Isenberg, F.~Heimerl, S.~Koch, T.~Isenberg, P.~Xu, C.~Stolper, M.~Sedlmair,
+  J.~Chen, T.~M{\"o}ller, and J.~Stasko.
+\newblock {vispubdata.org: A Metadata Collection about {IEEE} Visualization
+  ({VIS}) Publications}.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 23,
+  2017. \href{https://doi.org/10.1109/TVCG.2016.2615308}
+{doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2016\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2615308}}}
+
+
+\bibitem{Kitware:2003}
+Kitware, Inc.
+\newblock {\em The Visualization Toolkit User's Guide}, January 2003.
+
+\bibitem{Lorensen:1987:MCA}
+W.~E. Lorensen and H.~E. Cline.
+\newblock Marching cubes: A high resolution {3D} surface construction
+  algorithm.
+\newblock {\em SIGGRAPH Computer Graphics}, 21(4):163--169, Aug. 1987.
+  \href{https://doi.org/10.1145/37402.37422}
+{doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1145\discretionary{/}{%
+}{/}37402\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}37422}}}
+
+
+\bibitem{Max:1995:OMF}
+N.~Max.
+\newblock Optical models for direct volume rendering.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  1(2):99--108, June 1995. \href{https://doi.org/10.1109/2945.468400}
+{doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}2945\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}468400}}}
+
+
+\end{thebibliography}

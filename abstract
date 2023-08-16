@@ -1,0 +1,53 @@
+Sensemaking on large collections of text is a challenging task that analysts have to perform.
+Previous works approach this problem either from a topic- or entity-based perspective, but they lack interpretability and trust.
+In this paper, we propose a visual analytics system that allow analysts to explore and reorganize a corpus to suit their needs and quickly make sense of the 4Ws from the organized corpus.
+The system first organizes a large corpus into a hypergraph by combining topic- and entity-based extraction techniques.
+Then the hypergraph is hierarchically clustered and visualized for analysts to explore and reorganize interactively. 
+Finally, an event graph visualization method based on storyline enables analysts to quickly make sense of the 4Ws.
+The whole pipeline is designed to foster interpretability and trust by providing semantic context of the visualization and by supporting curating interactions.
+Case studies and a task-based evaluation are used to demonstrate the effectiveness and trustworthiness of the system.
+
+Our contributions are:
+1. A technique that organizes a large corpus into a hypergraph by combining topic- and entity-based extraction by utilizing the power of LLM. 
+2. A scalable SFC-based hierarchical hypergraph visualization method and interaction techniques that supports user to explore and reorganize the corpus to suit their needs. (by searching, semantic zooming and filtering)
+3. A storyline-based event graph visualization method that enables user to quickly make sense of the 4Ws from large collection of documents.
+4?. Lessons learned for designing interpretable and trustworthy AI-enabled text analysis system.
+
+Task-based evaluation:
+1. Explore and reorganize the corpus according to a provided topic (e.g. election)
+- What are other topics that you are filtering out?
+- What are the sub-topics for the provided topic?
+
+2. Answer questions about the 4Ws:
+- Who were the main participants?
+- Give a summary of what happened between the main participants
+- What insight do you gain?
+
+TODO:
+- Overview
+    1. Outer layer for entities (using SFC)
+    2. Add dragging & merging clusters
+    3. Add search upon search
+- Storyline Vis
+
+Schedule
+Week 1 (Aug 7-13): Add dragging & merging, search upon search, investigate customizable SFC, NOVA paper editing, deploy NOVA
+Week 2 (Aug 14-20): Implement Outer layer of Overview, NOVA User study & paper editing
+Week 3 (Aug 21-27): literature review of storyline, prototype of Storyline, NOVA User Study & paper editing
+Week 4 (Aug 28-3): Refine Storyline, NOVA paper editing
+Week 5 (Sep 4-10): Refine Storyline, study design proposal
+- Dev done
+Week 6 (Sep 11-17): Case study, User Study, first draft of paper
+Week 7 (Sep 18-24): User study, refine paper, add user study and discussion 
+
+Schedule 2
+Week 1 (Aug 7-13): Add dragging & merging, search upon search, investigate customizable SFC, NOVA paper editing, deploy NOVA
+Week 2 (Aug 14-20): Implement Outer layer of Overview, NOVA User study & paper editing
+Week 3 (Aug 21-27): Preprocess Vis dataset, investigate vis for temporal trends, NOVA User study & paper editing
+Week 4 (Aug 28-3): Apply Vis dataset on Overview, implement prototype for temporal trends, NOVA paper editing
+Week 5 (Sep 4-10): Refine system, study design proposal
+- Dev done
+Week 6 (Sep 11-17): Case study, User Study, first draft of paper
+Week 7 (Sep 18-24): User study, refine paper, add user study and discussion 
+
+Treemap-based SFC? (previous KL paper)
