@@ -88,6 +88,7 @@ function ClusterOverview({
   const articleSubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   const entityClusterColorScale = d3.scaleOrdinal(d3.schemeSet2)
 
+  const [hoveredCluster, setHoveredCluster] = useState<string>("")
   const [previousEntityClusterColorDict, setPreviousEntityClusterColorDict] = useState<any>(undefined)
   const [previousEntitySubClusterColorDict, setPreviousEntitySubClusterColorDict] = useState<any>(undefined)
   const [previousClusterColorDict, setPreviousClusterColorDict] = useState<any>(undefined)
@@ -212,6 +213,10 @@ function ClusterOverview({
     update_selected_cluster()
   }, [article_graph.article_nodes])
 
+  useEffect(() => {
+    listenKeyDown()
+  }, [hoveredCluster])
+
   function init() {
     const svg = d3.select('#' + svgId)
       .attr("viewBox", `0 0 ${svgSize.width} ${svgSize.height}`)
@@ -234,6 +239,17 @@ function ClusterOverview({
     addBrush()
     sfc.initPeripheral(peripheral)
     sfc.initGosper(gosper)  
+    listenKeyDown()
+  }
+
+  function listenKeyDown() {
+    d3.select("body").on("keydown", function(e) {
+      if(e.keyCode === 224 || e.keyCode === 17) {
+        console.log("ctrl key down", hoveredCluster)
+        d3.selectAll("path.concave-hull").filter((d: any) => d.cluster_label === hoveredCluster)
+          .attr("stroke-width", 4)
+      }
+    })
   }
 
   function update_article_color() {
@@ -275,7 +291,7 @@ function ClusterOverview({
             .attr("opacity", 0)
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
-            .attr("opacity", 1)
+            .attr("opacity", 0.5)
             .attr("transform", "translate(0,0)")
             .selection(),
         update => update.transition().delay((d, i) => (d.update_cluster_order || 0)*t_delay).duration(t_duration)
@@ -315,7 +331,7 @@ function ClusterOverview({
       .on("click", border_click)
       .attr("opacity", 0)
       .transition().delay(t_delay).duration(t_duration)
-      .attr("opacity", 1)
+      .attr("opacity", 0.5)
   }
 
   function bindDrag(eles) {
@@ -340,22 +356,19 @@ function ClusterOverview({
     d3.select(this).style("z-index", 100)
     if(e.ctrlKey || e.metaKey) {
       d3.select(this).attr("stroke-width", 4)
-    } else {
-      show_connected_entities(d.cluster_label)
-      // highlight nodes
-      centerArea.selectAll("circle.article-node")
-        .attr("opacity", 0.5)
-        .filter((node: any) => node.cluster_label === d.cluster_label)
-        .attr("fill", (d: any) => { 
-          d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
-          return d.sub_cluster_color;
-        })
-        .attr("opacity", 1)
-      // highlight border
-      centerArea.selectAll("path.concave-hull")
-        .attr("opacity", 0.5)
-      d3.select(this).attr("opacity", 1)
     }
+    show_connected_entities(d.cluster_label)
+    // highlight nodes
+    centerArea.selectAll("circle.article-node")
+      .filter((node: any) => node.cluster_label === d.cluster_label)
+      .attr("fill", (d: any) => { 
+        d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
+        return d.sub_cluster_color;
+      })
+      .attr("opacity", 1)
+    // highlight border
+    d3.select(this).attr("opacity", 1)
+    setHoveredCluster(d.cluster_label)
     // tooltip
     const tooltip_coord = SVGToScreen(d.max_x+margin.left, d.min_y+margin.top)
     tooltipDiv
@@ -379,25 +392,20 @@ function ClusterOverview({
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
     const tooltipDiv = d3.select(".tooltip");
     // remove connected entities
-    remove_connected_entities()
-    // canvas.select("g.entity-node-group").selectAll("circle.entity-node").attr("opacity", 0)
-    // canvas.select("g.entity-border-group").selectAll("path").attr("opacity", 0)
-    // canvas.select("g.link-group").selectAll("line.link").attr("opacity", 0)
+    remove_connected_entities(d.cluster_label)
     
-    d3.select(this).attr("z-index", "auto")
     // reset hovered cluster color
     const article_nodes = centerArea.selectAll("circle.article-node")
     article_nodes
-      .attr("opacity", 1)
       .filter((node: any) => node.cluster_label === d.cluster_label)
       .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
+      .attr("opacity", 0.5)
     // border
-    centerArea.selectAll("path.concave-hull")
-      .attr("opacity", 1)
+    d3.select(this).attr("opacity", 0.5).attr("stroke-width", 1)
+    setHoveredCluster("")
     
     // hide tooltip
     tooltipDiv.style("opacity", 0)
-    d3.select(this).attr("stroke-width", 1)
     if(selectedClusters.includes(d.cluster_label)) {
       d3.select(this).attr("stroke-width", 4)
     }
@@ -432,7 +440,7 @@ function ClusterOverview({
             .attr("opacity", 0)
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
-            .attr("opacity", 1)
+            .attr("opacity", 0.5)
             .selection(),
         update => update.transition().delay((d, i) => (d.update_cluster_order || 0)*t_delay).duration(t_duration)
             .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
@@ -463,26 +471,26 @@ function ClusterOverview({
   }
 
 
-  function remove_connected_entities() {
+  function remove_connected_entities(article_cluster_label) {
     const canvas = d3.select('#' + svgId).select("g.margin")
+    const cluster_entity_ids: string[] = article_graph.article_cluster_linked_entities[article_cluster_label]
     const entity_node_group = canvas.select("g.entity-node-group")
     // put normal nodes to back
-    const entity_nodes = entity_node_group.selectAll("circle.entity-node")
-      .attr("opacity", 1)
+    entity_node_group.selectAll("circle.entity-node")
+      .filter((d: any) => cluster_entity_ids.includes(d.id))
+      .attr("opacity", 0.5)
       .attr("stroke-width", 1)
   }
 
   function show_connected_entities(article_cluster_label) {
     const canvas = d3.select('#' + svgId).select("g.margin")
     const cluster_entity_ids: string[] = article_graph.article_cluster_linked_entities[article_cluster_label]
-    const cluster_entities: t_EntityNode[] = entity_graph.entity_nodes.filter(entity => cluster_entity_ids.includes(entity.id))
     const entity_node_group = canvas.select("g.entity-node-group")
     // put normal nodes to back
-    const entity_nodes = entity_node_group.selectAll("circle.entity-node")
-      .attr("opacity", 0.5)
-    const cluster_entity_nodes = entity_nodes.filter((d: any) => cluster_entity_ids.includes(d.id))
-      .attr("opacity", 1)
-      .attr("stroke-width", 2)
+    entity_node_group.selectAll("circle.entity-node")
+        .filter((d: any) => cluster_entity_ids.includes(d.id))
+        .attr("opacity", 1)
+        .attr("stroke-width", 2)
     
     // // links
     // const entity_links = graph.links.filter(link => 
