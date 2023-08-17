@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
 import { server_address } from './shared'
-import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph } from './types'
+import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph, tooltipContent } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
+import Tooltip from './components/Tooltip/Tooltip'
 import { Input, InputNumber, Switch, Slider } from 'antd';
+import * as d3 from "d3"
 
 
 const Search = Input.Search;
@@ -35,6 +37,9 @@ function App() {
   const [selectedClusters, setSelectedClusters] = useState<string[]>([])
   const [mergedClusters, setMergedClusters] = useState<any[]>([])
 
+  // tooltip
+  const [tooltipData, setTooltipData] = useState<tooltipContent>()
+
   useEffect(() => {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
     Promise.all(promises)
@@ -43,19 +48,122 @@ function App() {
       })
   }, [])
 
-  // function fetch_hierarchy() {
-  //   return new Promise((resolve, reject) => {
-  //     console.log("fetching hierarchy")
-  //     fetch(`${server_address}/static/hierarchy`)
-  //       .then(res => res.json())
-  //       .then(hierarchy => {
-  //         console.log({hierarchy})
-  //         setHierarchy(hierarchy)
-  //         resolve("success")
-  //       })
-  //   })
-  // }
+  // colors
 
+  // articles
+  const articleClusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
+  const articleSubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
+
+  const [previousClusterColorDict, setPreviousClusterColorDict] = useState<any>(undefined)
+  const [previousSubClusterColorDict, setPreviousSubClusterColorDict] = useState<any>(undefined)
+  const articleClusterColorDict = useMemo(() => {
+    let cluster_color_dict = {}
+    if(!article_graph) return cluster_color_dict
+    Object.keys(article_graph.clusters).forEach(cluster_label => {
+      if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
+        cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
+      } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
+        cluster_color_dict[cluster_label] = previousSubClusterColorDict[cluster_label]
+      } else {
+        cluster_color_dict[cluster_label] = articleClusterColorScale(cluster_label)
+      }
+    })
+    mergedClusters.forEach(merged_set => {
+      const merged_set_color = previousClusterColorDict[merged_set[0]]
+      merged_set.forEach(cluster_label => {
+        cluster_color_dict[cluster_label] = merged_set_color
+      })
+    })
+    setPreviousClusterColorDict(cluster_color_dict)
+    return cluster_color_dict
+  }, [article_graph, mergedClusters])
+
+  const articleSubClusterColorDict = useMemo(() => {
+    let sub_cluster_color_dict = {}
+    if(!article_graph) return sub_cluster_color_dict
+    Object.keys(article_graph.clusters).forEach(cluster_label => {
+      const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
+      const sub_clusters = article_graph.sub_clusters[cluster_label]
+      const sub_cluster_renumber_dict = {}
+      sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
+      const sub_cluster_sScale = d3.scaleLinear()
+        .domain([0,  sub_clusters.length - 1])
+        .range([0.5, 1]);
+      const sub_cluster_lScale = d3.scaleLinear()
+        .domain([0,  sub_clusters.length - 1])
+        .range([0.4, 0.8]);
+      
+      sub_clusters.forEach((sub_cluster_label, i) => {
+        // sub_cluster_color_dict[sub_cluster_label] = d3.hsl(cluster_color.h, sub_cluster_colorScale(i), 0.5)
+        const offset_color = articleSubClusterColorScale(sub_cluster_label)
+        const offset_hsl = d3.hsl(offset_color)
+        offset_hsl.h = cluster_color.h + offset_hsl.h
+        offset_hsl.s = sub_cluster_sScale(i)
+        offset_hsl.l = sub_cluster_lScale(i)
+        // offset_hsl.s = cluster_color.s + offset_hsl.s
+        // offset_hsl.l = sub_cluster_lightnessScale(i)
+        // const sub_cluster_color = d3.hsl(cluster_color.h + offset_hsl.h, offset_hsl.s, offset_hsl.l)
+        sub_cluster_color_dict[sub_cluster_label] = offset_hsl
+      })
+    })
+    setPreviousSubClusterColorDict(sub_cluster_color_dict)
+    return sub_cluster_color_dict
+  }, [article_graph])
+
+
+
+  // entities
+  const entityClusterColorScale = d3.scaleOrdinal(d3.schemeSet2)
+  const entitySubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
+  const [previousEntityClusterColorDict, setPreviousEntityClusterColorDict] = useState<any>(undefined)
+  const [previousEntitySubClusterColorDict, setPreviousEntitySubClusterColorDict] = useState<any>(undefined)
+
+  const entityClusterColorDict = useMemo(() => {
+    let cluster_color_dict = {}
+    if(!entity_graph) return cluster_color_dict
+    Object.keys(entity_graph.entity_clusters).forEach(cluster_label => {
+      cluster_color_dict[cluster_label] = entityClusterColorScale(cluster_label)
+      if(previousEntityClusterColorDict && previousEntityClusterColorDict[cluster_label]) {
+        cluster_color_dict[cluster_label] = previousEntityClusterColorDict[cluster_label]
+      } else if(previousEntitySubClusterColorDict && previousEntitySubClusterColorDict[cluster_label]) {
+        cluster_color_dict[cluster_label] = previousEntitySubClusterColorDict[cluster_label]
+      } else {
+      }
+    })
+    setPreviousEntityClusterColorDict(cluster_color_dict)
+    return cluster_color_dict
+  }, [entity_graph])
+  
+  const entitySubClusterColorDict = useMemo(() => {
+    let sub_cluster_color_dict = {}
+    if(!entity_graph) return sub_cluster_color_dict
+    Object.keys(entity_graph.entity_clusters).forEach(cluster_label => {
+      const cluster_color = d3.hsl(entityClusterColorDict[cluster_label])
+      const sub_clusters = entity_graph.entity_sub_clusters[cluster_label]
+      const sub_cluster_renumber_dict = {}
+      sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
+      const sub_cluster_sScale = d3.scaleLinear()
+        .domain([0,  sub_clusters.length - 1])
+        .range([0.5, 1]);
+      const sub_cluster_lScale = d3.scaleLinear()
+        .domain([0,  sub_clusters.length - 1])
+        .range([0.4, 0.8]);
+      
+      sub_clusters.forEach((sub_cluster_label, i) => {
+        // sub_cluster_color_dict[sub_cluster_label] = d3.hsl(cluster_color.h, sub_cluster_colorScale(i), 0.5)
+        const offset_color = entitySubClusterColorScale(sub_cluster_label)
+        const offset_hsl = d3.hsl(offset_color)
+        offset_hsl.h = cluster_color.h + offset_hsl.h
+        offset_hsl.s = sub_cluster_sScale(i)
+        offset_hsl.l = sub_cluster_lScale(i)
+        sub_cluster_color_dict[sub_cluster_label] = offset_hsl
+      })
+    })
+    setPreviousEntitySubClusterColorDict(sub_cluster_color_dict)
+    return sub_cluster_color_dict
+  }, [entity_graph])
+
+  // fetches
   function fetchPartitionArticle() {
     return new Promise((resolve, reject) => {
       console.log("fetching article with partition", level)
@@ -296,6 +404,11 @@ function App() {
               onNodesSelected={fetchTopic} 
               onArticleClusterClicked={handleArticleClusterClicked} 
               onEntityClusterClicked={handleEntityClusterClicked} 
+              setTooltipData={setTooltipData}
+              articleClusterColorDict={articleClusterColorDict}
+              articleSubClusterColorDict={articleSubClusterColorDict}
+              entityClusterColorDict={entityClusterColorDict}
+              entitySubClusterColorDict={entitySubClusterColorDict}
               searchMode={searchMode}
               brushMode={brushMode} 
               selectedClusters={selectedClusters}
@@ -308,50 +421,62 @@ function App() {
       </div>
       <div className='right-panel flex basis-1/2 w-1/12'>
         {
-          <div className='utility-container flex flex-col w-fit h-fit space-y-4 pl-1 border rounded '>
-            {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
-            <div className='toggler-container flex flex-col py-3'>
-              <div className='switch-container flex justify-center mr-2 w-fit '>
-                <span className='switch-label mr-2'>Brush</span>
-                <Switch className={"toggle-brush bg-black/25"} onChange={setBrushMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+          <div className='middle-container basis-1/2 flex flex-col '>
+            <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
+              {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
+              <div className='toggler-container flex flex-col py-3'>
+                <div className='switch-container flex justify-center mr-2 w-fit '>
+                  <span className='switch-label mr-2'>Brush</span>
+                  <Switch className={"toggle-brush bg-black/25"} onChange={setBrushMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+                </div>
+                <div className='switch-container flex justify-center mr-2 w-fit'>
+                  <span className='switch-label mr-2'>Search</span>
+                  <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+                </div>
+                <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
+                {/* <div className='switch-container flex justify-center mr-2 w-fit'>
+                  <span className='switch-label mr-2'>Graph</span>
+                  <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
+                </div> */}
               </div>
-              <div className='switch-container flex justify-center mr-2 w-fit'>
-                <span className='switch-label mr-2'>Search</span>
-                <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+              <div className='search-container w-fit'>
+                <Search className={"search-bar w-fit"}
+                  placeholder="input search text" 
+                  // enterButton="Search" 
+                  size="large" 
+                  onChange={(e) => setQuery(e.target.value)}
+                  onSearch={search} 
+                  loading={searchLoading} />
+                <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
               </div>
-              <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
-              {/* <div className='switch-container flex justify-center mr-2 w-fit'>
-                <span className='switch-label mr-2'>Graph</span>
-                <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
+              {/* <div className='search-container w-fit'>
+                <Search className={"search-bar w-fit"}
+                  placeholder="input search text" 
+                  // enterButton="Search" 
+                  size="large" 
+                  onChange={(e) => setQuery(e.target.value)}
+                  onSearch={search} 
+                  loading={searchLoading} />
+                <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
               </div> */}
-            </div>
-            <div className='search-container w-fit'>
-              <Search className={"search-bar w-fit"}
-                placeholder="input search text" 
-                // enterButton="Search" 
-                size="large" 
-                onChange={(e) => setQuery(e.target.value)}
-                onSearch={search} 
-                loading={searchLoading} />
-              <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
-            </div>
-            {/* <div className='search-container w-fit'>
-              <Search className={"search-bar w-fit"}
-                placeholder="input search text" 
-                // enterButton="Search" 
-                size="large" 
-                onChange={(e) => setQuery(e.target.value)}
-                onSearch={search} 
-                loading={searchLoading} />
-              <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
-            </div> */}
-            <div className='relevance-threshold-container w-fit'>
-              <span className='relevance-label'> Relevance &gt;= </span>
-              <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
-            </div>
-            <Slider defaultValue={0} onChange={onClusterMoved} />
+              <div className='relevance-threshold-container w-fit'>
+                <span className='relevance-label'> Relevance &gt;= </span>
+                <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
+              </div>
+              <Slider defaultValue={0} onChange={onClusterMoved} />
 
-            <div className="topic-viewer w-full"> {topic} </div>
+              <div className="topic-viewer w-full"> {topic} </div>
+            </div>
+            <div className='statistics-container w-full flex-1 border rounded '>
+              {
+                tooltipData &&
+                <Tooltip tooltipData={tooltipData} 
+                articleClusterColorDict={articleClusterColorDict}
+                articleSubClusterColorDict={articleSubClusterColorDict}
+                entityClusterColorDict={entityClusterColorDict}
+                />
+              }
+            </div>
           </div>
         }
         {
