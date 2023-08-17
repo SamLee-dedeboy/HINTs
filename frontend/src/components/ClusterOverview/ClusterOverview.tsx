@@ -122,6 +122,9 @@ function ClusterOverview({
   // entity cluster colors
   //
   //
+  // entity cluster colors
+  //
+  //
   // computed data
   //
   const entity_data_dict = useMemo(() => {
