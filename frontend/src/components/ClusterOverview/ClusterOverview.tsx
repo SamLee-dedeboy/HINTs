@@ -135,6 +135,41 @@ function ClusterOverview({
     return cluster_color_dict
   }, [article_graph, mergedClusters])
 
+  //
+  // computed data
+  //
+  const entity_data_dict = useMemo(() => {
+    let res = {}
+    entity_graph.entity_nodes.forEach(entity => {
+      res[entity.id] = entity
+    })
+    return res
+  }, [entity_graph.entity_nodes])
+  const article_cluster_linked_entities_clustered = useMemo(() => {
+    const res = {}
+    Object.keys(article_graph.article_cluster_linked_entities).forEach(cluster_label => {
+      const linked_entities = article_graph.article_cluster_linked_entities[cluster_label]
+      const linked_entities_clustered = {}
+      linked_entities.forEach(entity => {
+        const entity_cluster = entity_data_dict[entity].cluster_label
+        if(linked_entities_clustered[entity_cluster] === undefined) 
+          linked_entities_clustered[entity_cluster] = new Set()
+        if(linked_entities_clustered[entity_cluster].size > 5) return
+        const entity_title = entity_data_dict[entity].title
+        // linked_entities_clustered[entity_cluster].add(`${entity_title}(${entity})`)
+        linked_entities_clustered[entity_cluster].add(entity_title)
+      })
+      // convert sets to array
+      const cluster_res = {}
+      Object.keys(linked_entities_clustered).forEach(entity_cluster => {
+        const entities = Array.from(linked_entities_clustered[entity_cluster])
+        if(entities.length > 3) cluster_res[entity_cluster] = entities
+      })
+      res[cluster_label] = cluster_res
+    })
+    return res
+  }, [article_graph.article_cluster_linked_entities, entity_graph])
+
   useEffect(() => {
     update_article_color()
   }, [articleClusterColorDict])
@@ -244,7 +279,7 @@ function ClusterOverview({
     border_group.selectAll("path.concave-hull")
       .on("mouseover", article_border_handlers.mouseover)
       .on("mouseout", article_border_handlers.mouseout)
-      .call(bindDrag)
+      // .call(bindDrag)
       .on("click", article_border_handlers.click)
   }, [selectedClusters, searchMode, highlightNodeIds])
 
@@ -379,7 +414,7 @@ function ClusterOverview({
           .attr("transform", "translate(0,0)")
           .on("mouseover", article_border_handlers.mouseover)
           .on("mouseout", article_border_handlers.mouseout)
-          .call(bindDrag)
+          // .call(bindDrag)
           .on("click", article_border_handlers.click)
           .attr("opacity", 0)
           .transition().delay(t_delay + (article_graph.filtered? t_duration : 0)).duration(t_duration)
@@ -393,7 +428,7 @@ function ClusterOverview({
           // .attr("stroke-dashoffset", function() { return (d3.select(this).node()! as any).getTotalLength()})
           .on("mouseover", article_border_handlers.mouseover)
           .on("mouseout", article_border_handlers.mouseout)
-          .call(bindDrag)
+          // .call(bindDrag)
           .on("click", article_border_handlers.click)
           .transition().delay(t_delay + (article_graph.filtered? t_duration : 0)).duration(t_duration)
           .attr("d", d => d.path)
@@ -443,11 +478,12 @@ function ClusterOverview({
       setTooltipData({
         cluster_label: d.cluster_label,
         cluster_topic: article_graph.hierarchical_topics[d.cluster_label],
+        entity_clusters: article_cluster_linked_entities_clustered[d.cluster_label],
         sub_clusters: article_graph.sub_clusters[d.cluster_label].map(
           (sub_cluster_label: string) => {
             return {
               cluster_label: sub_cluster_label,
-              cluster_topic: article_graph.hierarchical_topics[sub_cluster_label]
+              cluster_topic: article_graph.hierarchical_topics[sub_cluster_label],
             }
           })
       })
@@ -466,7 +502,7 @@ function ClusterOverview({
         .filter((node: any) => node.cluster_label === d.cluster_label)
         .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
         .attr("opacity", searchMode? 0.2 : 0.5)
-        .filter((node: any) => !(!searchMode || highlightNodeIds.includes(node.doc_id)))
+        .filter((node: any) => (searchMode && highlightNodeIds.includes(node.doc_id)))
         .attr("opacity", 1)
 
       // border
@@ -840,13 +876,25 @@ function ClusterOverview({
                 <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
                 <span className='ml-2'> { tooltipData.cluster_topic } </span>
               </p>
-              {/* <p className='w-fit' style={{ background: 'blue' }}> Topic: { tooltipData.cluster_topic } </p> */}
               <ul className='w-fit list-disc list-inside'> 
                 <p className='w-fit'> Sub-topics: </p>
                 { tooltipData.sub_clusters.map(sub_cluster => 
                   <li className='flex items-center w-fit pl-1'> 
                     <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={articleSubClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
                     <span className='ml-2'> { sub_cluster.cluster_topic } </span>
+                  </li> 
+                  )
+                }
+              </ul>
+              <ul className='w-fit list-disc list-inside'> 
+                <p className='w-fit'> Entities: </p>
+                { Object.keys(tooltipData.entity_clusters).map(entity_cluster => 
+                  <li className='flex items-center w-fit pl-1'> 
+                    <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={entityClusterColorDict[entity_cluster]}></rect></svg>
+                    { tooltipData.entity_clusters[entity_cluster].map(entity =>
+                        <span className='ml-2 text-sm'> { entity }, </span>
+                      )
+                    }
                   </li> 
                   )
                 }

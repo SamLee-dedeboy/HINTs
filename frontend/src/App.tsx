@@ -3,7 +3,7 @@ import { server_address } from './shared'
 import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
-import { Input, InputNumber, Switch } from 'antd';
+import { Input, InputNumber, Switch, Slider } from 'antd';
 
 
 const Search = Input.Search;
@@ -271,6 +271,10 @@ function App() {
         })
     })
   }
+
+  function onClusterMoved(value) {
+    const cluster_label = "L-5-1"
+  }
   
   return (
     <div className="App flex w-full h-full">
@@ -345,6 +349,7 @@ function App() {
               <span className='relevance-label'> Relevance &gt;= </span>
               <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
             </div>
+            <Slider defaultValue={0} onChange={onClusterMoved} />
 
             <div className="topic-viewer w-full"> {topic} </div>
           </div>
