@@ -1,4 +1,3 @@
-import * as d3 from "d3"
 import { useState, useMemo, useEffect } from 'react'
 import { usePrevious } from "@uidotdev/usehooks";
 
@@ -8,6 +7,7 @@ import borders from "./BorderUtils";
 import spacing from "./SpacingUtils";
 import sfc from "./SFCUtils"
 import * as DragUtils from "./DragUtils"
+import * as d3 from 'd3'
 
 interface ClusterOverviewProps {
   svgId: string
@@ -18,6 +18,11 @@ interface ClusterOverviewProps {
   onNodesSelected: (node_ids: string[]) => void
   onArticleClusterClicked: (e: any, cluster_label: string, clusters: any) => void
   onEntityClusterClicked: (e: any, cluster_label: string, clusters: any) => void
+  setTooltipData: (content: tooltipContent) => void
+  articleClusterColorDict: any
+  articleSubClusterColorDict: any
+  entityClusterColorDict: any
+  entitySubClusterColorDict: any
   brushMode: boolean
   searchMode: boolean
   selectedClusters: string[]
@@ -34,6 +39,11 @@ function ClusterOverview({
   onNodesSelected, 
   onArticleClusterClicked, 
   onEntityClusterClicked,
+  setTooltipData,
+  articleClusterColorDict,
+  articleSubClusterColorDict,
+  entityClusterColorDict,
+  entitySubClusterColorDict,
   brushMode, 
   searchMode,
   selectedClusters,
@@ -87,12 +97,8 @@ function ClusterOverview({
 
   // articles
   const article_node_radius = 4.5
-  const articleClusterColorScale = d3.scaleOrdinal(d3.schemeTableau10)
-  const articleSubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   // entities
   const entity_node_radius = 4
-  const entityClusterColorScale = d3.scaleOrdinal(d3.schemeSet2)
-  const entitySubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
 
   //
   // states
@@ -100,41 +106,21 @@ function ClusterOverview({
 
   // articles
   const [hoveredArticleCluster, setHoveredArticleCluster] = useState<string>("")
-  const [previousClusterColorDict, setPreviousClusterColorDict] = useState<any>(undefined)
-  const [previousSubClusterColorDict, setPreviousSubClusterColorDict] = useState<any>(undefined)
   // entities
   const [hoveredEntityCluster, setHoveredEntityCluster] = useState<string>("")
-  const [previousEntityClusterColorDict, setPreviousEntityClusterColorDict] = useState<any>(undefined)
-  const [previousEntitySubClusterColorDict, setPreviousEntitySubClusterColorDict] = useState<any>(undefined)
-  // tooltip
-  const [tooltipData, setTooltipData] = useState<tooltipContent>()
   
   //
   // article cluster colors
   //
 
-  const articleClusterColorDict = useMemo(() => {
-    let cluster_color_dict = {}
-    if(!article_graph) return cluster_color_dict
-    Object.keys(article_graph.clusters).forEach(cluster_label => {
-      if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
-        cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
-      } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
-        cluster_color_dict[cluster_label] = previousSubClusterColorDict[cluster_label]
-      } else {
-        cluster_color_dict[cluster_label] = articleClusterColorScale(cluster_label)
-      }
-    })
-    mergedClusters.forEach(merged_set => {
-      const merged_set_color = previousClusterColorDict[merged_set[0]]
-      merged_set.forEach(cluster_label => {
-        cluster_color_dict[cluster_label] = merged_set_color
-      })
-    })
-    setPreviousClusterColorDict(cluster_color_dict)
-    return cluster_color_dict
-  }, [article_graph, mergedClusters])
 
+  useEffect(() => {
+    update_article_color()
+  }, [articleClusterColorDict])
+
+  //
+  // entity cluster colors
+  //
   //
   // computed data
   //
@@ -170,90 +156,7 @@ function ClusterOverview({
     return res
   }, [article_graph.article_cluster_linked_entities, entity_graph])
 
-  useEffect(() => {
-    update_article_color()
-  }, [articleClusterColorDict])
-
-  const articleSubClusterColorDict = useMemo(() => {
-    let sub_cluster_color_dict = {}
-    if(!article_graph) return sub_cluster_color_dict
-    Object.keys(article_graph.clusters).forEach(cluster_label => {
-      const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
-      const sub_clusters = article_graph.sub_clusters[cluster_label]
-      const sub_cluster_renumber_dict = {}
-      sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
-      const sub_cluster_sScale = d3.scaleLinear()
-        .domain([0,  sub_clusters.length - 1])
-        .range([0.5, 1]);
-      const sub_cluster_lScale = d3.scaleLinear()
-        .domain([0,  sub_clusters.length - 1])
-        .range([0.4, 0.8]);
-      
-      sub_clusters.forEach((sub_cluster_label, i) => {
-        // sub_cluster_color_dict[sub_cluster_label] = d3.hsl(cluster_color.h, sub_cluster_colorScale(i), 0.5)
-        const offset_color = articleSubClusterColorScale(sub_cluster_label)
-        const offset_hsl = d3.hsl(offset_color)
-        offset_hsl.h = cluster_color.h + offset_hsl.h
-        offset_hsl.s = sub_cluster_sScale(i)
-        offset_hsl.l = sub_cluster_lScale(i)
-        // offset_hsl.s = cluster_color.s + offset_hsl.s
-        // offset_hsl.l = sub_cluster_lightnessScale(i)
-        // const sub_cluster_color = d3.hsl(cluster_color.h + offset_hsl.h, offset_hsl.s, offset_hsl.l)
-        sub_cluster_color_dict[sub_cluster_label] = offset_hsl
-      })
-    })
-    setPreviousSubClusterColorDict(sub_cluster_color_dict)
-    return sub_cluster_color_dict
-  }, [article_graph])
-
-  //
-  // entity cluster colors
-  //
-  const entityClusterColorDict = useMemo(() => {
-    let cluster_color_dict = {}
-    if(!entity_graph) return cluster_color_dict
-    Object.keys(entity_graph.entity_clusters).forEach(cluster_label => {
-      cluster_color_dict[cluster_label] = entityClusterColorScale(cluster_label)
-      if(previousEntityClusterColorDict && previousEntityClusterColorDict[cluster_label]) {
-        cluster_color_dict[cluster_label] = previousEntityClusterColorDict[cluster_label]
-      } else if(previousEntitySubClusterColorDict && previousEntitySubClusterColorDict[cluster_label]) {
-        cluster_color_dict[cluster_label] = previousEntitySubClusterColorDict[cluster_label]
-      } else {
-      }
-    })
-    setPreviousEntityClusterColorDict(cluster_color_dict)
-    return cluster_color_dict
-  }, [entity_graph])
-  
-  const entitySubClusterColorDict = useMemo(() => {
-    let sub_cluster_color_dict = {}
-    if(!entity_graph) return sub_cluster_color_dict
-    Object.keys(entity_graph.entity_clusters).forEach(cluster_label => {
-      const cluster_color = d3.hsl(entityClusterColorDict[cluster_label])
-      const sub_clusters = entity_graph.entity_sub_clusters[cluster_label]
-      const sub_cluster_renumber_dict = {}
-      sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
-      const sub_cluster_sScale = d3.scaleLinear()
-        .domain([0,  sub_clusters.length - 1])
-        .range([0.5, 1]);
-      const sub_cluster_lScale = d3.scaleLinear()
-        .domain([0,  sub_clusters.length - 1])
-        .range([0.4, 0.8]);
-      
-      sub_clusters.forEach((sub_cluster_label, i) => {
-        // sub_cluster_color_dict[sub_cluster_label] = d3.hsl(cluster_color.h, sub_cluster_colorScale(i), 0.5)
-        const offset_color = entitySubClusterColorScale(sub_cluster_label)
-        const offset_hsl = d3.hsl(offset_color)
-        offset_hsl.h = cluster_color.h + offset_hsl.h
-        offset_hsl.s = sub_cluster_sScale(i)
-        offset_hsl.l = sub_cluster_lScale(i)
-        sub_cluster_color_dict[sub_cluster_label] = offset_hsl
-      })
-    })
-    setPreviousEntitySubClusterColorDict(sub_cluster_color_dict)
-    return sub_cluster_color_dict
-  }, [entity_graph])
-
+  // useEffect hooks
   useEffect(() => {
     init()
   }, []);
@@ -466,15 +369,17 @@ function ClusterOverview({
         .attr("opacity", 1)
       // highlight border
       if(e.ctrlKey || e.metaKey) {
-        d3.select(this).attr("stroke-width", 4)
+        if(selectedClusters.includes(d.cluster_label)) {
+          d3.select(this).attr("stroke-width", 4)
+        }
       }
       d3.select(this).attr("opacity", 1)
       setHoveredArticleCluster(d.cluster_label)
       // tooltip
-      const tooltip_coord = SVGToScreen(d.max_x+margin.left+centerAreaOffset.left, d.min_y+margin.top+centerAreaOffset.top)
-      tooltipDiv
-        .style("left", tooltip_coord.x + "px")
-        .style("top", tooltip_coord.y + "px")
+      // const tooltip_coord = SVGToScreen(d.max_x+margin.left+centerAreaOffset.left, d.min_y+margin.top+centerAreaOffset.top)
+      // tooltipDiv
+      //   .style("left", tooltip_coord.x + "px")
+      //   .style("top", tooltip_coord.y + "px")
       setTooltipData({
         cluster_label: d.cluster_label,
         cluster_topic: article_graph.hierarchical_topics[d.cluster_label],
@@ -487,7 +392,7 @@ function ClusterOverview({
             }
           })
       })
-      tooltipDiv.style("opacity", 1)
+      // tooltipDiv.style("opacity", 1)
     },
 
     mouseout: function(e, d) {
@@ -507,9 +412,13 @@ function ClusterOverview({
 
       // border
       d3.select(this).attr("opacity", 0.5).attr("stroke-width", 1)
+      if(selectedClusters.includes(d.cluster_label)) {
+        d3.select(this).attr("stroke-width", 4)
+      }
       setHoveredArticleCluster("")
       
       // hide tooltip
+      return
       tooltipDiv.style("opacity", 0)
       if(selectedClusters.includes(d.cluster_label)) {
         d3.select(this).attr("stroke-width", 4)
@@ -526,7 +435,6 @@ function ClusterOverview({
   const entity_border_handlers = {
     mouseover: function(e, d) {
       const canvas = d3.select('#' + svgId).select("g.margin")
-      const tooltipDiv = d3.select(".tooltip");
       // show connected articles
       // show_connected_entities(d.cluster_label)
       // highlight nodes
@@ -867,40 +775,6 @@ function ClusterOverview({
         </div>
         <div className="svg-container flex overflow-hidden"> 
             <svg id={svgId} className='event-cluster-svg'> </svg>
-        </div>
-        <div className='tooltip absolute opacity-0 border-2 bg-gray-100 p-0.5 pointer-events-none z-50'>
-          { tooltipData &&
-            <div className='flex flex-col'>
-              <p className='flex items-center w-fit'>
-                <span className='mr-2'> Topic: </span>
-                <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
-                <span className='ml-2'> { tooltipData.cluster_topic } </span>
-              </p>
-              <ul className='w-fit list-disc list-inside'> 
-                <p className='w-fit'> Sub-topics: </p>
-                { tooltipData.sub_clusters.map(sub_cluster => 
-                  <li className='flex items-center w-fit pl-1'> 
-                    <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={articleSubClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
-                    <span className='ml-2'> { sub_cluster.cluster_topic } </span>
-                  </li> 
-                  )
-                }
-              </ul>
-              <ul className='w-fit list-disc list-inside'> 
-                <p className='w-fit'> Entities: </p>
-                { Object.keys(tooltipData.entity_clusters).map(entity_cluster => 
-                  <li className='flex items-center w-fit pl-1'> 
-                    <svg width='10' height='10'><rect width='10' height='10' x='0' y='0' fill={entityClusterColorDict[entity_cluster]}></rect></svg>
-                    { tooltipData.entity_clusters[entity_cluster].map(entity =>
-                        <span className='ml-2 text-sm'> { entity }, </span>
-                      )
-                    }
-                  </li> 
-                  )
-                }
-              </ul>
-            </div>
-          }
         </div>
       </div>
     </>
