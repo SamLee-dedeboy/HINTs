@@ -116,14 +116,32 @@ function App() {
   }
 
   async function handleEntityClusterClicked(e, cluster_id, clusters) {
-    return
+    return new Promise((resolve, reject) => {
+      console.log("fetching for entity cluster", cluster_id)
+      fetch(`${server_address}/user/expand_cluster/entity/${user_id}`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
+      })
+        .then(res => res.json())
+        .then(expanded_graph => {
+          console.log({expanded_graph})
+          setEntityGraph(expanded_graph)
+          resolve("success")
+          // setClusterData(cluster_data)
+          // setClusterDataFetched(true)
+        })
+    })
   }
 
   async function fetchExpandArticleCluster(cluster_id, clusters) {
     return new Promise((resolve, reject) => {
       // setClusterSelected(true)
       // setClusterDataFetched(false)
-      console.log("fetching for cluster", cluster_id)
+      console.log("fetching for cluster", cluster_id, clusters)
       fetch(`${server_address}/user/expand_cluster/article/${user_id}`, {
         method: "POST",
         headers: {
@@ -183,9 +201,12 @@ function App() {
 
   function applyFilter() {
     if(article_graph === undefined) return
+    if(entity_graph === undefined) return
+    if(relevantDocIds.length === 0) return
     return new Promise((resolve, reject) => {
       const article_ids = article_graph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
       const clusters = article_graph.clusters
+      const entity_clusters = entity_graph.entity_clusters
       console.log("filtering: ", article_ids, clusters)
       fetch(`${server_address}/user/filter/${user_id}`, {
         method: "POST",
@@ -193,13 +214,13 @@ function App() {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ article_ids, clusters })
+        body: JSON.stringify({ article_ids, clusters, entity_clusters })
       })
         .then(res => res.json())
         .then(filtered_hgraph => {
           console.log({filtered_hgraph})
-          // TODO: this may be wrong
-          setArticleGraph(filtered_hgraph)
+          setArticleGraph(filtered_hgraph.article_graph)
+          setEntityGraph(filtered_hgraph.entity_graph)
           // setEventHGraphLoaded(true)
           resolve("success")
         })

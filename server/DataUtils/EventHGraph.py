@@ -61,13 +61,19 @@ class EventHGraph:
         )
 
         self.original_article_nodes = self.article_nodes
+        self.original_entity_nodes = self.entity_nodes
         self.original_entity_links = self.entity_links
         self.filtered = False
 
     def resetFiltering(self):
         if self.filtered:
+            # article
             self.article_nodes = self.original_article_nodes
             self.article_dict = {node['id']: node for node in self.article_nodes}
+            # entity
+            self.entity_nodes = self.original_entity_nodes
+            self.entity_dict = {node['id']: node for node in self.entity_nodes}
+            # link
             self.entity_links = self.original_entity_links
         return
 
@@ -77,6 +83,8 @@ class EventHGraph:
         self.article_nodes = sorted(self.article_nodes, key=lambda node: node['order'])
         self.article_dict = {node['id']: node for node in self.article_nodes}
         self.entity_links = list(filter(lambda link: link['source'] in target_article_ids or link['target'] in target_article_ids, self.entity_links))
+        self.entity_nodes = list(filter(lambda entity: entity['id'] in [link['source'] for link in self.entity_links] + [link['target'] for link in self.entity_links], self.entity_nodes))
+        self.entity_dict = {node['id']: node for node in self.entity_nodes}
         return
 
     # def apply_filters(self, filters, test=False):
@@ -90,14 +98,14 @@ class EventHGraph:
         article_id = self.doc_id_to_article_id[doc_id]
         return self.article_dict[article_id][fieldName]
 
-    def binPartitions(self, level, cluster_type='article'):
+    def binPartitions(self, level, cluster_type):
         if cluster_type == 'article':
             return _binPartitions(self.partitions_article[int(level)], level)
         elif cluster_type == 'entity':
             return _binPartitions(self.partitions_entity[int(level)], level)
         
     
-    def getSubClusterNumDict(self, cluster_labels, cluster_type='article'):
+    def getSubClusterNumDict(self, cluster_labels, cluster_type):
         if cluster_type == 'article':
             hierarchy_flattened = self.hierarchy_flattened_article
         else:
@@ -109,7 +117,7 @@ class EventHGraph:
             sub_cluster_num_dict[cluster_label] = hierarchy_of_cluster['children']
         return sub_cluster_num_dict
 
-    def getSubClusterLabels(self, cluster_labels, isList=False, cluster_type='article'):
+    def getSubClusterLabels(self, cluster_labels, cluster_type, isList=False):
         if cluster_type == 'article':
             hierarchy_flattened = self.hierarchy_flattened_article
         else:
@@ -130,7 +138,7 @@ class EventHGraph:
     #         res[sub_cluster_label] = article_nodes
     #     return res
 
-    def getSubClusters(self, cluster_labels, isList=False, cluster_type='article'):
+    def getSubClusters(self, cluster_labels,  cluster_type, isList=False):
         # TODO: add support for entity sub clusters
         if isList:
             targeted_sub_clusters = {}
