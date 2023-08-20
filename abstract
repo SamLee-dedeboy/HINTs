@@ -41,3 +41,33 @@ Week 6 (Sep 11-17): Case study, User Study, first draft of paper
 Week 7 (Sep 18-24): User study, refine paper, add user study and discussion 
 
 Treemap-based SFC? (previous KL paper)
+
+
+Defenses: 
+1. In such a large graph, why show all the nodes as circles? Why not only show clusters?
+- Manipulating the granularity of the cluster structure is the most crucial task. 
+Showing only the clusters fail to visualize the detail of cluster structures.
+Especially when searching a term and relevant articles are highlighted,
+user needs to see which nodes are highlighted in each cluster to determine if the granularity of the clusters are accurate.
+
+2. The corpus is visualized as a graph, but what kind of graph-related analytic tasks should the user perform?
+Density estimation? Degree estimation? Cluster Detection? Path finding?
+- The goal is to visualize a pre-computed cluster structure of the bipartite graph.
+The meaning of cluster structure includes: (1) Partition and sub-partition of the graph (2) Outward relations between clusters (links between the two types of nodes)
+Since the partition of the graph maps to topics of the corpus, sense-making of the partition is sense-making of the topics.
+The outward relations between clusters maps to the topic-involvement of an entity (or a group of entities)
+The (1) task is similar to cluster detection, and (2) is similar to path finding.
+
+3. What are existing works that also visualize the topic structure of a corpus? How is yours better? 
+What's the benefit of conducting the same task (sense-making on topic structure) under a graph context?
+
+- Interpretability and trust: 
+- Interaction: 
+
+Problems to solve:
+1. Minimize the amount of hovering needed to make sense of the topic structure
+2. Minimize the amount of expansion needed to converge to an accurate granularity, especially when searching
+3. Minimize the layout changes before/after filtering. Keep the nodes in place / Make them center?
+
+
+
