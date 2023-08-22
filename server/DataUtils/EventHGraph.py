@@ -38,7 +38,6 @@ class EventHGraph:
         self.article_nodes, \
         self.article_dict, \
         self.node_dict, \
-        self.argument_nodes, \
         self.entity_nodes, \
         self.entity_dict, \
         self.entity_links, \
@@ -122,10 +121,24 @@ class EventHGraph:
         if isList:
             res = []
             for cluster_label in cluster_labels:
-                res += hierarchy_flattened[cluster_label]['children']
+                # check if children has only one element
+                if 'children' not in hierarchy_flattened[cluster_label]: 
+                    res.append(cluster_label)
+                else:
+                    sub_cluster_labels = hierarchy_flattened[cluster_label]['children']
+                    while len(sub_cluster_labels) == 1 and 'children' in hierarchy_flattened[sub_cluster_labels[0]]:
+                        sub_cluster_labels = hierarchy_flattened[sub_cluster_labels[0]]['children']
+                    res += sub_cluster_labels
             return res
         else:
-            return hierarchy_flattened[cluster_labels]['children']
+            # check if children has only one element
+            if 'children' not in hierarchy_flattened[cluster_labels]: 
+                return [cluster_labels]
+            else:
+                sub_cluster_labels = hierarchy_flattened[cluster_labels]['children']
+                while len(sub_cluster_labels) == 1 and 'children' in hierarchy_flattened[sub_cluster_labels[0]]:
+                    sub_cluster_labels = hierarchy_flattened[sub_cluster_labels[0]]['children']
+                return sub_cluster_labels
     
     # def filterClusters(self, cluster_labels):
     #     res = {}
@@ -136,32 +149,32 @@ class EventHGraph:
     #     return res
 
     def getSubClusters(self, cluster_labels,  cluster_type, isList=False):
-        # TODO: add support for entity sub clusters
         if isList:
             targeted_sub_clusters = {}
+            cluster_children_dict = {}
             for cluster_label in cluster_labels:
                 targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_label, cluster_type=cluster_type)
-                # some of the targeted sub clusters might not exist
-                # user article ids to filter out the non-existing sub clusters
+                cluster_children_dict[cluster_label] = targeted_sub_cluster_labels
+                # get the cluster data from label
+                # this assumes that all targeted_sub_cluster_labels are at the same level
                 sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
-                # if filtered:
-                #     targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
                 all_sub_cluster_at_level = self.binPartitions(sub_cluster_level, cluster_type=cluster_type)
                 # keep only the sub clusters that are in the sub_cluster_labels
                 for sub_cluster_label in targeted_sub_cluster_labels:
                     targeted_sub_clusters[sub_cluster_label] = all_sub_cluster_at_level[sub_cluster_label]
-            return targeted_sub_clusters
+
+            return targeted_sub_clusters, cluster_children_dict
         else:
+            cluster_children_dict = {}
             targeted_sub_cluster_labels = self.getSubClusterLabels(cluster_labels, cluster_type=cluster_type) 
-            # some of the targeted sub clusters might not exist
-            # user article ids to filter out the non-existing sub clusters
+            cluster_children_dict[cluster_labels] = targeted_sub_cluster_labels
+            # get the cluster data from label
+            # this assumes that all targeted_sub_cluster_labels are at the same level
             sub_cluster_level = int(targeted_sub_cluster_labels[0].split("-")[1])
-            # if filtered:
-            #     targeted_sub_cluster_labels = self.getClusterLabelSetFrom(targeted_sub_cluster_labels, sub_cluster_level)
             all_sub_cluster_at_level = self.binPartitions(sub_cluster_level, cluster_type=cluster_type)
             # keep only the sub clusters that are in the sub_cluster_labels
             targeted_sub_clusters = {sub_cluster_label: all_sub_cluster_at_level[sub_cluster_label] for sub_cluster_label in targeted_sub_cluster_labels}
-            return targeted_sub_clusters
+            return targeted_sub_clusters, cluster_children_dict
     
     def getClusterLabelSetFrom(self, nonFilteredClusterLabels, level):
         partition = self.partitions_article[level]
@@ -178,11 +191,8 @@ class EventHGraph:
 
         # get the argument links
         cluster_links = [link for link in self.links if link['source'] in article_node_ids or link['target'] in article_node_ids]
-        argument_node_ids = [link['source'] if link['target'] in article_node_ids else link['target'] for link in cluster_links]
-        argument_nodes = [self.node_dict[node_id] for node_id in argument_node_ids]
-
         # filter out entities from arguments
-        entity_node_ids = [node_id for node_id in argument_node_ids if self.node_dict[node_id]['id'] != self.node_dict[node_id]['title']]
+        entity_node_ids = [link['source'] if link['target'] in article_node_ids else link['target'] for link in cluster_links]
         entity_nodes = [self.node_dict[node_id] for node_id in entity_node_ids] 
 
         # add up article and entities to form cluster nodes
@@ -199,7 +209,6 @@ class EventHGraph:
 
         return article_nodes, \
                 entity_nodes, \
-                argument_nodes, \
                 article_entity_links, \
                 None
 
@@ -225,7 +234,7 @@ def prepare_data(nodes, links):
     article_dict = {node['id']: node for node in article_nodes}
     # argument nodes
     node_dict = {node['id']: node for node in nodes}
-    argument_nodes = list(filter(lambda node: node['type'] == 'entity', nodes))
+    # argument_nodes = list(filter(lambda node: node['type'] == 'entity', nodes))
     # entity nodes
     entity_nodes = list(filter(lambda node: node['type'] == 'entity', nodes))
     entity_node_ids = [node['id'] for node in entity_nodes]
@@ -236,7 +245,7 @@ def prepare_data(nodes, links):
     # compute statistics
     # network_statistics = _network_statistics(article_node_ids, entity_node_ids, links)
 
-    return article_nodes, article_dict, node_dict, argument_nodes, entity_nodes, entity_dict, entity_links
+    return article_nodes, article_dict, node_dict, entity_nodes, entity_dict, entity_links
 
 def prepare_frontend(
         entity_nodes, 

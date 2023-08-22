@@ -831,7 +831,7 @@ function ClusterOverview({
                 <filter id="drop-shadow-border" x="-10%" y="-10%" width="120%" height="120%">
                     <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0" />
                     <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
-                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal" flood-color="rgba(0, 0, 0, 0.7)" />
+                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal" flood-color="rgba(0, 0, 0, 0.8)" />
                 </filter>
               </defs>
             </svg>
