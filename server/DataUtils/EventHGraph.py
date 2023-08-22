@@ -99,6 +99,27 @@ class EventHGraph:
             return _binPartitions(self.partitions_article[int(level)], level)
         elif cluster_type == 'entity':
             return _binPartitions(self.partitions_entity[int(level)], level)
+    
+    def adjustClusterLevel(self, clusters, cluster_type):
+        if cluster_type == "article":
+            total_volume = len(self.article_nodes)
+        else:
+            total_volume = len(self.entity_nodes)
+        total_clusters = len(clusters)
+        avg_cluster_size = total_volume / total_clusters
+        res = {}
+        for cluster_label, node_ids in clusters.items():
+            cluster_size = len(node_ids)
+            if cluster_size > 3*avg_cluster_size:
+                # expand this cluster
+                sub_clusters, _ = self.getSubClusters(cluster_label, cluster_type=cluster_type, isList=False)
+                for sub_cluster_label, sub_cluster_article_node_ids in sub_clusters.items():
+                    res[sub_cluster_label] = sub_cluster_article_node_ids
+            else:
+                res[cluster_label] = node_ids
+        return res
+
+
         
     
     def getSubClusterNumDict(self, cluster_labels, cluster_type):
