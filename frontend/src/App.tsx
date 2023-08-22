@@ -31,7 +31,7 @@ function App() {
   // const [relevantDocs, setRelevantDocs] = useState<any[]>([])
   const [relevanceThreshold, setRelevanceThreshold] = useState<number>(0.80)
   const relevantDocs = useMemo(() => docsRanked.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked, relevanceThreshold])
-  const relevantDocIds = useMemo(() => relevantDocs.map(doc => doc.doc_id), [relevantDocs])
+  const relevantDocIds = useMemo(() => relevantDocs.map(doc => doc.id), [relevantDocs])
 
   const [hilbert, setHilbert] = useState<any>() 
   const [selectedClusters, setSelectedClusters] = useState<string[]>([])
@@ -44,9 +44,11 @@ function App() {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
     Promise.all(promises)
       .then(() => {
+        console.log("all data loaded")
         setHGraphLoaded(true)
       })
   }, [])
+
 
   // colors
 
@@ -176,10 +178,10 @@ function App() {
         body: JSON.stringify({ article_level: level, entity_level: 3, entity_node_num: 5})
       })
         .then(res => res.json())
-        .then((hgraph: t_EventHGraph) => {
+        .then(async (hgraph: t_EventHGraph) => {
           console.log({hgraph})
-          setArticleGraph(hgraph.article_graph)
-          setEntityGraph(hgraph.entity_graph)
+          await setArticleGraph(hgraph.article_graph)
+          await setEntityGraph(hgraph.entity_graph)
           resolve("success")
         })
 
@@ -273,7 +275,7 @@ function App() {
     if(query === "") return
     setSearchLoading(true)
     setSearchMode(true)
-    const base = article_graph?.article_nodes.map(node => node.doc_id)
+    const base = article_graph?.article_nodes.map(node => node.id)
     console.log("searching: ", query, base)
     fetch(`${server_address}/static/search/`, {
       method: "POST",
@@ -312,7 +314,7 @@ function App() {
     if(entity_graph === undefined) return
     if(relevantDocIds.length === 0) return
     return new Promise((resolve, reject) => {
-      const article_ids = article_graph.article_nodes.filter(article => relevantDocIds.includes(article.doc_id)).map(article => article.id)
+      const article_ids = article_graph.article_nodes.filter(article => relevantDocIds.includes(article.id)).map(article => article.id)
       const clusters = article_graph.clusters
       const entity_clusters = entity_graph.entity_clusters
       console.log("filtering: ", article_ids, clusters)
@@ -487,7 +489,7 @@ function App() {
               return (
                 <div className="doc-card flex flex-col  border-black/50 px-2">
                   <div className="doc-card-header flex border-x items-center border-y border-black/50">
-                    <div className="doc-card-title px-1 mr-2 border-r border-black/50"> Doc Id: {doc_data.doc_id} </div>
+                    <div className="doc-card-title px-1 mr-2 border-r border-black/50"> Doc Id: {doc_data.id} </div>
                     <div className="doc-card-relevance mr-2"> Relevance: {doc_data.relevance.toFixed(2)} </div>
                     <div className="doc-card-index ml-auto mr-2"> #{index} </div>
                   </div>

@@ -10,7 +10,6 @@ class DataTransformer:
                 'cluster_label': article['cluster_label'],
                 'sub_cluster_label': article['sub_cluster_label'],
                 'date': article['date'],
-                'doc_id': article['doc_id'],
                 # 'leaf_label': article['leaf_label'],
                 # 'order': article['order'],
                 'sfc_order': article['sfc_order'],

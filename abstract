@@ -71,3 +71,15 @@ Problems to solve:
 
 
 
+1. entity and article region needs to be more obvious 
+2. highlight on hovering labels
+
+paper writing
+1. motivation: highlight existing works and their limitations
+
+2. future work: record change logs
+
+TODO:
+1. Show current topic structure when not hovered
+2. Improve tooltip layout
+3. automatically find most appropriate level (bottom up)
