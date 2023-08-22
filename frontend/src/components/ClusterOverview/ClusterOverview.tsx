@@ -477,6 +477,9 @@ function ClusterOverview({
 
     click: function(e, d) {
       if(!e.defaultPrevented) {
+        if(!(e.ctrlKey || e.metaKey)) {
+          remove_connected_entities(d.cluster_label)
+        }
         onArticleClusterClicked(e, d.cluster_label, article_graph.clusters)
       }
     }
