@@ -51,6 +51,7 @@ def get_article_partition(uid):
     ### article
     # clusters and sub clusters
     clusters = user_hgraph.binPartitions(article_level, cluster_type='article')
+    clusters = user_hgraph.adjustClusterLevel(clusters, cluster_type='article')
     sub_clusters, cluster_children_dict = user_hgraph.getSubClusters(clusters.keys(), cluster_type='article', isList=True)
     # sub_clusters = user_hgraph.binPartitions(article_level - 1, cluster_type="article") if int(article_level) > 0 else None
 
