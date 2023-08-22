@@ -44,9 +44,11 @@ function App() {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
     Promise.all(promises)
       .then(() => {
+        console.log("all data loaded")
         setHGraphLoaded(true)
       })
   }, [])
+
 
   // colors
 
@@ -176,10 +178,10 @@ function App() {
         body: JSON.stringify({ article_level: level, entity_level: 3, entity_node_num: 5})
       })
         .then(res => res.json())
-        .then((hgraph: t_EventHGraph) => {
+        .then(async (hgraph: t_EventHGraph) => {
           console.log({hgraph})
-          setArticleGraph(hgraph.article_graph)
-          setEntityGraph(hgraph.entity_graph)
+          await setArticleGraph(hgraph.article_graph)
+          await setEntityGraph(hgraph.entity_graph)
           resolve("success")
         })
 

@@ -159,6 +159,35 @@ function ClusterOverview({
     return res
   }, [article_graph.article_cluster_linked_entities, entity_graph])
 
+  const initialTooltipData = useMemo(() => {
+    const entity_dict = {}
+    entity_graph!.entity_nodes.forEach(entity => {
+      entity_dict[entity.id] = entity
+    })
+    const entity_cluster_titles = {}
+    Object.keys(entity_graph!.entity_clusters).forEach(cluster_label => {
+      const entity_ids = entity_graph!.entity_clusters[cluster_label]
+      entity_cluster_titles[cluster_label] = entity_ids.map(id => entity_dict[id].title).slice(0, 5)
+    })
+    return {
+      hovered: false,
+      cluster_label: "Top level",
+      cluster_topic: "Top level",
+      entity_clusters: entity_cluster_titles,
+        // entity_clusters: article_cluster_linked_entities_clustered[d.cluster_label],
+      sub_clusters: Object.keys(article_graph!.clusters)
+        .sort((c1, c2) => article_graph!.hierarchical_topics[c1].localeCompare(article_graph!.hierarchical_topics[c2]))
+        .map(
+          (cluster_label: string) => {
+            console.log(article_graph!.hierarchical_topics)
+            return {
+              cluster_label: cluster_label,
+              cluster_topic: article_graph!.hierarchical_topics[cluster_label],
+            }
+          })
+      }
+  }, [article_graph, entity_graph])
+
   // useEffect hooks
   useEffect(() => {
     init()
@@ -206,6 +235,7 @@ function ClusterOverview({
     listenKeyDown()
   }, [hoveredArticleCluster])
 
+
   function init() {
     const svg = d3.select('#' + svgId)
       .attr("viewBox", `0 0 ${svgSize.width} ${svgSize.height}`)
@@ -241,6 +271,7 @@ function ClusterOverview({
     sfc.initPeripheral(peripheral)
     sfc.initGosper(gosper)  
     listenKeyDown()
+    setTooltipData(initialTooltipData)
   }
 
   function listenKeyDown() {
@@ -396,10 +427,13 @@ function ClusterOverview({
       //   .style("left", tooltip_coord.x + "px")
       //   .style("top", tooltip_coord.y + "px")
       setTooltipData({
+        hovered: true,
         cluster_label: d.cluster_label,
         cluster_topic: article_graph.hierarchical_topics[d.cluster_label],
         entity_clusters: article_cluster_linked_entities_clustered[d.cluster_label],
-        sub_clusters: article_graph.sub_clusters[d.cluster_label].map(
+        sub_clusters: article_graph.sub_clusters[d.cluster_label]
+        .sort((c1, c2) => article_graph!.hierarchical_topics[c1].localeCompare(article_graph!.hierarchical_topics[c2]))
+        .map(
           (sub_cluster_label: string) => {
             return {
               cluster_label: sub_cluster_label,
@@ -433,6 +467,7 @@ function ClusterOverview({
       setHoveredArticleCluster("")
       
       // hide tooltip
+      setTooltipData(initialTooltipData)
       return
       tooltipDiv.style("opacity", 0)
       if(selectedClusters.includes(d.cluster_label)) {
