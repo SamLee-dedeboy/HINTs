@@ -57,10 +57,10 @@ function ClusterOverview({
       bottom: 30
     }
   const centerAreaOffset = {
-    top: 250,
-    left: 250,
-    right: 250,
-    bottom: 280
+    top: 260,
+    left: 260,
+    right: 260,
+    bottom: 290
   }
   
   const svgSize = useMemo(() => {
@@ -220,6 +220,18 @@ function ClusterOverview({
     const center_area = canvas.append("g")
       .attr("class", "center-area")
       .attr("transform", "translate(" + centerAreaOffset.left + "," + centerAreaOffset.top + ")")
+    center_area.append("rect").attr("class", "center-area-background")
+      .attr("x", 0 - 20)
+      .attr("y", 0 - 20)
+      .attr("width", centerAreaSize.width + 20)
+      .attr("height", centerAreaSize.height + 30)
+      .attr("stroke-width", "1px")
+      .attr("stroke", "grey")
+      .attr("rx", "20%")
+      .attr("fill", "#e8e8e8")
+      .attr("opacity", 0.2)
+      .attr("filter", "url(#drop-shadow-border)")
+      .attr("pointer-events", "none")
 
     center_area.append("g").attr("class", "article-border-group")
     center_area.append("g").attr("class", "article-node-group")
@@ -778,7 +790,16 @@ function ClusterOverview({
           Event Cluster
         </div>
         <div className="svg-container flex overflow-hidden"> 
-            <svg id={svgId} className='event-cluster-svg'> </svg>
+            <svg id={svgId} className='event-cluster-svg'> 
+              <defs>
+              {/* border shadow filter */}
+                <filter id="drop-shadow-border" x="-10%" y="-10%" width="120%" height="120%">
+                    <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0" />
+                    <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
+                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal" flood-color="rgba(0, 0, 0, 0.7)" />
+                </filter>
+              </defs>
+            </svg>
         </div>
       </div>
     </>
