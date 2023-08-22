@@ -320,7 +320,7 @@ def search():
     doc_data = []
     for (doc_id, relevance, summary) in doc_id_relevance:
         doc_data.append({
-            "doc_id": doc_id,
+            "id": doc_id,
             "relevance": relevance,
             "summary": summary
         })
