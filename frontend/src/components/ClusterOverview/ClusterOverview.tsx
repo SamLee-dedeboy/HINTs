@@ -266,7 +266,7 @@ function ClusterOverview({
     // articles 
     const article_node_group = centerArea.select("g.article-node-group")
     article_node_group.selectAll("circle.article-node")
-      .data(article_graph.article_nodes, (d: any, i) => { d.i = i; return d.doc_id })
+      .data(article_graph.article_nodes, (d: any, i) => { d.i = i; return d.id })
       .join(
         enter => enter.append("circle")
             .attr("class", "article-node")
@@ -368,7 +368,7 @@ function ClusterOverview({
           d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
           return d.sub_cluster_color;
         })
-        .filter((node: any) => !searchMode || highlightNodeIds.includes(node.doc_id))
+        .filter((node: any) => !searchMode || highlightNodeIds.includes(node.id))
         .attr("opacity", 1)
       // highlight border
       if(e.ctrlKey || e.metaKey) {
@@ -410,7 +410,7 @@ function ClusterOverview({
         .filter((node: any) => node.cluster_label === d.cluster_label)
         .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
         .attr("opacity", searchMode? 0.2 : 0.5)
-        .filter((node: any) => (searchMode && highlightNodeIds.includes(node.doc_id)))
+        .filter((node: any) => (searchMode && highlightNodeIds.includes(node.id)))
         .attr("opacity", 1)
 
       // border
@@ -594,6 +594,7 @@ function ClusterOverview({
   }
 
   function show_connected_entities(article_cluster_label) {
+    console.log({article_cluster_label})
     const canvas = d3.select('#' + svgId).select("g.margin")
     const cluster_entity_ids: string[] = article_graph.article_cluster_linked_entities[article_cluster_label]
     const entity_node_group = canvas.select("g.entity-node-group")
@@ -670,7 +671,7 @@ function ClusterOverview({
     
   }
 
-  function update_highlight(highlightNodeIds, highlightClusters, attr='doc_id') {
+  function update_highlight(highlightNodeIds, highlightClusters, attr='id') {
     const canvas = d3.select('#' + svgId).select("g.margin")
     const article_node_group = canvas.select("g.article-node-group")
     // set normal nodes to background
@@ -692,7 +693,7 @@ function ClusterOverview({
 
 
     // highlight article borders
-    // const highlight_hyperedge_nodes = graph.hyperedge_nodes.filter(node => highlightNodeIds.includes(node.doc_id))
+    // const highlight_hyperedge_nodes = graph.hyperedge_nodes.filter(node => highlightNodeIds.includes(node.id))
     // if(highlight_hyperedge_nodes.length > 0) {
     //   const highlight_path = generate_border(highlight_hyperedge_nodes, 2)
     //   canvas.select("path.highlight-border")
