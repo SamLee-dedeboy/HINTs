@@ -122,6 +122,13 @@ def filterClusters(clusters, targeted_node_ids):
         if len(filtered_cluster_node_ids) > 0:
             res[cluster_label] = filtered_cluster_node_ids
     return res
+    
+def filterClusterChildren(children_dict, sub_clusters):
+    for cluster_label, children_labels in children_dict.items():
+        filtered_children_labels = [label for label in children_labels if label in sub_clusters.keys()]
+        children_dict[cluster_label] = filtered_children_labels
+    return children_dict
+
 
 def flattenClusters(clusters, targeted_cluster_labels):
     res = []
@@ -207,6 +214,48 @@ def merge_consecutive_duplicates(lst):
             prev_element = element
     
     return merged_list
+
+def findOptimalPartition(clusters, sub_clusters, cluster_children_dict, target_articles, user_hgraph):
+    import sys
+
+    original_stdout = sys.stdout # Save a reference to the original standard output
+    f = open('log.txt', 'w')
+    sys.stdout = f # Change the standard output to the file we created.
+
+    optimalSubClusters = {}
+    # find the optimal hierarchy
+    for cluster_label, node_ids in clusters.items():
+        # collect the nodes for this child
+        children_node_dict = {}
+        for child in cluster_children_dict[cluster_label]:
+            children_node_dict[child] = sub_clusters[child]
+        # find the optimal partition for this child
+        clusterOptimalSubClusters = optimalPartitionDfs(children_node_dict, target_articles, user_hgraph)
+        # update optimalSubClusters
+        for optimal_sub_cluster, node_ids in clusterOptimalSubClusters.items():
+            optimalSubClusters[optimal_sub_cluster] = node_ids
+        cluster_children_dict[cluster_label] = list(clusterOptimalSubClusters.keys())
+
+    sys.stdout = original_stdout 
+    return optimalSubClusters, cluster_children_dict
+
+def optimalPartitionDfs(sub_clusters, target_articles, user_hgraph):
+    res = {}
+    for child, node_ids in sub_clusters.items():
+        targted_node_ids = [node_id for node_id in node_ids if str(node_id) in str(target_articles)]
+        ratio = len(targted_node_ids) / len(node_ids)
+        level = int(child.split("-")[1])
+        print(child, len(targted_node_ids), len(target_articles), ratio, level) 
+        if ratio < 0.8 and ratio > 0.3 and level >3: 
+            # expand this sub-cluster
+            sub_sub_clusters, _ = user_hgraph.getSubClusters(child, isList=False, cluster_type='article')
+            optimalSubClusters = optimalPartitionDfs(sub_sub_clusters, target_articles, user_hgraph)
+            # update res
+            for sub_cluster_label, sub_cluster_nodes in optimalSubClusters.items():
+                res[sub_cluster_label] = sub_cluster_nodes
+        else:
+            res[child] = node_ids
+    return res
 
 def save_json(data, filepath=r'new_data.json'):
    with open(filepath, 'w') as fp:

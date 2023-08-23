@@ -169,7 +169,26 @@ class EventHGraph:
     #         res[sub_cluster_label] = article_nodes
     #     return res
 
-    def getSubClusters(self, cluster_labels,  cluster_type, isList=False):
+    def aboveLevel(self, cluster_label, level, cluster_type):
+        if cluster_type == 'article':
+            hierarchy_flattened = self.hierarchy_flattened_article
+        else:
+            hierarchy_flattened = self.hierarchy_flattened_entity
+        hierarchy_obj = hierarchy_flattened[cluster_label]
+        if 'children' not in hierarchy_obj: return False
+        for child in hierarchy_obj['children']:
+            if 'children' not in hierarchy_flattened[child]: return False
+        return True
+
+    def hasSubCluster(self, cluster_label, cluster_type):
+        if cluster_type == 'article':
+            hierarchy_flattened = self.hierarchy_flattened_article
+        else:
+            hierarchy_flattened = self.hierarchy_flattened_entity
+        hierarchy_obj = hierarchy_flattened[cluster_label]
+        return 'children' in hierarchy_obj
+
+    def getSubClusters(self, cluster_labels, cluster_type, isList=False):
         if isList:
             targeted_sub_clusters = {}
             cluster_children_dict = {}
@@ -202,8 +221,6 @@ class EventHGraph:
         all_partition_labels = partition.keys()
         filteredClusterLabels = list(filter(lambda cluster_label: cluster_label in all_partition_labels, nonFilteredClusterLabels))
         return filteredClusterLabels
-
-
     
     def getClusterDetail(self, level, cluster_label):
         # get the article nodes

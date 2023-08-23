@@ -179,7 +179,6 @@ function ClusterOverview({
         .sort((c1, c2) => article_graph!.hierarchical_topics[c1].localeCompare(article_graph!.hierarchical_topics[c2]))
         .map(
           (cluster_label: string) => {
-            console.log(article_graph!.hierarchical_topics)
             return {
               cluster_label: cluster_label,
               cluster_topic: article_graph!.hierarchical_topics[cluster_label],

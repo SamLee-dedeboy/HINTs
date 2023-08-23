@@ -12,7 +12,7 @@ interface TooltipProps {
 
 function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDict, entityClusterColorDict}: TooltipProps) {
   useEffect(() => {
-    console.log({tooltipData})
+    // console.log({tooltipData})
   }, [tooltipData])
   return (
     <>

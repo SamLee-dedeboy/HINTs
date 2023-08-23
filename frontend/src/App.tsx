@@ -6,6 +6,7 @@ import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import Tooltip from './components/Tooltip/Tooltip'
 import { Input, InputNumber, Switch, Slider } from 'antd';
 import * as d3 from "d3"
+import tmpDocs from './tmp_search.json'
 
 
 const Search = Input.Search;
@@ -168,14 +169,14 @@ function App() {
   // fetches
   function fetchPartitionArticle() {
     return new Promise((resolve, reject) => {
-      console.log("fetching article with partition", level)
-      fetch(`${server_address}/user/article/partition/${user_id}`, {
+      console.log("fetching article with partition", level, 3)
+      fetch(`${server_address}/user/hgraph/${user_id}`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ article_level: level, entity_level: 3, entity_node_num: 5})
+        body: JSON.stringify({ article_level: level, entity_level: 3})
       })
         .then(res => res.json())
         .then(async (hgraph: t_EventHGraph) => {
@@ -272,7 +273,13 @@ function App() {
   }
 
   async function search() {
-    if(query === "") return
+    if(query === "") {
+      setSearchMode(true)
+      console.log(tmpDocs)
+      setDocsRanked(tmpDocs)
+      setRelevanceThreshold(0.80)
+      return
+    }
     setSearchLoading(true)
     setSearchMode(true)
     const base = article_graph?.article_nodes.map(node => node.id)
@@ -332,6 +339,31 @@ function App() {
           setArticleGraph(filtered_hgraph.article_graph)
           setEntityGraph(filtered_hgraph.entity_graph)
           // setEventHGraphLoaded(true)
+          resolve("success")
+        })
+    })
+  }
+
+  function optimizeSearch() {
+    if(article_graph === undefined) return
+    if(entity_graph === undefined) return
+    if(relevantDocIds.length === 0) return
+    return new Promise((resolve, reject) => {
+      const clusters = article_graph.clusters
+      const docs = relevantDocs.map(doc => doc.id)
+      console.log("optimizing: ", docs, clusters)
+      fetch(`${server_address}/user/optimize_partition/${user_id}`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ docs, clusters })
+      })
+        .then(res => res.json())
+        .then(optimize_article_graph => {
+          console.log({optimize_article_graph})
+          setArticleGraph(optimize_article_graph)
           resolve("success")
         })
     })
@@ -451,6 +483,7 @@ function App() {
                   loading={searchLoading} />
                 <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
               </div>
+              {/* <button className={"optimize btn ml-2"} onClick={optimizeSearch}>Optimize Search</button> */}
               {/* <div className='search-container w-fit'>
                 <Search className={"search-bar w-fit"}
                   placeholder="input search text" 
