@@ -19,6 +19,7 @@ const borders = {
         const min_y = Math.min(...points.map(p => p[1]))
         // const polygon = concaveman(points, concavity, 0)
         const polygon = concaveman(points, concavity, 0)
+        const centroid = this.get_border_centroid(polygon)
         // const path = createRoundedCornersFromPointsWithLines(polygon);
         // const path = this.createSmoothPathFromPointsWithCurves(polygon);
         let path;
@@ -29,7 +30,13 @@ const borders = {
         } else {
             path = this.createSmoothPathFromPointsWithLines(polygon)
         }
-        return { path, max_x, min_y }
+        return { path, centroid, max_x, min_y }
+    },
+
+    generate_polygon(points, concavity=0.2) {
+        const polygon = concaveman(points, concavity, 0)
+        const centroid = this.get_border_centroid(polygon)
+        return { polygon, centroid }
     },
 
     createSmoothPathFromPointsWithLines(points) {
@@ -88,5 +95,23 @@ const borders = {
         path += ' Z';
         return path
     },
+
+    get_border_centroid(pts) {
+        let first = pts[0], last = pts[pts.length-1];
+        if (first[0] != last[0] || first[1] != last[1]) pts.push(first);
+        let twicearea=0,
+        x=0, y=0,
+        nPts = pts.length,
+        p1, p2, f;
+        for ( let i=0, j=nPts-1 ; i<nPts ; j=i++ ) {
+           p1 = pts[i]; p2 = pts[j];
+           f = (p1[1] - first[1]) * (p2[0] - first[0]) - (p2[1] - first[1]) * (p1[0] - first[0]);
+           twicearea += f;
+           x += (p1[0] + p2[0] - 2 * first[0]) * f;
+           y += (p1[1] + p2[1] - 2 * first[1]) * f;
+        }
+        f = twicearea * 3;
+        return [ x/f + first[0], y/f + first[1] ];
+     }
 }
 export default borders

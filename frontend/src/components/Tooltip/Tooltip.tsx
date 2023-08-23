@@ -27,7 +27,7 @@ function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDi
                   { tooltipData.sub_clusters!.map(sub_cluster => 
                     <li className='flex items-center pl-1' key={sub_cluster.cluster_label}> 
                       <span className='ml-2 text-left'> 
-                        <svg className="inline" width='10' height='10'><rect width='10' height='10' fill={articleClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
+                        <svg className="inline" width='10' height='10'><rect width='10' height='10' opacity='0.5' fill={articleClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
                         <span> { sub_cluster.cluster_topic } </span>
                       </span>
                     </li> 
@@ -41,7 +41,7 @@ function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDi
               <div className='topic-area flex flex-col'>
                 <p className='flex items-center'>
                   <span className='mr-2'> Topic: </span>
-                  <svg width='10' height='10'><rect width='10' height='10' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
+                  <svg width='10' height='10'><rect width='10' height='10' opacity='0.5' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
                   <span className='ml-2'> { tooltipData.cluster_topic } </span>
                 </p>
                 <ul className='list-disc list-inside'> 

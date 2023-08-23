@@ -6,6 +6,7 @@ import { t_EntityNode, t_EventHGraph, t_ArticleNode, tooltipContent, d_ArticleGr
 import borders from "./BorderUtils";
 import spacing from "./SpacingUtils";
 import sfc from "./SFCUtils"
+import tags from "./TagUtils"
 import * as DragUtils from "./DragUtils"
 import * as d3 from 'd3'
 
@@ -264,6 +265,7 @@ function ClusterOverview({
 
     center_area.append("g").attr("class", "article-border-group")
     center_area.append("g").attr("class", "article-node-group")
+    center_area.append("g").attr("class", "article-border-tag-group")
     center_area.append("path").attr("class", "highlight-border")
     center_area.append("g").attr("class", "link-group")
     addBrush()
@@ -347,8 +349,51 @@ function ClusterOverview({
       1.5, // concavity
       "rounded" // smoothing
       )
-    const border_group = centerArea.select("g.article-border-group")
+    
+    const border_tag_group = centerArea.select("g.article-border-tag-group")
+    // cluster label
+    const tag = border_tag_group.selectAll("text.cluster-label")
+      .data(cluster_borders, (d: any) => d.cluster_label)
+      .join("text")
+      .attr("class", "cluster-label")
+      .text(d => article_graph.hierarchical_topics[d.cluster_label])
+      .attr("x", (d) => d.centroid[0])
+      .attr("y", (d) => d.centroid[1])
+      .attr("font-size", "1.3rem")
+      .attr("text-anchor", "middle")
+      .attr("pointer-events", "none")
+      .call(tags.wrap, 150)
+      .each(function(d) {
+        const tspans = d3.select(this).selectAll("tspan").nodes()
+        console.log({tspans})
+        const start_x = Math.min(...tspans.map((tspan: any) => tspan.getStartPositionOfChar(0).x))
+        const start_y = (tspans[0]! as any).getStartPositionOfChar(0).y- (tspans[0]! as any).getExtentOfChar(0).height/2
+        const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
+        const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
+        const padding_x = 10
+        const padding_y = 10
+        console.log({start_x, start_y, width, height})
+        const tspan_border = centerArea.select("g.article-border-tag-group")
+          .append("rect")
+          .datum(d)
+          .attr("class", "cluster-label-border")
+          .attr("x", start_x - padding_x)
+          .attr("y", d.y = start_y - padding_y)
+          .attr("width", width + 2*padding_x)
+          .attr("height", height + 2*padding_y)
+          .attr("pointer-events", "none")
+          .attr("fill", "white")
+          .attr("stroke-width", 1)
+          .attr('stroke', "black")
+          .attr("opacity", 0.5)
+          .lower()
+      })
+
+
+
+    // border paths
     const tooltipDiv = d3.select(".tooltip");
+    const border_group = centerArea.select("g.article-border-group")
     border_group.selectAll("path.concave-hull")
       .data(cluster_borders, (d: any) => d.cluster_label)
       .join(
@@ -401,6 +446,17 @@ function ClusterOverview({
     mouseover: function(e, d) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
+      // update sub-cluster labels
+      tags.updateArticleSubClusterLabels(
+        svgId,
+        article_graph,
+        d.cluster_label, 
+        article_graph.sub_clusters[d.cluster_label],
+        1.5
+      )
+      tags.liftArticleClusterLabel(svgId, d)
+      
+
       // show connected entities
       show_connected_entities(d.cluster_label)
       // highlight nodes
@@ -446,6 +502,11 @@ function ClusterOverview({
     mouseout: function(e, d) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
+
+      // remove sub-cluster labels
+      tags.removeSubClusterLabels(svgId)
+      tags.restoreLiftedArticleClusterLabel(svgId, d)
+
       // remove connected entities
       remove_connected_entities(d.cluster_label)
       
@@ -761,7 +822,7 @@ function ClusterOverview({
       const nodes_data = nodes.filter(node => cluster_node_ids.includes(node.id))
       // if(nodes_data.length === 0) return
 
-      const {path, max_x, min_y} = borders.generate_border(nodes_data, concavity, smoothing)
+      const {path, centroid, max_x, min_y} = borders.generate_border(nodes_data, concavity, smoothing)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": cluster_order.indexOf(cluster_label),
@@ -769,6 +830,7 @@ function ClusterOverview({
         "path": path,
         "max_x": max_x,
         "min_y": min_y,
+        "centroid": centroid,
       })
     })
     return border_paths
@@ -820,6 +882,36 @@ function ClusterOverview({
       }
     })
   }
+
+  // function updateArticleSubClusterLabels(nodes, cluster_label, sub_cluster_labels, concavity) {
+  //   const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+  //   const cluster_nodes = nodes.filter(node => node.cluster_label === cluster_label)
+  //   const tag_data: any[] = []
+  //   sub_cluster_labels.forEach(sub_cluster_label => {
+  //     const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
+  //     if(sub_cluster_node_data.length <= 5) return
+  //     const points = sub_cluster_node_data.map(node => [node.x, node.y])
+  //     const { polygon, centroid } = borders.generate_polygon(points, concavity)
+  //     tag_data.push({
+  //       "label": sub_cluster_label,
+  //       "centroid": centroid
+  //     })
+  //   })
+  //   const border_tag_group = centerArea.select("g.article-border-tag-group")
+  //   border_tag_group.selectAll("text.sub-cluster-label")
+  //     .data(tag_data, (d: any) => d.label)
+  //     .join('text')
+  //     .attr("class", "sub-cluster-label")
+  //     .text(d => article_graph.hierarchical_topics[d.label])
+  //     .attr("x", d => d.centroid[0])
+  //     .attr("y", d => d.centroid[1])
+  //     .attr("font-size", "0.8rem")
+  //     .attr("text-anchor", "middle")
+  //     .attr("pointer-events", "none")
+  //     .call(wrap, 150)
+  // }
+
+
   return (
     <>
       <div className="event-cluster-container flex flex-col items-stretch h-full flex-auto">
