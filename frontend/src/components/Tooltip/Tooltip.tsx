@@ -58,7 +58,7 @@ function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDi
                 </ul>
               </div>
             }
-            <ul className='list-disc list-inside'> 
+            {/* <ul className='list-disc list-inside'> 
               <p className='w-fit'> Entities: </p>
               { Object.keys(tooltipData.entity_clusters).map(entity_cluster => 
                 <li className='flex items-center pl-1 border-b border-grey' key={entity_cluster}> 
@@ -72,7 +72,7 @@ function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDi
                 </li> 
                 )
               }
-            </ul>
+            </ul> */}
           </div>
         }
       </div>

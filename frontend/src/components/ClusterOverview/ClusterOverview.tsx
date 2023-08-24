@@ -107,6 +107,7 @@ function ClusterOverview({
 
   // articles
   const [hoveredArticleCluster, setHoveredArticleCluster] = useState<string>("")
+  const [articleClusterBorderPoints, setArticleClusterBorderPoints] = useState<any>({})
   // entities
   const [hoveredEntityCluster, setHoveredEntityCluster] = useState<string>("")
   
@@ -213,10 +214,10 @@ function ClusterOverview({
     const border_group = centerArea.select("g.article-border-group")
     border_group.selectAll("path.concave-hull")
       .on("mouseover", article_border_handlers.mouseover)
-      .on("mouseout", article_border_handlers.mouseout)
+      .on("mouseleave", article_border_handlers.mouseleave)
       // .call(bindDrag)
       .on("click", article_border_handlers.click)
-  }, [selectedClusters, searchMode, highlightNodeIds])
+  }, [selectedClusters, searchMode, highlightNodeIds, articleClusterBorderPoints])
 
   useEffect(() => {
     update_highlight(highlightNodeIds, [])
@@ -303,11 +304,12 @@ function ClusterOverview({
 
   function update_article_cluster() {
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-    // sfc.generate_hilbert_coord(graph.article_nodes, graph.clusters, graph.cluster_order, centerAreaSize, 'center')
+    // coords
     sfc.generate_gosper_coord(article_graph.article_nodes, centerAreaSize)
+
+    // articles nodes
     const t_delay = 100
     const t_duration = 1500
-    // articles 
     const article_node_group = centerArea.select("g.article-node-group")
     article_node_group.selectAll("circle.article-node")
       .data(article_graph.article_nodes, (d: any, i) => { d.i = i; return d.id })
@@ -340,6 +342,7 @@ function ClusterOverview({
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y),
       )
+
     // cluster borders
     const cluster_borders = generate_cluster_borders(
       article_graph.article_nodes, 
@@ -348,48 +351,16 @@ function ClusterOverview({
       article_graph.update_cluster_order,
       1.5, // concavity
       "rounded" // smoothing
-      )
-    
-    const border_tag_group = centerArea.select("g.article-border-tag-group")
+    )
+
+    let tmp_dict = {}
+    cluster_borders.forEach(border => {
+      tmp_dict[border.cluster_label] = border.points
+    })
+    setArticleClusterBorderPoints(tmp_dict)
+
     // cluster label
-    const tag = border_tag_group.selectAll("text.cluster-label")
-      .data(cluster_borders, (d: any) => d.cluster_label)
-      .join("text")
-      .attr("class", "cluster-label")
-      .text(d => article_graph.hierarchical_topics[d.cluster_label])
-      .attr("x", (d) => d.centroid[0])
-      .attr("y", (d) => d.centroid[1])
-      .attr("font-size", "1.3rem")
-      .attr("text-anchor", "middle")
-      .attr("pointer-events", "none")
-      .call(tags.wrap, 150)
-      .each(function(d) {
-        const tspans = d3.select(this).selectAll("tspan").nodes()
-        console.log({tspans})
-        const start_x = Math.min(...tspans.map((tspan: any) => tspan.getStartPositionOfChar(0).x))
-        const start_y = (tspans[0]! as any).getStartPositionOfChar(0).y- (tspans[0]! as any).getExtentOfChar(0).height/2
-        const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
-        const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
-        const padding_x = 10
-        const padding_y = 10
-        console.log({start_x, start_y, width, height})
-        const tspan_border = centerArea.select("g.article-border-tag-group")
-          .append("rect")
-          .datum(d)
-          .attr("class", "cluster-label-border")
-          .attr("x", start_x - padding_x)
-          .attr("y", d.y = start_y - padding_y)
-          .attr("width", width + 2*padding_x)
-          .attr("height", height + 2*padding_y)
-          .attr("pointer-events", "none")
-          .attr("fill", "white")
-          .attr("stroke-width", 1)
-          .attr('stroke', "black")
-          .attr("opacity", 0.5)
-          .lower()
-      })
-
-
+    tags.addArticleClusterLabel(svgId, cluster_borders, article_graph.hierarchical_topics, articleClusterColorDict)
 
     // border paths
     const tooltipDiv = d3.select(".tooltip");
@@ -406,7 +377,7 @@ function ClusterOverview({
           .attr("cursor", "pointer")
           .attr("transform", "translate(0,0)")
           .on("mouseover", article_border_handlers.mouseover)
-          .on("mouseout", article_border_handlers.mouseout)
+          .on("mouseleave", article_border_handlers.mouseleave)
           // .call(bindDrag)
           .on("click", article_border_handlers.click)
           .attr("opacity", 0)
@@ -414,13 +385,8 @@ function ClusterOverview({
           .attr("opacity", 0.5)
           .selection(),
         update => update
-          // .attr("stroke-dasharray", function() { 
-          //   const totalLength = (d3.select(this).node()! as any).getTotalLength() 
-          //   return totalLength + " " + totalLength
-          // })
-          // .attr("stroke-dashoffset", function() { return (d3.select(this).node()! as any).getTotalLength()})
           .on("mouseover", article_border_handlers.mouseover)
-          .on("mouseout", article_border_handlers.mouseout)
+          .on("mouseleave", article_border_handlers.mouseleave)
           // .call(bindDrag)
           .on("click", article_border_handlers.click)
           .transition().delay(t_delay + (article_graph.filtered? t_duration : 0)).duration(t_duration)
@@ -446,15 +412,22 @@ function ClusterOverview({
     mouseover: function(e, d) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
+      console.log(d.cluster_label, {articleClusterBorderPoints})
       // update sub-cluster labels
       tags.updateArticleSubClusterLabels(
         svgId,
+        articleClusterBorderPoints[d.cluster_label],
         article_graph,
         d.cluster_label, 
         article_graph.sub_clusters[d.cluster_label],
+        articleSubClusterColorDict,
         1.5
       )
       tags.liftArticleClusterLabel(svgId, d)
+
+      // update border color
+      d3.select(this).attr("stroke-width", 4)
+        .attr("stroke", articleClusterColorDict[d.cluster_label])
       
 
       // show connected entities
@@ -499,7 +472,7 @@ function ClusterOverview({
       // tooltipDiv.style("opacity", 1)
     },
 
-    mouseout: function(e, d) {
+    mouseleave: function(e, d) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
 
@@ -510,6 +483,8 @@ function ClusterOverview({
       // remove connected entities
       remove_connected_entities(d.cluster_label)
       
+      d3.select(this).attr("stroke-width", 1)
+        .attr("stroke", "black")
       // reset hovered cluster color
       const article_nodes = centerArea.selectAll("circle.article-node")
       article_nodes
@@ -822,11 +797,12 @@ function ClusterOverview({
       const nodes_data = nodes.filter(node => cluster_node_ids.includes(node.id))
       // if(nodes_data.length === 0) return
 
-      const {path, centroid, max_x, min_y} = borders.generate_border(nodes_data, concavity, smoothing)
+      const {polygon, path, centroid, max_x, min_y} = borders.generate_border(nodes_data, concavity, smoothing)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": cluster_order.indexOf(cluster_label),
         "update_cluster_order": update_cluster_order[cluster_label],
+        "points": polygon,
         "path": path,
         "max_x": max_x,
         "min_y": min_y,
@@ -882,35 +858,6 @@ function ClusterOverview({
       }
     })
   }
-
-  // function updateArticleSubClusterLabels(nodes, cluster_label, sub_cluster_labels, concavity) {
-  //   const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-  //   const cluster_nodes = nodes.filter(node => node.cluster_label === cluster_label)
-  //   const tag_data: any[] = []
-  //   sub_cluster_labels.forEach(sub_cluster_label => {
-  //     const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
-  //     if(sub_cluster_node_data.length <= 5) return
-  //     const points = sub_cluster_node_data.map(node => [node.x, node.y])
-  //     const { polygon, centroid } = borders.generate_polygon(points, concavity)
-  //     tag_data.push({
-  //       "label": sub_cluster_label,
-  //       "centroid": centroid
-  //     })
-  //   })
-  //   const border_tag_group = centerArea.select("g.article-border-tag-group")
-  //   border_tag_group.selectAll("text.sub-cluster-label")
-  //     .data(tag_data, (d: any) => d.label)
-  //     .join('text')
-  //     .attr("class", "sub-cluster-label")
-  //     .text(d => article_graph.hierarchical_topics[d.label])
-  //     .attr("x", d => d.centroid[0])
-  //     .attr("y", d => d.centroid[1])
-  //     .attr("font-size", "0.8rem")
-  //     .attr("text-anchor", "middle")
-  //     .attr("pointer-events", "none")
-  //     .call(wrap, 150)
-  // }
-
 
   return (
     <>

@@ -30,13 +30,46 @@ const borders = {
         } else {
             path = this.createSmoothPathFromPointsWithLines(polygon)
         }
-        return { path, centroid, max_x, min_y }
+        return { polygon, path, centroid, max_x, min_y }
     },
 
     generate_polygon(points, concavity=0.2) {
         const polygon = concaveman(points, concavity, 0)
         const centroid = this.get_border_centroid(polygon)
         return { polygon, centroid }
+    },
+
+    findIntersection(polygon, centroid) {
+        const parent_centroid = this.get_border_centroid(polygon)
+        const d_centroid = [2000*(centroid[0]-parent_centroid[0]) + centroid[0], 2000*(centroid[1]-parent_centroid[1]) + centroid[1]]
+        let intersection_points: any[] = []
+        for(let i=0; i<polygon.length-1; i++) {
+            const p1 = polygon[i]
+            const p2 = polygon[i+1]
+            const p_intersect = borders.intersect(
+                p1[0], p1[1], 
+                p2[0], p2[1],
+                parent_centroid[0], parent_centroid[1],
+                d_centroid[0], d_centroid[1]
+            )
+            if(p_intersect) intersection_points.push(p_intersect)
+        }
+        if(intersection_points.length === 0) {
+            const { closest_point } = this.findClosetPoint(polygon, centroid)
+            return { intersection_point: closest_point }
+        } else {
+            // find the closes point to the centroid
+            const { closest_point } = this.findClosetPoint(intersection_points, centroid)
+            return { intersection_point: closest_point }
+        }
+    },
+
+    findClosetPoint(plist, centroid) {
+        const distances = plist.map(p => (p[0]-centroid[0])**2 + (p[1]-centroid[1])**2)
+        const min_distance = Math.min(...distances)
+        const closest_point_index = distances.indexOf(min_distance)
+        const closest_point = plist[closest_point_index]
+        return { closest_point }
     },
 
     createSmoothPathFromPointsWithLines(points) {
@@ -112,6 +145,35 @@ const borders = {
         }
         f = twicearea * 3;
         return [ x/f + first[0], y/f + first[1] ];
-     }
+     },
+
+     intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+
+        // Check if none of the lines are of length 0
+          if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+              return false
+          }
+      
+          let denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+      
+        // Lines are parallel
+          if (denominator === 0) {
+              return false
+          }
+      
+          let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+          let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+      
+        // is the intersection along the segments
+          if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+              return false
+          }
+      
+        // Return a object with the x and y coordinates of the intersection
+          let x = x1 + ua * (x2 - x1)
+          let y = y1 + ua * (y2 - y1)
+      
+          return [x, y]
+      }
 }
 export default borders
