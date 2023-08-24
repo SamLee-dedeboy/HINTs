@@ -41,3 +41,17 @@ Week 6 (Sep 11-17): Case study, User Study, first draft of paper
 Week 7 (Sep 18-24): User study, refine paper, add user study and discussion 
 
 Treemap-based SFC? (previous KL paper)
+
+
+1. entity and article region needs to be more obvious 
+2. highlight on hovering labels
+
+paper writing
+1. motivation: highlight existing works and their limitations
+
+2. future work: record change logs
+
+TODO:
+1. Show current topic structure when not hovered
+2. Improve tooltip layout
+3. automatically find most appropriate level (bottom up)

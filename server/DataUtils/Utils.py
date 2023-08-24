@@ -11,7 +11,7 @@ def getArticleClusterEntities(links, article_dict, entity_dict):
         source_node = entity_dict[source] if source in entity_dict else article_dict[source]
         target_node = entity_dict[target] if target in entity_dict else article_dict[target]
         entity_node = source_node if source_node['type'] == 'entity' else target_node
-        article_node = source_node if source_node['type'] == 'hyper_edge' else target_node
+        article_node = source_node if source_node['type'] == 'article' else target_node
         cluster_label = article_node['cluster_label']
         cluster_entities_dict[cluster_label].append(entity_node['id'])
     return cluster_entities_dict
