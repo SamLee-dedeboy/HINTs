@@ -1,9 +1,22 @@
 \begin{thebibliography}{1}
 
+\bibitem{abdelaal2022network}
+M.~Abdelaal, N.~D. Schiele, K.~Angerbauer, K.~Kurzhals, M.~Sedlmair, and
+  D.~Weiskopf.
+\newblock Comparative evaluation of bipartite, node-link, and matrix-based
+  network representations.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  29(1):896--906, 2022.
+
 \bibitem{fischer2021hypergraphsurvey}
 M.~T. Fischer, A.~Frings, D.~A. Keim, and D.~Seebacher.
 \newblock Towards a survey on static and dynamic hypergraph visualizations.
 \newblock In {\em 2021 IEEE visualization conference (VIS)}, pp. 81--85. IEEE,
   2021.
+
+\bibitem{steinbach2000doccluster}
+M.~Steinbach, G.~Karypis, and V.~Kumar.
+\newblock A comparison of document clustering techniques.
+\newblock 2000.
 
 \end{thebibliography}

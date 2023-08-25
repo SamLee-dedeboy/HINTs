@@ -512,6 +512,8 @@ function ClusterOverview({
 
     click: function(e, d) {
       if(!e.defaultPrevented) {
+        // remove sub cluster labels
+        tags.removeSubClusterLabels(svgId)
         if(!(e.ctrlKey || e.metaKey)) {
           remove_connected_entities(d.cluster_label)
         }

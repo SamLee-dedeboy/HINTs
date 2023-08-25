@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex template"] 1692940678 "template.aux" "template.bbl" "template" 1692940679
+["bibtex template"] 1692991738 "template.aux" "template.bbl" "template" 1692999105
   "./abbrv-doi.bst" 1692142219 27244 4c23ed8d63be63dc39b9aab722083c7e ""
-  "template.aux" 1692940678 3970 f1036382d7a2d60e079c8120861e342d "pdflatex"
-  "template.bib" 1692940542 329 5cd00079f7cbb63d77a2145d650271d9 ""
+  "template.aux" 1692999105 4106 6ae895c8407a476efa8d30f6392b123c "pdflatex"
+  "template.bib" 1692991177 927 fd185ca32d64d2a79ec6059d4fd9429b ""
   (generated)
   "template.bbl"
   "template.blg"
-["pdflatex"] 1692940678 "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" "template.pdf" "template" 1692940679
+["pdflatex"] 1692999104 "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" "template.pdf" "template" 1692999105
   "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" 1692164295 8413 3301590c75d2a9c6618c803dcf08bb70 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -120,13 +120,13 @@
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1649968814 2826452 5e3683d83fafe90848c4dd5e0c179f3c ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
   "sections/01_Introduction.tex" 1692164222 22 5c23bcd9d46cf48d2292896666a8a8fc ""
-  "sections/02_Related_Works.tex" 1692940677 261 3b901556f4a70530481ca55c197b6fe8 ""
+  "sections/02_Related_Works.tex" 1692987872 377 a9639319d8a47cbf4a3955261ff6479e ""
   "sections/03_Design_Rationale.tex" 1692165260 429 f84c5f072fa1abd77c912573149614eb ""
-  "sections/04_Methodology.tex" 1692940609 3649 01555825a77bec252296831e7dd37dca ""
+  "sections/04_Methodology.tex" 1692999104 3888 f03908c8de72fc71f9609c694538b458 ""
   "sections/05_Visualization.tex" 1692164100 426 090c1751065193a925711293183dba7a ""
-  "template.aux" 1692940678 3970 f1036382d7a2d60e079c8120861e342d "pdflatex"
-  "template.bbl" 1692940678 308 ce8bbe3deb1f6c6f7c028365b04b7584 "bibtex template"
-  "template.out" 1692940678 3348 2e10df8547716c24f16e8068d844d4d6 "pdflatex"
+  "template.aux" 1692999105 4106 6ae895c8407a476efa8d30f6392b123c "pdflatex"
+  "template.bbl" 1692991738 776 eea46a88d6417af6abf2c12065f21f5f "bibtex template"
+  "template.out" 1692999105 3348 7b68170a218e874206c5ffc101454c1e "pdflatex"
   "template.tex" 1692164295 8413 3301590c75d2a9c6618c803dcf08bb70 ""
   "vgtc.cls" 1692142219 35095 91517982a783a504db257b8ff9ade447 ""
   (generated)

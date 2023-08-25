@@ -79,10 +79,12 @@ const tags = {
         .attr("x2", cluster_data.centroid[0])
         .attr("y2", rect_y + rect_height) 
         .attr("stroke-width", 3)
+        .attr("pointer-events", "none")
         .attr("stroke", d3.select(border_rect.nodes()[0]).attr("stroke"))
         .attr("opacity", 0)
         .transition().delay(300).duration(1000)
         .attr("opacity", 1)
+      target_border_group.raise()
     },
 
     restoreLiftedArticleClusterLabel(svgId, cluster_data) {
@@ -278,9 +280,9 @@ const tags = {
 
     removeSubClusterLabels(svgId: string) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-      // centerArea.selectAll("text.sub-cluster-label").remove()
-      // centerArea.selectAll("rect.sub-cluster-label-border").remove()
-      // centerArea.selectAll("line.sub-cluster-label-border-connector").remove()
+      centerArea.selectAll("text.sub-cluster-label").remove()
+      centerArea.selectAll("rect.sub-cluster-label-border").remove()
+      centerArea.selectAll("line.sub-cluster-label-border-connector").remove()
     },
 
     wrap(text, width) {

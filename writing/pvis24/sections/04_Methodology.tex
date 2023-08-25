@@ -24,7 +24,8 @@ Then, we apply the same clustering algorithm on the dual of the hypergraph, whic
 The result represents groups of participants that are frequently mentioned together in the articles.
 
 \subsubsection{Hierarchical Clustering}\label{sec: clustering}
-We implement our hierarchical clustering algorithm following the agglomerative clustering approach.
+We implement our hierarchical clustering algorithm following an agglomerative clustering approach~\cite{steinbach2000doccluster}.
+(TODO: add algorithm pseudocode here)
 We combine the semantic similarity $S_s$ and connectivity similarity $S_c$ to calculate the distance between two nodes.
 $S_s(i, j)$ is calculated using the cosine similarity of the embeddings of the two nodes.
 For article nodes, the embeddings are simply the document embeddings of the articles.
@@ -37,9 +38,9 @@ A weighting factor $\alpha$ is used to balance the two similarities, as shown in
 \begin{equation}\label{eq: similarity}
     S = \alpha S_s + (1-\alpha) S_c
 \end{equation}
+For the similarity between clusters, we used centroid similarity, i.e.\ the similarity between two clusters is the similarity between the centroids of the two clusters.
 
-\subsubsection{Topic Assignment}
-Chatgpt to assign topics to each cluster
+
 
 \subsection{Preprocessing}
 The Methodology can work for any unstructured dataset
@@ -49,3 +50,6 @@ Chatgpt for summarization
 OpenAI's embedding API
 \subsubsection{Participant Extraction}\label{sec:participant_extraction}
 Chatgpt for major participant extraction and another model for entity linking
+
+\subsubsection{Topic Assignment}
+Chatgpt to assign topics to each cluster
