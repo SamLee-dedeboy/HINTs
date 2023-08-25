@@ -1,0 +1,71 @@
+\begin{thebibliography}{1}
+
+\bibitem{Isenberg:2017:VMC}
+P.~Isenberg, F.~Heimerl, S.~Koch, T.~Isenberg, P.~Xu, C.~Stolper, M.~Sedlmair,
+  J.~Chen, T.~M{\"o}ller, and J.~Stasko.
+\newblock {vispubdata.org: A Metadata Collection about {IEEE} Visualization
+  ({VIS}) Publications}.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 23,
+  2017.
+\newblock To appear. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2016\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2615308}}
+
+
+\bibitem{Kindlmann:1999:SAG}
+G.~Kindlmann.
+\newblock Semi-automatic generation of transfer functions for direct volume
+  rendering.
+\newblock Master's thesis, Cornell University, USA, 1999.
+
+\bibitem{Kitware:2003}
+Kitware, Inc.
+\newblock {\em The Visualization Toolkit User's Guide}, January 2003.
+
+\bibitem{Lorensen:1987:MCA}
+W.~E. Lorensen and H.~E. Cline.
+\newblock Marching cubes: A high resolution {3D} surface construction
+  algorithm.
+\newblock {\em SIGGRAPH Computer Graphics}, 21(4):163--169, Aug. 1987. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1145\discretionary{/}{%
+}{/}37402\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}37422}}
+
+
+\bibitem{Max:1995:OMF}
+N.~Max.
+\newblock Optical models for direct volume rendering.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  1(2):99--108, June 1995. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}2945\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}468400}}
+
+
+\bibitem{Nielson:1991:TAD}
+G.~M. Nielson and B.~Hamann.
+\newblock The asymptotic decider: Removing the ambiguity in marching cubes.
+\newblock In {\em Proc.\ Visualization}, pp. 83--91. IEEE Computer Society, Los
+  Alamitos, 1991. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}VISUAL\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1991\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}175782}}
+
+
+\bibitem{Wyvill:1986:DSS}
+G.~Wyvill, C.~McPheeters, and B.~Wyvill.
+\newblock Data structure for \emph{soft} objects.
+\newblock {\em The Visual Computer}, 2(4):227--234, Aug. 1986. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1007\discretionary{/}{%
+}{/}BF01900346}}
+
+
+\end{thebibliography}

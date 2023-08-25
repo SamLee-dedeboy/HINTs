@@ -1,3 +1,9 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{1}
+
+\bibitem{fischer2021hypergraphsurvey}
+M.~T. Fischer, A.~Frings, D.~A. Keim, and D.~Seebacher.
+\newblock Towards a survey on static and dynamic hypergraph visualizations.
+\newblock In {\em 2021 IEEE visualization conference (VIS)}, pp. 81--85. IEEE,
+  2021.
 
 \end{thebibliography}

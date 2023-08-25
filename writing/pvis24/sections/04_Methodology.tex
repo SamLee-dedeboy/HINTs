@@ -1,17 +1,51 @@
 \section{Methodology}
+\subsection{Modeling}
+\subsubsection{Hypergraph Construction}
+A hypergraph is a generalization of a graph in which an edge can connect more than two nodes~\cite{hypergraph_definition}.
+A hyperedge thus represents a multi-way relationship between nodes.
+In this paper, we model two types of hypergraphs: article hypergraph and participant hypergraph, where articles and participants are the nodes, respectively.
+\textit{Participants} are the core components that the article's content discuss~\cite{use_other_works_to_refine_definition}.
+For example, in a news article, the participants can be named entities such as people, organizations, or locations.
+In a research article, the participants can be the concepts or techniques used in the article.
+
+Following the definition of a hypergraph node, a hyperedge can be used to represent two types of multi-way relationships:
+(1) A hyperedge between \textit{articles} can be constructed if the articles all mention the same participant. 
+In this case, the hyperedge represents the co-mention of a participant, i.e.\ a named entity or a concept;
+(2) A hyperedge between \textit{participants} can be constructed if the participants are mentioned together in the same article.
+In this case, the hyperedge represents a co-occurrence relationship between participants.
+
+Although these two types of hyperedges are constructed differently, we utilize the \textit{dual} of a hypergraph to simplify the construction process.
+The dual of a hypergraph is simply another hypergraph, where the hyperedges are now nodes and the nodes are now hyperedges. (Add formulas here to explain).
+Therefore, we first model the articles as nodes and participants as hyperedges to construct the article hypergraph $H_A$.
+Then we apply a hierarchical clustering algorithm on $H_A$.
+The detail of the clustering algorithm is explained in~\autoref{sec: clustering}.
+The result of the clustering algorithm represents topics that are discussed in the articles.
+Then, we apply the same clustering algorithm on the dual of the hypergraph, which is the participant hypergraph $H_P$.
+The result represents groups of participants that are frequently mentioned together in the articles.
+
+\subsubsection{Hierarchical Clustering}\label{sec: clustering}
+We implement our hierarchical clustering algorithm following the agglomerative clustering approach.
+We combine the semantic similarity $S_s$ and connectivity similarity $S_c$ to calculate the distance between two nodes.
+$S_s(i, j)$ is calculated using the cosine similarity of the embeddings of the two nodes.
+For article nodes, the embeddings are simply the document embeddings of the articles.
+For participant nodes, the embeddings are the average of the embeddings of the articles that mention the participant.
+$S_c$ is calculated using the Jaccard similarity of the two nodes' neighbors (\autoref{eq:connectivity_similarity}).
+\begin{equation}\label{eq:connectivity_similarity}
+    S_c(i, j) = \frac{|N_i \cap N_j|}{|N_i \cup N_j|}
+\end{equation}
+A weighting factor $\alpha$ is used to balance the two similarities, as shown in~\autoref{eq: similarity}.
+\begin{equation}\label{eq: similarity}
+    S = \alpha S_s + (1-\alpha) S_c
+\end{equation}
+
+\subsubsection{Topic Assignment}
+Chatgpt to assign topics to each cluster
+
 \subsection{Preprocessing}
 The Methodology can work for any unstructured dataset
 \subsubsection{Summarization}
 Chatgpt for summarization
 \subsubsection{Document Embedding}
 OpenAI's embedding API
-\subsubsection{Major Participant Extraction}
+\subsubsection{Participant Extraction}\label{sec:participant_extraction}
 Chatgpt for major participant extraction and another model for entity linking
-
-\subsection{Modeling}
-\subsubsection{Hierarchical HyperGraph Clustering}
-We organize the data into a hypergraph: nodes, hyperedges.
-
-The hypergraph is clustered based on semantic and connectivity similarity: dual, Ravasz algorithm
-
-Chatgpt to assign topics to each cluster

@@ -2,48 +2,49 @@ This is BibTeX, Version 0.99d (TeX Live 2022)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: template.aux
 The style file: abbrv-doi.bst
-I found no \citation commands---while reading file template.aux
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: template.bib
-You've used 0 entries,
+Warning--I didn't find a database entry for "hypergraph_definition"
+Warning--I didn't find a database entry for "use_other_works_to_refine_definition"
+You've used 1 entry,
             2598 wiz_defined-function locations,
-            591 strings with 4255 characters,
-and the built_in function-call counts, 18 in all, are:
-= -- 0
-> -- 0
-< -- 0
-+ -- 0
-- -- 0
-* -- 2
-:= -- 7
-add.period$ -- 0
-call.type$ -- 0
-change.case$ -- 0
+            600 strings with 4541 characters,
+and the built_in function-call counts, 511 in all, are:
+= -- 51
+> -- 23
+< -- 1
++ -- 9
+- -- 8
+* -- 34
+:= -- 82
+add.period$ -- 4
+call.type$ -- 1
+change.case$ -- 7
 chr.to.int$ -- 0
-cite$ -- 0
-duplicate$ -- 0
-empty$ -- 1
-format.name$ -- 0
-if$ -- 1
+cite$ -- 1
+duplicate$ -- 21
+empty$ -- 40
+format.name$ -- 8
+if$ -- 113
 int.to.chr$ -- 0
-int.to.str$ -- 0
-missing$ -- 0
-newline$ -- 3
-num.names$ -- 0
-pop$ -- 0
+int.to.str$ -- 1
+missing$ -- 1
+newline$ -- 8
+num.names$ -- 2
+pop$ -- 10
 preamble$ -- 1
-purify$ -- 0
+purify$ -- 6
 quote$ -- 0
-skip$ -- 1
+skip$ -- 15
 stack$ -- 0
-substring$ -- 0
-swap$ -- 0
-text.length$ -- 0
+substring$ -- 29
+swap$ -- 9
+text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 0
+type$ -- 4
 warning$ -- 0
-while$ -- 0
-width$ -- 0
-write$ -- 2
-(There was 1 error message)
+while$ -- 5
+width$ -- 2
+write$ -- 14
+(There were 2 warnings)

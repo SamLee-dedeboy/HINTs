@@ -61,6 +61,9 @@ The (1) task is similar to cluster detection, and (2) is similar to path finding
 3. What are existing works that also visualize the topic structure of a corpus? How is yours better? 
 What's the benefit of conducting the same task (sense-making on topic structure) under a graph context?
 
+4. Can `a good granularity' be quantified? What can the system do automatically to achieve a 'good granularity'
+- existing works on information metrics?
+
 - Interpretability and trust: 
 - Interaction: 
 
@@ -71,8 +74,7 @@ Problems to solve:
 
 
 
-1. entity and article region needs to be more obvious 
-2. highlight on hovering labels
+1. highlight on hovering labels
 
 paper writing
 1. motivation: highlight existing works and their limitations
@@ -80,6 +82,4 @@ paper writing
 2. future work: record change logs
 
 TODO:
-1. Show current topic structure when not hovered
-2. Improve tooltip layout
-3. automatically find most appropriate level (bottom up)
+1. Improve tooltip layout
