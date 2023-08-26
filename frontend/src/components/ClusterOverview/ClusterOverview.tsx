@@ -5,6 +5,7 @@ import "./ClusterOverview.css"
 import { t_EntityNode, t_EventHGraph, t_ArticleNode, tooltipContent, d_ArticleGraph, d_EntityGraph } from "../../types";
 import borders from "./BorderUtils";
 import spacing from "./SpacingUtils";
+import zoom from "./ZoomUtils";
 import sfc from "./SFCUtils"
 import tags from "./TagUtils"
 import * as DragUtils from "./DragUtils"
@@ -241,6 +242,7 @@ function ClusterOverview({
     const svg = d3.select('#' + svgId)
       .attr("viewBox", `0 0 ${svgSize.width} ${svgSize.height}`)
       .attr("overflow", "visible")
+    svg.select("g.margin").remove()
     const canvas = svg.append("g")
       .attr("class", "margin")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -273,7 +275,13 @@ function ClusterOverview({
     sfc.initPeripheral(peripheral)
     sfc.initGosper(gosper)  
     listenKeyDown()
+    listenZoom()
     setTooltipData(initialTooltipData)
+  }
+
+  function listenZoom() {
+    const svg = d3.select('#' + svgId)
+      .call(zoom)
   }
 
   function listenKeyDown() {
