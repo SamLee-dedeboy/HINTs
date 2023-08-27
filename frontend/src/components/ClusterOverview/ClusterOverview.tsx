@@ -107,7 +107,7 @@ function ClusterOverview({
   //
 
   // articles
-  const [hoveredArticleCluster, setHoveredArticleCluster] = useState<string>("")
+  const [hoveredArticleCluster, setHoveredArticleCluster] = useState<any>("")
   const [articleClusterBorderPoints, setArticleClusterBorderPoints] = useState<any>({})
   // entities
   const [hoveredEntityCluster, setHoveredEntityCluster] = useState<string>("")
@@ -280,16 +280,32 @@ function ClusterOverview({
   }
 
   function listenZoom() {
+    zoom.resetZoom()
+    zoom.setSvgId(svgId)
     const svg = d3.select('#' + svgId)
       .call(zoom)
   }
 
   function listenKeyDown() {
     d3.select("body").on("keydown", function(e) {
-      if(e.keyCode === 224 || e.keyCode === 17) {
+      if(hoveredArticleCluster && (e.keyCode === 224 || e.keyCode === 17)) {
         console.log("ctrl key down", hoveredArticleCluster)
-        d3.selectAll("path.concave-hull").filter((d: any) => d.cluster_label === hoveredArticleCluster)
+        const d = hoveredArticleCluster
+        tags.updateArticleSubClusterLabels(
+          svgId,
+          articleClusterBorderPoints[d.cluster_label],
+          article_graph,
+          d.cluster_label, 
+          article_graph.sub_clusters[d.cluster_label],
+          articleSubClusterColorDict,
+          1.5
+        )
+        tags.liftArticleClusterLabel(svgId, d)
+
+        // update border color
+        d3.selectAll("path.concave-hull").filter((d: any) => d.cluster_label === hoveredArticleCluster.cluster_label)
           .attr("stroke-width", 4)
+          .attr("stroke", articleClusterColorDict[d.cluster_label])
       }
     })
   }
@@ -420,22 +436,23 @@ function ClusterOverview({
     mouseover: function(e, d) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
-      console.log(d.cluster_label, {articleClusterBorderPoints})
       // update sub-cluster labels
-      tags.updateArticleSubClusterLabels(
-        svgId,
-        articleClusterBorderPoints[d.cluster_label],
-        article_graph,
-        d.cluster_label, 
-        article_graph.sub_clusters[d.cluster_label],
-        articleSubClusterColorDict,
-        1.5
-      )
-      tags.liftArticleClusterLabel(svgId, d)
+      if(e.ctrlKey || e.metaKey) {
+        tags.updateArticleSubClusterLabels(
+          svgId,
+          articleClusterBorderPoints[d.cluster_label],
+          article_graph,
+          d.cluster_label, 
+          article_graph.sub_clusters[d.cluster_label],
+          articleSubClusterColorDict,
+          1.5
+        )
+        tags.liftArticleClusterLabel(svgId, d)
 
-      // update border color
-      d3.select(this).attr("stroke-width", 4)
-        .attr("stroke", articleClusterColorDict[d.cluster_label])
+        // update border color
+        d3.select(this).attr("stroke-width", 4)
+          .attr("stroke", articleClusterColorDict[d.cluster_label])
+      }
       
 
       // show connected entities
@@ -456,7 +473,7 @@ function ClusterOverview({
         }
       }
       d3.select(this).attr("opacity", 1)
-      setHoveredArticleCluster(d.cluster_label)
+      setHoveredArticleCluster(d)
       // tooltip
       // const tooltip_coord = SVGToScreen(d.max_x+margin.left+centerAreaOffset.left, d.min_y+margin.top+centerAreaOffset.top)
       // tooltipDiv
@@ -507,7 +524,7 @@ function ClusterOverview({
       if(selectedClusters.includes(d.cluster_label)) {
         d3.select(this).attr("stroke-width", 4)
       }
-      setHoveredArticleCluster("")
+      setHoveredArticleCluster(undefined)
       
       // hide tooltip
       setTooltipData(initialTooltipData)

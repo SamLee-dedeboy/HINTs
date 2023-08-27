@@ -6,6 +6,8 @@ const tags = {
     addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const border_tag_group = centerArea.select("g.article-border-tag-group")
+      const prev_tags = border_tag_group.selectAll("g.cluster-label-group").filter((d: any) => d.zoom)
+      const zoom = prev_tags.size() > 0? (prev_tags.datum() as any).zoom : d3.zoomIdentity
       // cluster label
       const tag = border_tag_group.selectAll("g.cluster-label-group")
         .data(cluster_borders, (d: any) => d.cluster_label)
@@ -23,7 +25,7 @@ const tags = {
             .text((d: any) => hierarchical_topics[d.cluster_label])
             .attr("x", (d: any) => d.centroid[0])
             .attr("y", (d: any) => d.centroid[1])
-            .attr("font-size", "1.5rem")
+            .attr("font-size", "1.8rem")
             .attr("text-anchor", "middle")
             .attr("pointer-events", "none")
             .call(tags.wrap, 150)
@@ -49,6 +51,22 @@ const tags = {
             .attr('stroke', (d) => cluster_colors[d.cluster_label])
             .attr("opacity", 0.5)
             .lower()
+          const centroid = group.append("circle")
+            .datum(d)
+            .attr("class", "centroid")
+            .attr("cx", (d: any) => d.centroid[0])
+            .attr("cy", (d: any) => d.centroid[1])
+            .attr("r", 5)
+            .attr("fill", "red")
+        })
+        .attr("transform", function(d: any) {
+            const group = d3.select(this)
+            const tag_rect = group.select("rect.cluster-label-border")
+            const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
+            const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
+            d.zoom_translate = `translate(${translateX}, ${translateY})`
+            d.zoom = zoom
+            return `translate(${translateX}, ${translateY})`
         })
     },
 
@@ -60,24 +78,39 @@ const tags = {
         .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
       const tspans = target_border_group.selectAll("tspan")
       const border_rect = target_border_group.select("rect.cluster-label-border")
+        .attr("opacity", 1)
       const rect_height = parseFloat(border_rect.attr("height"))
       const tag_y = Math.max(0, cluster_data.min_y - rect_height)
       const lineHeight = (tspans.nodes()[0]! as any).getExtentOfChar(0).height
-      tspans.transition().duration(1000)
-        .attr("y", tag_y)
-      // const tag_border = centerArea.select("g.article-border-tag-group")
-      //   .selectAll("rect.cluster-label-border")
-      //   .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
-      border_rect.attr("opacity", 1)
-        .transition().duration(1000)
-        .attr("transform", (border_d: any) => `translate(0, ${tag_y - border_d.y - lineHeight})`)
-      const rect_y = tag_y - lineHeight
+
+      const zoom = (target_border_group.datum() as any).zoom
+      const zoom_scale = zoom?.k || 1
+      const prev_translate_str = target_border_group.attr("transform") || "translate(0,0)"
+      const tag_offset_y = (cluster_data.centroid[1] - lineHeight/2 - tag_y) * zoom_scale
+      target_border_group.transition().duration(1000)
+        .attr("transform", prev_translate_str + " " + `translate(0, ${-tag_offset_y})`)
+
+      let x1 = cluster_data.centroid[0]
+      let y1 = cluster_data.centroid[1]
+      let x2 = x1
+      let y2 = y1 - tag_offset_y + rect_height - lineHeight + 6 // 3=stroke-width
+      // let y2 = tag_y + rect_height  - lineHeight 
+      if(zoom) {
+        x1 = x1 * zoom.k + zoom.x
+        y1 = cluster_data.centroid[1] + parseFloat(cluster_data.zoom_translate.split(",")[1].replace(")", ""))
+        x2 = x1
+        if(prev_translate_str) {
+          const y_offset = parseFloat(prev_translate_str.split(",")[1].replace(")", ""))
+          // y2 = (y1 - tag_offset_y) * zoom.k 
+          y2 = y1 - tag_offset_y + rect_height - lineHeight + 6 
+        }
+      }
       const tag_border_connector = centerArea.append("line")
         .attr("class", "cluster-label-border-connector")
-        .attr("x1", cluster_data.centroid[0])
-        .attr("y1", cluster_data.centroid[1])
-        .attr("x2", cluster_data.centroid[0])
-        .attr("y2", rect_y + rect_height) 
+        .attr("x1", x1)
+        .attr("y1", y1)
+        .attr("x2", x2)
+        .attr("y2", y2)
         .attr("stroke-width", 3)
         .attr("pointer-events", "none")
         .attr("stroke", d3.select(border_rect.nodes()[0]).attr("stroke"))
@@ -89,18 +122,13 @@ const tags = {
 
     restoreLiftedArticleClusterLabel(svgId, cluster_data) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-      const cluster_label_node = centerArea.select("g.article-border-tag-group")
-        .selectAll("text.cluster-label")
+
+      const target_border_group = centerArea.select("g.article-border-tag-group")
+        .selectAll("g.cluster-label-group")
         .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
-        .selectAll("tspan")
-        .transition().duration(100)
-        .attr("y", (label_data: any) => label_data.centroid[1])
-      const tag_border = centerArea.select("g.article-border-tag-group")
-        .selectAll("rect.cluster-label-border")
-        .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
+        .attr("transform", (d: any) => { return d.zoom_translate || "translate(0,0)"})
+      const border_rect = target_border_group.select("rect.cluster-label-border")
         .attr("opacity", 0.5)
-        .transition().duration(100)
-        .attr("transform", "translate(0,0)")
       const tag_border_connector = centerArea.select("line.cluster-label-border-connector").remove()
     },
 
@@ -116,12 +144,19 @@ const tags = {
         const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
         const tag_data: any[] = []
+        const parent_cluster_group = centerArea.select("g.article-border-tag-group")
+          .selectAll("g.cluster-label-group")
+          .filter((filter_data: any) => cluster_label === filter_data.cluster_label)
+          const zoom = (parent_cluster_group?.datum() as any).zoom || d3.zoomIdentity
+        // account for zoom
+        const zoomed_parent_border_points = parent_border_points.map(point => [point[0] * zoom.k + zoom.x, point[1] * zoom.k + zoom.y])
         sub_cluster_labels.forEach(sub_cluster_label => {
             const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
             if(sub_cluster_node_data.length <= 5) return
-            const points = sub_cluster_node_data.map(node => [node.x, node.y])
+            // account for zoom
+            const points = sub_cluster_node_data.map(node => [node.x! * zoom.k + zoom.x, node.y! * zoom.k + zoom.y])
             const { polygon, centroid } = borders.generate_polygon(points, concavity)
-            const { intersection_point } = borders.findIntersection(parent_border_points, centroid)
+            const { intersection_point } = borders.findIntersection(zoomed_parent_border_points, centroid)
             const offset = 50
             const dy = intersection_point[1] - centroid[1] 
             const dx = intersection_point[0] - centroid[0]
@@ -129,7 +164,6 @@ const tags = {
             const offset_x = Math.sqrt(offset**2 / (1 + slope**2))
             const offset_y = slope * offset_x
             const tag_position = [intersection_point[0] + offset_x * Math.sign(dx), intersection_point[1] + offset_y * Math.sign(dy)]
-            // console.log(article_graph.hierarchical_topics[sub_cluster_label], slope, closest_point, offset_x, dy, dx)
             let direction;
             if(dx > 0 && dy > 0 && Math.abs(dx) > Math.abs(dy)) {
               direction = 'left'
@@ -201,7 +235,7 @@ const tags = {
             .text(article_graph.hierarchical_topics[d.label])
             .attr("x", d.position[0])
             .attr("y", d.position[1])
-            .attr("font-size", "1.2rem")
+            .attr("font-size", "1.5rem")
             .attr("text-anchor", "middle")
             .attr("pointer-events", "none")
             .call(tags.wrap, 150)
@@ -246,8 +280,6 @@ const tags = {
             .transition().delay(300).duration(1000)
             .attr("opacity", 1)
             .selection()
-
-
         })
         .attr("transform", function(d: any) {
           const group = d3.select(this)
@@ -259,10 +291,10 @@ const tags = {
           let tx, ty;
           if(direction === "top") {
             tx = 0
-            ty = lineHeight + 5 // 5=padding_y
+            ty = lineHeight/2 + 5 // 5=padding_y
           } else if(direction === "bottom") {
             tx = 0
-            ty = -(tag_height-5) // 5=padding_y
+            ty = -(tag_height/2-5) // 5=padding_y
           } else if(direction === "left") {
             tx = tag_width/2
             ty = 0
@@ -320,7 +352,8 @@ const tags = {
             }
             const line_num = text.selectAll("tspan").nodes().length
             const em_to_px = 16
-            text.selectAll("tspan").attr("y", parseFloat(y) - em_to_px / 2 * lineHeight * (line_num - 1) / 2)
+            // text.selectAll("tspan").attr("y", parseFloat(y) - em_to_px / 2 * lineHeight * (line_num - 1) / 2)
+            text.selectAll("tspan").attr("y", parseFloat(y))
         });
     }
 }
