@@ -22,6 +22,7 @@ for uid in users:
 
 gosper_curve_points = gosper.plot_level(5)
 philbert_curve_points = pHilbert.peripheral_hilbert(128, 20)
+print("init done")
 
 @app.route("/static/hierarchy", methods=["GET"])
 def get_hierarcy():
