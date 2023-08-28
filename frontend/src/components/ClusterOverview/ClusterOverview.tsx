@@ -110,6 +110,7 @@ function ClusterOverview({
   // const [hoveredArticleCluster, setHoveredArticleCluster] = useState<any>("")
   const [articleClusterBorderPoints, setArticleClusterBorderPoints] = useState<any>({})
   const [clickedClusters, setClickedClusters] = useState<any[]>([])
+  const [clickedCluster, setClickedCluster] = useState<any>(undefined)
   function addClickedCluster(cluster_label) {
     setClickedClusters([...clickedClusters, cluster_label])
   }
@@ -222,7 +223,7 @@ function ClusterOverview({
       .on("mouseout", article_border_handlers.mouseout)
       // .call(bindDrag)
       .on("click", article_border_handlers.click)
-  }, [selectedClusters, searchMode, highlightNodeIds, articleClusterBorderPoints, clickedClusters])
+  }, [selectedClusters, searchMode, highlightNodeIds, articleClusterBorderPoints, clickedClusters, clickedCluster])
 
   useEffect(() => {
     update_highlight(highlightNodeIds, [])
@@ -275,7 +276,7 @@ function ClusterOverview({
       .attr("height", centerAreaSize.outer_height-8)
       .attr("stroke-width", "1px")
       .attr("stroke", "grey")
-      .attr("rx", "20%")
+      .attr("rx", "5%")
       .attr("fill", "#e8e8e8")
       .attr("opacity", 0.2)
       .attr("filter", "url(#drop-shadow-border)")
@@ -381,7 +382,15 @@ function ClusterOverview({
               }
             })
             .duration(t_duration)
-            .attr("fill", (d: any) => d.cluster_color = articleClusterColorDict[d.cluster_label])
+            .attr("fill", (d: any) => {
+              d.cluster_color = articleClusterColorDict[d.cluster_label]
+              if(clickedClusters.includes(d.cluster_label)) {
+                d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label]
+                return d.sub_cluster_color;
+              } else {
+                return d.cluster_color
+              }
+            })
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y),
       )
@@ -439,6 +448,16 @@ function ClusterOverview({
         exit => exit.transition()
           .delay(article_graph.filtered? t_duration : 0).remove()
       )
+    // sub clusters
+    border_group.selectAll("path.concave-hull")
+        .each(function(d: any) {
+          if(clickedClusters.includes(d.cluster_label)) {
+            tags.removeSubClusterLabels(svgId)
+            tags.restoreLiftedArticleClusterLabel(svgId, d)
+            showSubClusterStructure(undefined, d)
+          }
+        })
+
   }
 
   function bindDrag(eles) {
@@ -457,6 +476,10 @@ function ClusterOverview({
         .attr("stroke", articleClusterColorDict[d.cluster_label])
         .attr("opacity", 1)
         .attr("filter", "url(#drop-shadow-border)")
+      d3.selectAll("rect.cluster-label-border")
+        .filter((rect_data: any) => d.cluster_label === rect_data.cluster_label)
+        .attr("stroke-width", 10)
+        .attr("opacity", 1)
     },
 
     mouseout: function(e, d) {
@@ -465,24 +488,48 @@ function ClusterOverview({
         .attr("stroke", "black")
         .attr("opacity", 0.5)
         .attr("filter", "none")
+      d3.selectAll("rect.cluster-label-border")
+        .attr("stroke-width", 3)
+        .attr("opacity", 0.5)
     },
 
     click: function(e, d) {
-      if(clickedClusters.includes(d.cluster_label)) {
-        removeClickedCluster(d.cluster_label)
-        hideSubClusterStructure(e, d)
-      } else {
-        addClickedCluster(d.cluster_label)
-        showSubClusterStructure(e, d)
-      }
+      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       if(!e.defaultPrevented) {
         // remove sub cluster labels
-        // tags.removeSubClusterLabels(svgId)
-        // if(!(e.ctrlKey || e.metaKey)) {
-        //   remove_connected_entities(d.cluster_label)
-        // }
         if(e.ctrlKey || e.metaKey) {
+          // reset highlight
+          if(clickedCluster !== undefined) {
+            if(clickedCluster.cluster_label === d.cluster_label) {
+              tags.removeSubClusterLabels(svgId)
+              const tag_border_connector = centerArea.select("line.cluster-label-border-connector").remove()
+              const target_border_group = centerArea.selectAll("g.article-border-tag-group")
+                .select("g.cluster-label-group")
+                .filter((filter_data: any) => clickedCluster.cluster_label === filter_data.cluster_label)
+                .remove()
+            } else {
+              hideSubClusterStructure(e, clickedCluster)
+            }
+          }
           onArticleClusterClicked(e, d.cluster_label, article_graph.clusters)
+          setClickedCluster(undefined)
+        } else {
+          // if clicking on a highlighted cluster, un-highlight it
+          if(clickedCluster && clickedCluster.cluster_label === d.cluster_label) {
+            setClickedCluster(undefined)
+            hideSubClusterStructure(e, clickedCluster)
+          } else { // highlight clicked cluster
+            if(clickedCluster) hideSubClusterStructure(e, clickedCluster)
+            setClickedCluster(d)
+            showSubClusterStructure(e, d)
+          }
+          // if(clickedClusters.includes(d.cluster_label)) {
+          //   removeClickedCluster(d.cluster_label)
+          //   hideSubClusterStructure(e, d)
+          // } else {
+          //   setClickedClusters([d.cluster_label])
+          //   showSubClusterStructure(e, d)
+          // }
         }
       }
     }
@@ -647,7 +694,6 @@ function ClusterOverview({
   }
 
   function show_connected_entities(article_cluster_label) {
-    console.log({article_cluster_label})
     const canvas = d3.select('#' + svgId).select("g.margin")
     const cluster_entity_ids: string[] = article_graph.article_cluster_linked_entities[article_cluster_label]
     const entity_node_group = canvas.select("g.entity-node-group")
@@ -686,8 +732,6 @@ function ClusterOverview({
     links.forEach(link => {
       const source = entity_dict[link.source] || article_dict[link.source]
       const target = entity_dict[link.target] || article_dict[link.target]
-      console.log(source, target)
-      console.log(entity_dict[link.source], article_dict[link.source], entity_dict[link.target], article_dict[link.target])
       link_data.push({
         source: {
           id: source.id,
@@ -796,6 +840,7 @@ function ClusterOverview({
   }
 
   function hideSubClusterStructure(e, d) {
+    console.log("hiding sub cluster structure")
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
 

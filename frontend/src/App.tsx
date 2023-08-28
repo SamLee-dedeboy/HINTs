@@ -85,8 +85,10 @@ function App() {
     let sub_cluster_color_dict = {}
     if(!article_graph) return sub_cluster_color_dict
     Object.keys(article_graph.clusters).forEach(cluster_label => {
+      // retain cluster color
       const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
       const sub_clusters = article_graph.sub_clusters[cluster_label]
+      // prepare scales 
       const sub_cluster_renumber_dict = {}
       sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
       const sub_cluster_sScale = d3.scaleLinear()
@@ -95,8 +97,13 @@ function App() {
       const sub_cluster_lScale = d3.scaleLinear()
         .domain([0,  sub_clusters.length - 1])
         .range([0.4, 0.8]);
-      
+      // use cluster color as base to generate sub cluster colors
       sub_clusters.forEach((sub_cluster_label, i) => {
+        // if previous color exists, use it
+        if(previousSubClusterColorDict && previousSubClusterColorDict[sub_cluster_label]) {
+          sub_cluster_color_dict[sub_cluster_label] = previousSubClusterColorDict[sub_cluster_label]
+          return
+        }
         // sub_cluster_color_dict[sub_cluster_label] = d3.hsl(cluster_color.h, sub_cluster_colorScale(i), 0.5)
         const offset_color = articleSubClusterColorScale(sub_cluster_label)
         const offset_hsl = d3.hsl(offset_color)
@@ -212,6 +219,8 @@ function App() {
   }
 
   async function handleArticleClusterClicked(e, cluster_id, clusters) {
+    await fetchExpandArticleCluster(cluster_id, clusters)
+    return
     if(e.ctrlKey || e.metaKey) {
       if(selectedClusters.includes(cluster_id)) {
         // remove from selected clusters
@@ -222,7 +231,6 @@ function App() {
         setSelectedClusters(prev => [...prev, cluster_id])
       }
     } else {
-      await fetchExpandArticleCluster(cluster_id, clusters)
     }
   }
 

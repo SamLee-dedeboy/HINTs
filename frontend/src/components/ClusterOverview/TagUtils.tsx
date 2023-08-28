@@ -5,14 +5,13 @@ import { d_ArticleGraph } from "../../types";
 const tags = {
     addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+      const zoom = d3.zoomTransform(centerArea.node() as Element)
       // cluster label
-      console.log(cluster_borders)
       const tag = centerArea.selectAll("g.article-border-tag-group")
         .data(cluster_borders, (d: any) => d.cluster_label)
         .join("g")
         .attr("class", "article-border-tag-group")
         .each(function(d: any) {
-          console.log(d)
           d3.select(this).select("g.cluster-label-group").remove()
           const group = d3.select(this).append("g").attr("class", "cluster-label-group")
           group.select("text.cluster-label").remove()
@@ -51,25 +50,30 @@ const tags = {
             .attr('stroke', (d) => cluster_colors[d.cluster_label])
             .attr("opacity", 0.5)
             .lower()
-          const centroid = group.append("circle")
-            .datum(d)
-            .attr("class", "centroid")
-            .attr("cx", (d: any) => d.centroid[0])
-            .attr("cy", (d: any) => d.centroid[1])
-            .attr("r", 5)
-            .attr("fill", "red")
+          // const centroid = group.append("circle")
+          //   .datum(d)
+          //   .attr("class", "centroid")
+          //   .attr("cx", (d: any) => d.centroid[0])
+          //   .attr("cy", (d: any) => d.centroid[1])
+          //   .attr("r", 5)
+          //   .attr("fill", "red")
 
+          const tag_rect = group.select("rect.cluster-label-border")
+          const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
+          const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
+          d.zoom_translate = `translate(${translateX}, ${translateY})`
+          d.zoom = zoom
+          group.attr("transform", `translate(${translateX}, ${translateY})`)
         })
-        .attr("transform", function(d: any) {
-            const group = d3.select(this)
-            const tag_rect = group.select("rect.cluster-label-border")
-            const zoom = d.zoom || d3.zoomIdentity
-            const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
-            const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
-            d.zoom_translate = `translate(${translateX}, ${translateY})`
-            d.zoom = zoom
-            return `translate(${translateX}, ${translateY})`
-        })
+        // .attr("transform", function(d: any) {
+        //     const group = d3.select(this)
+        //     const tag_rect = group.select("rect.cluster-label-border")
+        //     const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
+        //     const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
+        //     d.zoom_translate = `translate(${translateX}, ${translateY})`
+        //     d.zoom = zoom
+        //     return `translate(${translateX}, ${translateY})`
+        // })
     },
 
     liftArticleClusterLabel(svgId, cluster_data) {
@@ -134,7 +138,6 @@ const tags = {
         sub_cluster_colors: any,
         concavity: number
     ) {
-        console.log("updating sub cluster label")
         const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
         const tag_data: any[] = []
@@ -234,7 +237,6 @@ const tags = {
           const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
           const padding_x = 5
           const padding_y = 5
-          console.log(zoom)
           // calculations for zoom 
           const tag_rect_x = start_x - padding_x
           const tag_rect_y = start_y - padding_y
@@ -309,9 +311,10 @@ const tags = {
 
     removeSubClusterLabels(svgId: string) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-      centerArea.selectAll("text.sub-cluster-label").remove()
-      centerArea.selectAll("rect.sub-cluster-label-border").remove()
-      centerArea.selectAll("line.sub-cluster-label-border-connector").remove()
+      centerArea.selectAll("g.sub-cluster-label-group").remove()
+      // centerArea.selectAll("text.sub-cluster-label").remove()
+      // centerArea.selectAll("rect.sub-cluster-label-border").remove()
+      // centerArea.selectAll("line.sub-cluster-label-border-connector").remove()
     },
 
     wrap(text, width) {
