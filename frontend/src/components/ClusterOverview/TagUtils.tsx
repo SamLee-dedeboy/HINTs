@@ -5,16 +5,16 @@ import { d_ArticleGraph } from "../../types";
 const tags = {
     addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-      const border_tag_group = centerArea.select("g.article-border-tag-group")
-      const prev_tags = border_tag_group.selectAll("g.cluster-label-group").filter((d: any) => d.zoom)
-      const zoom = prev_tags.size() > 0? (prev_tags.datum() as any).zoom : d3.zoomIdentity
       // cluster label
-      const tag = border_tag_group.selectAll("g.cluster-label-group")
+      console.log(cluster_borders)
+      const tag = centerArea.selectAll("g.article-border-tag-group")
         .data(cluster_borders, (d: any) => d.cluster_label)
         .join("g")
-        .attr("class", "cluster-label-group")
+        .attr("class", "article-border-tag-group")
         .each(function(d: any) {
-          const group = d3.select(this)
+          console.log(d)
+          d3.select(this).select("g.cluster-label-group").remove()
+          const group = d3.select(this).append("g").attr("class", "cluster-label-group")
           group.select("text.cluster-label").remove()
           group.select("rect.cluster-label-border").remove()
 
@@ -63,6 +63,7 @@ const tags = {
         .attr("transform", function(d: any) {
             const group = d3.select(this)
             const tag_rect = group.select("rect.cluster-label-border")
+            const zoom = d.zoom || d3.zoomIdentity
             const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
             const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
             d.zoom_translate = `translate(${translateX}, ${translateY})`
@@ -75,8 +76,7 @@ const tags = {
       cluster_data.lifted = true
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       // move cluster label to top
-      const target_border_group = centerArea.select("g.article-border-tag-group")
-        .selectAll("g.cluster-label-group")
+      const target_border_group = centerArea.selectAll("g.cluster-label-group")
         .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
       const tspans = target_border_group.selectAll("tspan")
       const border_rect = target_border_group.select("rect.cluster-label-border")
@@ -95,14 +95,14 @@ const tags = {
         .attr("transform", prev_translate_str + " " + `translate(0, ${-tag_offset_y*zoom_scale})`)
       
 
-      const tag_border_connector = centerArea.select(".article-border-tag-group")
-        .append("line")
+      const rect_transform_y = +prev_translate_str.split(",")[1].replace(")", "") - tag_offset_y*zoom_scale
+      const tag_border_connector = centerArea.append("line")
         .datum(cluster_data)
         .attr("class", "cluster-label-border-connector")
         .attr("x1", cluster_data.centroid[0]*zoom.k + zoom.x)
         .attr("y1", cluster_data.centroid[1]*zoom.k + zoom.y)
         .attr("x2", cluster_data.centroid[0]*zoom.k + zoom.x)
-        .attr("y2", rect_y + rect_height -tag_offset_y*zoom_scale)
+        .attr("y2", rect_y + rect_height + rect_transform_y)
         .attr("stroke-width", 3)
         .attr("pointer-events", "none")
         .attr("stroke", d3.select(border_rect.nodes()[0]).attr("stroke"))
@@ -116,10 +116,10 @@ const tags = {
       cluster_data.lifted = false
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
 
-      const target_border_group = centerArea.select("g.article-border-tag-group")
-        .selectAll("g.cluster-label-group")
+      const target_border_group = centerArea.selectAll("g.article-border-tag-group")
+        .select("g.cluster-label-group")
         .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
-        .attr("transform", (d: any) => { return d.zoom_translate || "translate(0,0)"})
+        .attr("transform", (d: any) => { return d.center_zoom_translate || "translate(0,0)"})
       const border_rect = target_border_group.select("rect.cluster-label-border")
         .attr("opacity", 0.5)
       const tag_border_connector = centerArea.select("line.cluster-label-border-connector").remove()
@@ -134,17 +134,15 @@ const tags = {
         sub_cluster_colors: any,
         concavity: number
     ) {
+        console.log("updating sub cluster label")
         const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
         const tag_data: any[] = []
-        const parent_cluster_group = centerArea.select("g.article-border-tag-group")
-          .selectAll("g.cluster-label-group")
+        const parent_cluster_group = centerArea.selectAll("g.article-border-tag-group")
           .filter((filter_data: any) => cluster_label === filter_data.cluster_label)
-          const zoom = (parent_cluster_group?.datum() as any).zoom || d3.zoomIdentity
         sub_cluster_labels.forEach(sub_cluster_label => {
             const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
             if(sub_cluster_node_data.length <= 5) return
-            // account for zoom
             const points = sub_cluster_node_data.map(node => [node.x, node.y])
             const { polygon, centroid } = borders.generate_polygon(points, concavity)
             const { intersection_point } = borders.findIntersection(parent_border_points, centroid)
@@ -182,9 +180,8 @@ const tags = {
                 "direction": direction
             })
         })
-        const border_tag_group = centerArea.select("g.article-border-tag-group")
 
-        border_tag_group.selectAll("g.sub-cluster-label-group")
+        parent_cluster_group.selectAll("g.sub-cluster-label-group")
         .data(tag_data, (d: any) => d.label)
         .join('g')
         .attr("class", "sub-cluster-label-group")
@@ -217,6 +214,7 @@ const tags = {
           //   .attr("fill", "black")
 
 
+          const zoom = (parent_cluster_group?.datum() as any).zoom || d3.zoomIdentity
           const sub_cluster_label = group.append('text')
             .datum(d)
             .attr('class', 'sub-cluster-label')
@@ -236,21 +234,21 @@ const tags = {
           const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
           const padding_x = 5
           const padding_y = 5
-
+          console.log(zoom)
           // calculations for zoom 
           const tag_rect_x = start_x - padding_x
           const tag_rect_y = start_y - padding_y
           const tag_rect_width = width + 2*padding_x
           const tag_rect_height = height + 2*padding_y
           const translateX = tag_rect_x * zoom.k + zoom.x + tag_rect_width/2 * (zoom.k-1)  - tag_rect_x
-          const translateY = tag_rect_y * zoom.k + zoom.x + tag_rect_height/2 * (zoom.k-1)  - tag_rect_y
+          const translateY = tag_rect_y * zoom.k + zoom.y + tag_rect_height/2 * (zoom.k-1)  - tag_rect_y
           const tspan_border = group.append("rect")
             .datum(d)
             .attr("class", "sub-cluster-label-border")
-            .attr("x", start_x - padding_x)
-            .attr("y", d.y = start_y - padding_y)
-            .attr("width", width + 2*padding_x)
-            .attr("height", height + 2*padding_y)
+            .attr("x", tag_rect_x)
+            .attr("y", (d) => d.y = tag_rect_y)
+            .attr("width", tag_rect_width)
+            .attr("height", tag_rect_height)
             .attr("pointer-events", "none")
             .attr("fill", "white")
             .attr("stroke-width", 2)

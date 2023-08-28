@@ -39,6 +39,8 @@ function handleZoom(event) {
             const tag_rect = group.select("rect.cluster-label-border")
             const translateX = +tag_rect.attr("x") * event.transform.k + event.transform.x + +tag_rect.attr("width")/2 * (event.transform.k-1)  - +tag_rect.attr("x")
             let translateY = +tag_rect.attr("y") * event.transform.k + event.transform.y + +tag_rect.attr("height")/2 * (event.transform.k-1) - +tag_rect.attr("y")
+            d.center_zoom_translate = `translate(${translateX}, ${translateY})`
+            
             if(d.lifted) translateY += d.lifted_offset*event.transform.k
             d.zoom_translate = `translate(${translateX}, ${translateY})`
             d.zoom = event.transform
@@ -55,7 +57,6 @@ function handleZoom(event) {
             const tag_rect = group.select("rect.cluster-label-border")
             const rect_y = +tag_rect.attr("y")
             const rect_height = +tag_rect.attr("height")
-            console.log(rect_y, rect_height, rect_transform_y)
             return rect_y + rect_height + rect_transform_y
         })
     const sub_cluster_label_group = d3.selectAll("g.sub-cluster-label-group")
@@ -64,6 +65,7 @@ function handleZoom(event) {
             // group.selectAll("circle").attr("transform", transform)
             // tag needs to keep original size
             const tag_rect = group.select("rect.sub-cluster-label-border")
+            if(tag_rect.empty()) return 
             const translateX = +tag_rect.attr("x") * event.transform.k + event.transform.x + +tag_rect.attr("width")/2 * (event.transform.k-1)  - +tag_rect.attr("x")
             const translateY = +tag_rect.attr("y") * event.transform.k + event.transform.y + +tag_rect.attr("height")/2 * (event.transform.k-1) - +tag_rect.attr("y")
             tag_rect.attr("transform", `translate(${translateX}, ${translateY})`)

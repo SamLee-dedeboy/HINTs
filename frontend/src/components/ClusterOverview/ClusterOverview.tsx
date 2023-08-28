@@ -275,7 +275,7 @@ function ClusterOverview({
 
     center_area.append("g").attr("class", "article-border-group")
     center_area.append("g").attr("class", "article-node-group")
-    center_area.append("g").attr("class", "article-border-tag-group")
+    // center_area.append("g").attr("class", "article-border-tag-group")
     center_area.append("path").attr("class", "highlight-border")
     center_area.append("g").attr("class", "link-group")
     addBrush()
