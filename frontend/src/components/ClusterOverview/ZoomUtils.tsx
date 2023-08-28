@@ -29,9 +29,9 @@ function handleZoom(event) {
     const { transform } = event
     d3.selectAll("g.article-border-group").attr("transform", transform)
     d3.selectAll("g.article-node-group").attr("transform", transform)
-    d3.selectAll("g.entity-node-group").attr("transform", transform)
-    d3.selectAll("g.entity-border-group").attr("transform", transform)
-    d3.select("rect.center-area-background").attr("transform", transform)
+    // d3.selectAll("g.entity-node-group").attr("transform", transform)
+    // d3.selectAll("g.entity-border-group").attr("transform", transform)
+    // d3.select("rect.center-area-background").attr("transform", transform)
 
     const cluster_label_group = d3.selectAll("g.cluster-label-group")
         .attr("transform", function(d: any) {

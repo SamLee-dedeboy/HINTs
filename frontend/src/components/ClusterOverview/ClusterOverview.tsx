@@ -64,6 +64,12 @@ function ClusterOverview({
     right: 260,
     bottom: 290
   }
+  const centerAreaPadding = {
+    top: 20,
+    left: 20,
+    right: 20,
+    bottom: 20
+  }
   
   const svgSize = useMemo(() => {
     const width = window.innerWidth
@@ -73,10 +79,6 @@ function ClusterOverview({
 
   const canvasSize = useMemo(() => { 
     return {
-      start_x: margin.left,
-      start_y: margin.top, 
-      end_x: svgSize.width - margin.right,
-      end_y: svgSize.height - margin.bottom,
       width: svgSize.width - margin.left - margin.right,
       height: svgSize.height - margin.top - margin.bottom,
     }
@@ -84,12 +86,10 @@ function ClusterOverview({
 
   const centerAreaSize = useMemo(() => {
     return {
-      start_x: margin.left + centerAreaOffset.left,
-      start_y: margin.top + centerAreaOffset.top,
-      end_x: svgSize.width - margin.right - centerAreaOffset.right,
-      end_y: svgSize.height - margin.bottom - centerAreaOffset.bottom,
-      width: svgSize.width - margin.left - margin.right - centerAreaOffset.left - centerAreaOffset.right,
-      height: svgSize.height - margin.top - margin.bottom - centerAreaOffset.top - centerAreaOffset.bottom,
+      outer_width: svgSize.width - margin.left - margin.right - centerAreaOffset.left - centerAreaOffset.right,
+      outer_height: svgSize.height - margin.top - margin.bottom - centerAreaOffset.top - centerAreaOffset.bottom,
+      width: svgSize.width - margin.left - margin.right - centerAreaOffset.left - centerAreaOffset.right - centerAreaPadding.left - centerAreaPadding.right,
+      height: svgSize.height - margin.top - margin.bottom - centerAreaOffset.top - centerAreaOffset.bottom - centerAreaPadding.top - centerAreaPadding.bottom,
     }
   }, [])
 
@@ -257,14 +257,22 @@ function ClusterOverview({
     canvas.append("g").attr("class", "entity-border-group")
     canvas.append("g").attr("class", "entity-node-group")
 
-    const center_area = canvas.append("g")
-      .attr("class", "center-area")
+    const center_area_svg = canvas.append("svg")
+      .attr("class", "center-area-svg")
+      .attr("width", centerAreaSize.outer_width)
+      .attr("height", centerAreaSize.outer_height)
       .attr("transform", "translate(" + centerAreaOffset.left + "," + centerAreaOffset.top + ")")
+    const center_area = center_area_svg.append("g")
+      .attr("class", "center-area")
+      .attr("transform", "translate(" + centerAreaPadding.left + "," + centerAreaPadding.top + ")")
+
     center_area.append("rect").attr("class", "center-area-background")
-      .attr("x", 0 - 20)
-      .attr("y", 0 - 20)
-      .attr("width", centerAreaSize.width + 20)
-      .attr("height", centerAreaSize.height + 30)
+      .attr("x", -centerAreaPadding.left+4)
+      .attr("y", -centerAreaPadding.right+4)
+      // .attr("width", centerAreaSize.width)
+      // .attr("height", centerAreaSize.height)
+      .attr("width", centerAreaSize.outer_width-8)
+      .attr("height", centerAreaSize.outer_height-8)
       .attr("stroke-width", "1px")
       .attr("stroke", "grey")
       .attr("rx", "20%")
