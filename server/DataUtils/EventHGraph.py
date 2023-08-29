@@ -7,7 +7,7 @@ import copy
 class EventHGraph:
     def __init__(self, data_path) -> None:
         # AllTheNews
-        atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend_2.json'))
+        atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend.json'))
         atn_gpt_partitions_article = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions_article.json'))
         atn_gpt_hierarchy_article = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies_article.json'))
         atn_gpt_partitions_entity = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions_entity.json'))

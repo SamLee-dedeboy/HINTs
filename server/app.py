@@ -13,7 +13,7 @@ graph_controller = GraphController(r'../preprocess/data/result/')
 event_hgraph = graph_controller.static_event_hgraph
 embedding_searcher = EmbeddingSearch(r'../preprocess/data/result/', openai_api_key)
 data_transformer = DataTransformer()
-example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example.json'))
+example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example_article.json'))
 
 # global vars
 users = [0]
