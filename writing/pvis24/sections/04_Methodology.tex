@@ -24,14 +24,32 @@ Then, we apply the same clustering algorithm on the dual of the hypergraph, whic
 The result represents groups of participants that are frequently mentioned together in the articles.
 
 \subsubsection{Hierarchical Clustering}\label{sec: clustering}
-We implement our hierarchical clustering algorithm following an agglomerative clustering approach~\cite{steinbach2000doccluster}.
-(TODO: add algorithm pseudocode here)
-We combine the semantic similarity $S_s$ and connectivity similarity $S_c$ to calculate the distance between two nodes.
-$S_s(i, j)$ is calculated using the cosine similarity of the embeddings of the two nodes.
-For article nodes, the embeddings are simply the document embeddings of the articles.
-For participant nodes, the embeddings are the average of the embeddings of the articles that mention the participant.
-$S_c$ is calculated using the Jaccard similarity of the two nodes' neighbors (\autoref{eq:connectivity_similarity}).
+Common clustering algorithms for graphs consider only graph connectivity.
+However, for the best interpretability of the clustering result, the node embeddings must be also used in the clustering process.
+The necessity of incorporating node embeddings is further explained in~\autoref{sec: topic_assignment}.
+Therefore, this limits our choice of clustering algorithms to attributed node clustering algorithms.
+
+Although there are existing approaches that can cluster attributed nodes on graphs such as EVA~\cite{citraro2020eva} and iLouvain~\cite{combe2015louvain}, they are not designed for hypergraphs.
+In general, hypergraphs can be clustered in two different ways: 
+(1) Directly operate on the hyperedges by generalizing the graph clustering algorithms.
+For example, Kamiński et.al.~\cite{kaminski2021hgraphcommunity} generalizes the modularity metric for graphs to hypergraphs; 
+(2) First transform the hypergraph into a graph and then apply normal graph clustering algorithms~\cite{kumar2020new}.
+Although the first approach is more intuitive, it is less scalable and hard to incorporate node attributes.
+Thus, we decided to design our clustering algorithm following the second approach.
+
+Considering all the above, we implemented our hierarchical clustering algorithm by first transforming the hypergraph into a graph following the edge re-weighting process proposed by Kumar et.al.~\cite{kumar2020new},
+then an agglomerative clustering algorithm~\cite{steinbach2000doccluster} is applied on the re-weighted graph.
+In agglomerative clustering, the key is to define the similarity between nodes and similarity between clusters.
+We can easily incorporate node attributes into the clustering process by defining the similarity between nodes and clusters as a combination of attribute similarity $S_s$ and connectivity similarity $S_c$.
+Since we're dealing with texts, we refer to the attribute similarity between nodes as semantic similarity. 
+
+The semantic similarity $S_s(i, j)$ is the cosine similarity of the embeddings of the two nodes, denoted as $v_i$.
+For article nodes, the embeddings are generated using the article content.
+For participant nodes, the embeddings are generated using a description note of the participant.
+More details about the embeddings are explained in~\autoref{sec: embeddings}.
+The connectivity similarity $S_c$ is the Jaccard similarity, as shown in~\autoref{eq:connectivity_similarity}.
 \begin{equation}\label{eq:connectivity_similarity}
+    S_s(i, j) = \frac{v_i \cdot v_j}{||v_i|| \cdot ||v_j||}, \quad
     S_c(i, j) = \frac{|N_i \cap N_j|}{|N_i \cup N_j|}
 \end{equation}
 A weighting factor $\alpha$ is used to balance the two similarities, as shown in~\autoref{eq: similarity}.
@@ -39,6 +57,7 @@ A weighting factor $\alpha$ is used to balance the two similarities, as shown in
     S = \alpha S_s + (1-\alpha) S_c
 \end{equation}
 For the similarity between clusters, we used centroid similarity, i.e.\ the similarity between two clusters is the similarity between the centroids of the two clusters.
+The algorithm is presented in (TODO: add algorithm pseudocode here)
 
 
 
@@ -46,10 +65,10 @@ For the similarity between clusters, we used centroid similarity, i.e.\ the simi
 The Methodology can work for any unstructured dataset
 \subsubsection{Summarization}
 Chatgpt for summarization
-\subsubsection{Document Embedding}
+\subsubsection{Document Embedding}\label{sec: embeddings}
 OpenAI's embedding API
-\subsubsection{Participant Extraction}\label{sec:participant_extraction}
+\subsubsection{Participant Extraction}\label{sec: participant_extraction}
 Chatgpt for major participant extraction and another model for entity linking
 
-\subsubsection{Topic Assignment}
+\subsubsection{Topic Assignment}\label{sec: topic_assignment}
 Chatgpt to assign topics to each cluster

@@ -3,3 +3,4 @@ hypergraph
 hyperedge
 hyperedges
 agglomerative
+hypergraphs

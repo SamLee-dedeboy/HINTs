@@ -8,11 +8,41 @@ M.~Abdelaal, N.~D. Schiele, K.~Angerbauer, K.~Kurzhals, M.~Sedlmair, and
 \newblock {\em IEEE Transactions on Visualization and Computer Graphics},
   29(1):896--906, 2022.
 
+\bibitem{kaminski2021hgraphcommunity}
+P.~P. . F.~T. Bogumił~Kamiński.
+\newblock Community detection algorithm using hypergraph modularity.
+\newblock In {\em Complex Networks \& Their Applications IX: Volume 1,
+  Proceedings of the Ninth International Conference on Complex Networks and
+  Their Applications COMPLEX NETWORKS 2020}, pp. 152--163. Springer, 2021.
+
+\bibitem{citraro2020eva}
+S.~Citraro and G.~Rossetti.
+\newblock Eva: Attribute-aware network segmentation.
+\newblock In {\em Complex Networks and Their Applications VIII: Volume 1
+  Proceedings of the Eighth International Conference on Complex Networks and
+  Their Applications COMPLEX NETWORKS 2019 8}, pp. 141--151. Springer, 2020.
+
+\bibitem{combe2015louvain}
+D.~Combe, C.~Largeron, M.~G{\'e}ry, and E.~Egyed-Zsigmond.
+\newblock I-louvain: An attributed graph clustering method.
+\newblock In {\em Advances in Intelligent Data Analysis XIV: 14th International
+  Symposium, IDA 2015, Saint Etienne. France, October 22-24, 2015. Proceedings
+  14}, pp. 181--192. Springer, 2015.
+
 \bibitem{fischer2021hypergraphsurvey}
 M.~T. Fischer, A.~Frings, D.~A. Keim, and D.~Seebacher.
 \newblock Towards a survey on static and dynamic hypergraph visualizations.
 \newblock In {\em 2021 IEEE visualization conference (VIS)}, pp. 81--85. IEEE,
   2021.
+
+\bibitem{kumar2020new}
+T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
+  B.~Ravindran.
+\newblock A new measure of modularity in hypergraphs: Theoretical insights and
+  implications for effective clustering.
+\newblock In {\em Complex Networks and Their Applications VIII: Volume 1
+  Proceedings of the Eighth International Conference on Complex Networks and
+  Their Applications COMPLEX NETWORKS 2019 8}, pp. 286--297. Springer, 2020.
 
 \bibitem{steinbach2000doccluster}
 M.~Steinbach, G.~Karypis, and V.~Kumar.
