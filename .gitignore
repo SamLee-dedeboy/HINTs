@@ -1,6 +1,8 @@
 # api_keys
 api_key
 openai_api_key
+wikidata_access_token
+wikidata_keys
 
 # papers
 proposal/tvcg-journal-latex-2023.03.13
