@@ -8,15 +8,16 @@ interface TooltipProps {
   articleClusterColorDict: any,
   articleSubClusterColorDict: any,
   entityClusterColorDict: any,
+  onItemClicked: (item: any) => void
 }
 
-function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDict, entityClusterColorDict}: TooltipProps) {
+function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDict, entityClusterColorDict, onItemClicked}: TooltipProps) {
   useEffect(() => {
     // console.log({tooltipData})
   }, [tooltipData])
   return (
     <>
-      <div className='tooltip border-1 p-0.5 text-sm'>
+      <div className='tooltip border-1 px-2 font-serif'>
         { tooltipData &&
           <div className='flex flex-col'>
             {
@@ -25,7 +26,7 @@ function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDi
                 <ul className='list-disc list-inside'> 
                   <p className='w-fit'> Topics: </p>
                   { tooltipData.sub_clusters!.map(sub_cluster => 
-                    <li className='flex items-center pl-1' key={sub_cluster.cluster_label}> 
+                    <li className='flex items-center pl-1 cursor-pointer hover:bg-gray-300 transition' key={sub_cluster.cluster_label} onClick={() => onItemClicked(sub_cluster)}> 
                       <span className='ml-2 text-left'> 
                         <svg className="inline" width='10' height='10'><rect width='10' height='10' opacity='0.5' fill={articleClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
                         <span> { sub_cluster.cluster_topic } </span>
@@ -39,15 +40,17 @@ function Tooltip({tooltipData, articleClusterColorDict, articleSubClusterColorDi
             {
               tooltipData.hovered &&
               <div className='topic-area flex flex-col'>
-                <p className='flex items-center'>
-                  <span className='mr-2'> Topic: </span>
-                  <svg width='10' height='10'><rect width='10' height='10' opacity='0.5' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
-                  <span className='ml-2'> { tooltipData.cluster_topic } </span>
+                <p className='flex text-lg cursor-pointer hover:bg-gray-300 transition' onClick={() => onItemClicked(tooltipData)}>
+                  <span className=""> Topic: </span>
+                  <span className="ml-2 text-left">
+                    <svg className="inline" width='10' height='10'><rect width='10' height='10' opacity='0.5' fill={articleClusterColorDict[tooltipData.cluster_label]}></rect></svg>
+                    <span> { tooltipData.cluster_topic } </span>
+                  </span>
                 </p>
                 <ul className='list-disc list-inside'> 
                   <p className='w-fit'> Sub-topics: </p>
                   { tooltipData.sub_clusters!.map(sub_cluster => 
-                    <li className='flex items-center pl-1' key={sub_cluster.cluster_label}> 
+                    <li className='flex items-center pl-1 cursor-pointer hover:bg-gray-300 transition' key={sub_cluster.cluster_label} onClick={() => onItemClicked(sub_cluster)}> 
                       <span className='ml-2 text-left'> 
                         <svg className="inline" width='10' height='10'><rect width='10' height='10' fill={articleSubClusterColorDict[sub_cluster.cluster_label]}></rect></svg>
                         <span> { sub_cluster.cluster_topic } </span>

@@ -24,19 +24,6 @@ gosper_curve_points = gosper.plot_level(5)
 philbert_curve_points = pHilbert.peripheral_hilbert(128, 20)
 print("init done")
 
-@app.route("/static/hierarchy", methods=["GET"])
-def get_hierarcy():
-    return json.dumps(event_hgraph.hierarchy_article)
-
-@app.route("/static/topic", methods=["POST"])
-def generate_topic():
-    article_ids = request.json
-    # messages = GptUtils.generate_summary_message(article_ids, event_hgraph.article_dict)
-    example_summaries = example['summaries']
-    example_topic = example['topic']
-    topic = GptUtils.explain_articles(article_ids, event_hgraph.article_dict, example_summaries, example_topic)
-    return json.dumps(topic, default=vars)
-
 @app.route("/user/hgraph/<uid>", methods=["POST"])
 def get_article_partition(uid):
     uid = int(uid)
@@ -391,6 +378,25 @@ def search():
             "relevance": relevance,
             "summary": summary
         })
-    Utils.save_json(doc_data, 'tmp_search.json')
+    # Utils.save_json(doc_data, 'tmp_search.json')
     # res = { doc_id: relatedness for doc_id, relatedness in docs }
     return json.dumps({"docs": doc_data, "suggested_threshold": suggested_threshold})
+
+@app.route("/static/articles/", methods=["POST"])
+def get_articles():
+    doc_ids = request.json['doc_ids']
+    articles = embedding_searcher.searchByID(doc_ids)
+    return json.dumps(articles, default=vars)
+
+@app.route("/static/hierarchy", methods=["GET"])
+def get_hierarcy():
+    return json.dumps(event_hgraph.hierarchy_article)
+
+@app.route("/static/topic", methods=["POST"])
+def generate_topic():
+    article_ids = request.json
+    # messages = GptUtils.generate_summary_message(article_ids, event_hgraph.article_dict)
+    example_summaries = example['summaries']
+    example_topic = example['topic']
+    topic = GptUtils.explain_articles(article_ids, event_hgraph.article_dict, example_summaries, example_topic)
+    return json.dumps(topic, default=vars)

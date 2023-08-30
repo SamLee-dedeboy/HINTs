@@ -3,10 +3,12 @@ import { server_address } from './shared'
 import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph, tooltipContent } from './types'
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
+import DocList from './components/DocList/DocList'
 import Tooltip from './components/Tooltip/Tooltip'
 import { Input, InputNumber, Switch, Slider } from 'antd';
 import * as d3 from "d3"
 import tmpDocs from './tmp_search.json'
+import { tDocument } from './types/Doc'
 
 
 const Search = Input.Search;
@@ -31,10 +33,13 @@ function App() {
   const [query, setQuery] = useState<string>("")
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
   const [docsRanked, setDocsRanked] = useState<any[]>([]) 
-  // const [relevantDocs, setRelevantDocs] = useState<any[]>([])
   const [relevanceThreshold, setRelevanceThreshold] = useState<number>(0.80)
-  const relevantDocs = useMemo(() => docsRanked.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked, relevanceThreshold])
-  const relevantDocIds = useMemo(() => relevantDocs.map(doc => doc.id), [relevantDocs])
+  const [selectedDocs, setSelectedDocs] = useState<tDocument[]>([])
+  const [selectedDocCluster, setSelectedDocCluster] = useState<string | undefined>(undefined)
+  const [fetchingSubCluster, setFetchingSubCluster] = useState<boolean>(false)
+  const selectedDocIds = useMemo(() => selectedDocs.map(doc => doc.id), [selectedDocs])
+
+  const searchResultDocs = useMemo(() => docsRanked.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked, relevanceThreshold])
 
   const [hilbert, setHilbert] = useState<any>() 
   const [selectedClusters, setSelectedClusters] = useState<string[]>([])
@@ -115,7 +120,7 @@ function App() {
         // offset_hsl.s = cluster_color.s + offset_hsl.s
         // offset_hsl.l = sub_cluster_lightnessScale(i)
         // const sub_cluster_color = d3.hsl(cluster_color.h + offset_hsl.h, offset_hsl.s, offset_hsl.l)
-        sub_cluster_color_dict[sub_cluster_label] = offset_hsl
+        sub_cluster_color_dict[sub_cluster_label] = offset_hsl.formatHex()
       })
     })
     setPreviousSubClusterColorDict(sub_cluster_color_dict)
@@ -317,7 +322,6 @@ function App() {
       // setClusterDataFetched(true)
     })
   }
-
   async function applyMerge() {
     if(article_graph === undefined) return
     console.log("merging: ", selectedClusters)
@@ -329,9 +333,9 @@ function App() {
   function applyFilter() {
     if(article_graph === undefined) return
     if(entity_graph === undefined) return
-    if(relevantDocIds.length === 0) return
+    if(searchResultDocs.length === 0) return
     return new Promise((resolve, reject) => {
-      const article_ids = article_graph.article_nodes.filter(article => relevantDocIds.includes(article.id)).map(article => article.id)
+      const article_ids = article_graph.article_nodes.filter(article => searchResultDocs.includes(article.id)).map(article => article.id)
       const clusters = article_graph.clusters
       const entity_clusters = entity_graph.entity_clusters
       console.log("filtering: ", article_ids, clusters)
@@ -354,30 +358,30 @@ function App() {
     })
   }
 
-  function optimizeSearch() {
-    if(article_graph === undefined) return
-    if(entity_graph === undefined) return
-    if(relevantDocIds.length === 0) return
-    return new Promise((resolve, reject) => {
-      const clusters = article_graph.clusters
-      const docs = relevantDocs.map(doc => doc.id)
-      console.log("optimizing: ", docs, clusters)
-      fetch(`${server_address}/user/optimize_partition/${user_id}`, {
-        method: "POST",
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ docs, clusters })
-      })
-        .then(res => res.json())
-        .then(optimize_article_graph => {
-          console.log({optimize_article_graph})
-          setArticleGraph(optimize_article_graph)
-          resolve("success")
-        })
-    })
-  }
+  // function optimizeSearch() {
+  //   if(article_graph === undefined) return
+  //   if(entity_graph === undefined) return
+  //   if(searchResultDocs.length === 0) return
+  //   return new Promise((resolve, reject) => {
+  //     const clusters = article_graph.clusters
+  //     const docs = searchResultDocs.map(doc => doc.id)
+  //     console.log("optimizing: ", docs, clusters)
+  //     fetch(`${server_address}/user/optimize_partition/${user_id}`, {
+  //       method: "POST",
+  //       headers: {
+  //           "Accept": "application/json",
+  //           "Content-Type": "application/json"
+  //       },
+  //       body: JSON.stringify({ docs, clusters })
+  //     })
+  //       .then(res => res.json())
+  //       .then(optimize_article_graph => {
+  //         console.log({optimize_article_graph})
+  //         setArticleGraph(optimize_article_graph)
+  //         resolve("success")
+  //       })
+  //   })
+  // }
 
   function fetchPHilbert() {
     return new Promise((resolve, reject) => {
@@ -424,12 +428,47 @@ function App() {
     })
   }
 
-  function onClusterMoved(value) {
-    const cluster_label = "L-5-1"
+  function handleTooltipItemClicked(item) {
+    console.log({item})
+    if(article_graph === undefined) return
+    const cluster_label = item.cluster_label
+    let article_doc_ids = article_graph.clusters[cluster_label]
+    if(article_doc_ids) {
+      setFetchingSubCluster(false)
+      const color = articleClusterColorDict[cluster_label]
+      console.log(color)
+    } else {
+      article_doc_ids = article_graph.article_nodes.filter(article => article.sub_cluster_label === cluster_label).map(article => article.id)
+      setFetchingSubCluster(true)
+      const color = articleSubClusterColorDict[cluster_label]
+      console.log(color)
+    }
+    setSelectedDocCluster(cluster_label)
+    fetchArticles(article_doc_ids)
   }
+
+  async function fetchArticles(doc_ids) {
+    return new Promise((resolve, reject) => {
+      fetch(`${server_address}/static/articles/`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ doc_ids })
+      })
+        .then(res => res.json())
+        .then(articles => {
+          console.log({articles})
+          setSelectedDocs(articles)
+          resolve("success")
+        })
+    })
+  }
+
   
   return (
-    <div className="App flex w-full h-full">
+    <div className="App flex w-full h-full font-serif">
       <div className='left-panel flex basis-1/2 h-full'>
         {
           <div className="article-hgraph-container flex flex-1 h-full">
@@ -444,7 +483,7 @@ function App() {
               article_graph={article_graph!} 
               entity_graph={entity_graph!}
               peripheral={hilbert}
-              highlightNodeIds={relevantDocIds} 
+              highlightNodeIds={searchResultDocs} 
               onNodesSelected={fetchTopic} 
               onArticleClusterClicked={handleArticleClusterClicked} 
               onEntityClusterClicked={handleEntityClusterClicked} 
@@ -466,7 +505,7 @@ function App() {
       </div>
       <div className='right-panel flex basis-1/2 w-1/12'>
         {
-          <div className='middle-container basis-1/2 flex flex-col '>
+          <div className='middle-container basis-2/5 flex flex-col '>
             <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
               {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
               <div className='toggler-container flex flex-col py-3'>
@@ -486,13 +525,13 @@ function App() {
                   <span className='switch-label mr-2'>Show Article Label</span>
                   <Switch className={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
                 </div>
-                <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
+                {/* <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button> */}
                 {/* <div className='switch-container flex justify-center mr-2 w-fit'>
                   <span className='switch-label mr-2'>Graph</span>
                   <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
                 </div> */}
               </div>
-              <div className='search-container w-fit'>
+              <div className='search-container w-fit flex flex-col'>
                 <Search className={"search-bar w-fit"}
                   placeholder="input search text" 
                   // enterButton="Search" 
@@ -500,7 +539,7 @@ function App() {
                   onChange={(e) => setQuery(e.target.value)}
                   onSearch={search} 
                   loading={searchLoading} />
-                <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
+                <button className={"apply-filter btn mt-1"} onClick={applyFilter}>Filter Search</button>
               </div>
               {/* <button className={"optimize btn ml-2"} onClick={optimizeSearch}>Optimize Search</button> */}
               {/* <div className='search-container w-fit'>
@@ -513,7 +552,7 @@ function App() {
                   loading={searchLoading} />
                 <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
               </div> */}
-              <div className='relevance-threshold-container w-fit'>
+              <div className='relevance-threshold-container w-fit px-0.5'>
                 <span className='relevance-label'> Relevance &gt;= </span>
                 <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
               </div>
@@ -528,6 +567,7 @@ function App() {
                 articleClusterColorDict={articleClusterColorDict}
                 articleSubClusterColorDict={articleSubClusterColorDict}
                 entityClusterColorDict={entityClusterColorDict}
+                onItemClicked={handleTooltipItemClicked}
                 />
               }
             </div>
@@ -536,20 +576,10 @@ function App() {
         {
           <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
             {
-            relevantDocs &&
-            relevantDocs.map((doc_data, index) => {
-              return (
-                <div className="doc-card flex flex-col  border-black/50 px-2">
-                  <div className="doc-card-header flex border-x items-center border-y border-black/50">
-                    <div className="doc-card-title px-1 mr-2 border-r border-black/50"> Doc Id: {doc_data.id} </div>
-                    <div className="doc-card-relevance mr-2"> Relevance: {doc_data.relevance.toFixed(2)} </div>
-                    <div className="doc-card-index ml-auto mr-2"> #{index} </div>
-                  </div>
-                  <span className="w-fit px-1 font-bold italic border-l border-black/50"> Summary: </span>
-                  <p className="doc-card-content text-left text-sm px-1 border-l border-black/50"> {doc_data.summary} </p>
-                </div>
-              )
-            })
+            selectedDocs.length > 0 &&
+            <DocList docs={selectedDocs} 
+              cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
+              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}></DocList>
           }
           </div>
         }

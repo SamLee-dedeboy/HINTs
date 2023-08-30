@@ -30,3 +30,14 @@ class EmbeddingSearch:
         # strings, relatednesses = zip(*strings_and_relatednesses)
         # return strings_and_relatednesses[:top_n]
         return strings_and_relatednesses
+
+    def searchByID(self, query_ids: list[str]):
+        summaries = [
+            {
+                'id': doc['doc_id'],
+                'title': doc['title'],
+                'summary': doc['summary']
+            }
+            for doc in self.embeddings_db if doc['doc_id'] in query_ids
+        ]
+        return summaries
