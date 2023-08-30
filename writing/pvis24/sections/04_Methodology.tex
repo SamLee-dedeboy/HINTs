@@ -1,7 +1,7 @@
 \section{Methodology}
 \subsection{Modeling}
 \subsubsection{Hypergraph Construction}
-A hypergraph is a generalization of a graph in which an edge can connect more than two nodes~\cite{hypergraph_definition}.
+A hypergraph is a generalization of a graph in which an edge can connect any number of nodes~\cite{fischer2021hypergraphsurvey}.
 A hyperedge thus represents a multi-way relationship between nodes.
 In this paper, we model two types of hypergraphs: article hypergraph and participant hypergraph, where articles and participants are the nodes, respectively.
 \textit{Participants} are the core components that the article's content discuss~\cite{use_other_works_to_refine_definition}.
@@ -17,11 +17,8 @@ In this case, the hyperedge represents a co-occurrence relationship between part
 Although these two types of hyperedges are constructed differently, we utilize the \textit{dual} of a hypergraph to simplify the construction process.
 The dual of a hypergraph is simply another hypergraph, where the hyperedges are now nodes and the nodes are now hyperedges. (Add formulas here to explain).
 Therefore, we first model the articles as nodes and participants as hyperedges to construct the article hypergraph $H_A$.
-Then we apply a hierarchical clustering algorithm on $H_A$.
-The detail of the clustering algorithm is explained in~\autoref{sec: clustering}.
-The result of the clustering algorithm represents topics that are discussed in the articles.
-Then, we apply the same clustering algorithm on the dual of the hypergraph, which is the participant hypergraph $H_P$.
-The result represents groups of participants that are frequently mentioned together in the articles.
+The participant hypergraph $H_P$ can then be easily constructed by taking the dual of $H_A$.
+This construction process also allows us to use the same clustering algorithm on both hypergraphs, which is further explained in~\autoref{sec: clustering}.
 
 \subsubsection{Hierarchical Clustering}\label{sec: clustering}
 Common clustering algorithms for graphs consider only graph connectivity.
@@ -47,12 +44,14 @@ The semantic similarity $S_s(i, j)$ is the cosine similarity of the embeddings o
 For article nodes, the embeddings are generated using the article content.
 For participant nodes, the embeddings are generated using a description note of the participant.
 More details about the embeddings are explained in~\autoref{sec: embeddings}.
-The connectivity similarity $S_c$ is the Jaccard similarity, as shown in~\autoref{eq:connectivity_similarity}.
+The connectivity similarity $S_c$ is the weighted Topological Overlap (wTO)~\cite{gysi2018wto},
+which is a weighted generalization of the Overlap Coefficient~\cite{vijaymeena2016survey}, as shown in~\autoref{eq:connectivity_similarity}.
 \begin{equation}\label{eq:connectivity_similarity}
     S_s(i, j) = \frac{v_i \cdot v_j}{||v_i|| \cdot ||v_j||}, \quad
-    S_c(i, j) = \frac{|N_i \cap N_j|}{|N_i \cup N_j|}
+    S_c(i, j) = \frac{\sum_{u=1}^N{w_{i,u}w_{u_j}} + w_{i,j}}{\min(k_i, k_j) + 1 - |w_{i,j}|}
 \end{equation}
-A weighting factor $\alpha$ is used to balance the two similarities, as shown in~\autoref{eq: similarity}.
+where $k_i = \sum_{j=1}^N |w_{i,j}|$ is the total weight of the edges connected to node $i$.
+Finally, a weighting factor $\alpha$ is used to balance the two similarities, as shown in~\autoref{eq: similarity}.
 \begin{equation}\label{eq: similarity}
     S = \alpha S_s + (1-\alpha) S_c
 \end{equation}

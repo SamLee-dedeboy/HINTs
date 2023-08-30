@@ -35,6 +35,12 @@ M.~T. Fischer, A.~Frings, D.~A. Keim, and D.~Seebacher.
 \newblock In {\em 2021 IEEE visualization conference (VIS)}, pp. 81--85. IEEE,
   2021.
 
+\bibitem{gysi2018wto}
+D.~M. Gysi, A.~Voigt, T.~d.~M. Fragoso, E.~Almaas, and K.~Nowick.
+\newblock wto: an r package for computing weighted topological overlap and a
+  consensus network with integrated visualization tool.
+\newblock {\em BMC bioinformatics}, 19(1):1--16, 2018.
+
 \bibitem{kumar2020new}
 T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
   B.~Ravindran.
@@ -48,5 +54,11 @@ T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
 M.~Steinbach, G.~Karypis, and V.~Kumar.
 \newblock A comparison of document clustering techniques.
 \newblock 2000.
+
+\bibitem{vijaymeena2016survey}
+M.~Vijaymeena and K.~Kavitha.
+\newblock A survey on similarity measures in text mining.
+\newblock {\em Machine Learning and Applications: An International Journal},
+  3(2):19--28, 2016.
 
 \end{thebibliography}

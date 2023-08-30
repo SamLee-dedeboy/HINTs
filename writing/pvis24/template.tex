@@ -51,6 +51,7 @@
 \usepackage{cite}                      % needed to automatically sort the references
 \usepackage{tabu}                      % only used for the table example
 \usepackage{booktabs}                  % only used for the table example
+\usepackage{amsmath}
 %% We encourage the use of mathptmx for consistent usage of times font
 %% throughout the proceedings. However, if you encounter conflicts
 %% with other math-related packages, you may want to disable it.
@@ -78,7 +79,8 @@
 
 %% Paper title.
 
-\title{Event HyperGraph for analyzing large collections of text}
+\title{HyperMap: a visual analytics approach for analyzing large collections of unstructured text}
+
 
 %% This is how authors are specified in the conference style
 
@@ -93,10 +95,13 @@
 %%\affiliation{\scriptsize Martha Stewart Enterprises \\ Microsoft Research}
 
 %% Author and Affiliation (multiple authors with multiple affiliations)
+
 \author{Sam Yu-Te Lee\thanks{e-mail: ytlee@ucdavis.edu}\\ %
-        \scriptsize University of California, Davis %
+\scriptsize University of California, Davis %
+\and Aryaman Bahukhandi\thanks{e-mail: abahukhandi@ucdavis.edu}\\
+\scriptsize University of California, Davis
 \and Kwan-Liu Ma\thanks{e-mail: klma@ucdavis.edu}\\ %
-     \scriptsize University of California, Davis %
+ \scriptsize University of California, Davis %
 }
 
 %% A teaser figure can be included as follows
@@ -109,13 +114,13 @@
 
 %% Abstract section.
 \abstract{
-Sensemaking on large collections of text is a challenging task that analysts have to perform.
+Sensemaking on large collections of unstructured text (corpus) is a challenging task that analysts have to perform.
 Previous works approach this problem either from a topic- or entity-based perspective, but they lack interpretability and trust.
-In this paper, we propose a visual analytics system that allow analysts to explore and reorganize a corpus to suit their needs and quickly make sense of the 4Ws from the organized corpus.
+In this paper, we propose a visual analytics system that allows analysts to explore and reorganize a corpus to suit their needs.
 The system first organizes a large corpus into a hypergraph by combining topic- and entity-based extraction techniques.
-Then the hypergraph is hierarchically clustered and visualized for analysts to explore and reorganize interactively. 
-Finally, an event graph visualization method based on storyline enables analysts to quickly make sense of the 4Ws.
-The whole pipeline is designed to foster interpretability and trust by providing semantic context of the visualization and by supporting curating interactions.
+The hypergraph is then hierarchically clustered with an agglomerative clustering algorithm by combining semantic and connectivity similarity.
+The clustered result is visualized for analysts to explore and reorganize interactively. 
+The system is designed to foster interpretability and trust by providing rich semantic context for the visualization and by supporting curating interactions.
 Case studies and a task-based evaluation are used to demonstrate the effectiveness and trustworthiness of the system.
 }
 
