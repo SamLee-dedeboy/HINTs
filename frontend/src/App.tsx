@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useDeferredValue } from 'react'
 import { server_address } from './shared'
 import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph, tooltipContent } from './types'
 import './App.css'
@@ -22,6 +22,7 @@ function App() {
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [brushMode, setBrushMode] = useState<boolean>(false)
+  const [defaultShowEntityClusterLabel, setDefaultShowEntityClusterLabel] = useState<boolean>(true)
   // let selectionMode = false
 
   // searching related
@@ -453,6 +454,7 @@ function App() {
               entitySubClusterColorDict={entitySubClusterColorDict}
               searchMode={searchMode}
               brushMode={brushMode} 
+              showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
               selectedClusters={selectedClusters}
               mergedClusters={mergedClusters}
               gosper={gosper}
@@ -474,6 +476,10 @@ function App() {
                 <div className='switch-container flex justify-center mr-2 w-fit'>
                   <span className='switch-label mr-2'>Search</span>
                   <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+                </div>
+                <div className='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
+                  <span className='switch-label mr-2'>Show Entity Label</span>
+                  <Switch className={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
                 </div>
                 <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
                 {/* <div className='switch-container flex justify-center mr-2 w-fit'>
@@ -506,7 +512,7 @@ function App() {
                 <span className='relevance-label'> Relevance &gt;= </span>
                 <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
               </div>
-              <Slider defaultValue={0} onChange={onClusterMoved} />
+              {/* <Slider defaultValue={0} onChange={onClusterMoved} /> */}
 
               <div className="topic-viewer w-full"> {topic} </div>
             </div>

@@ -65,15 +65,6 @@ const tags = {
           d.zoom = zoom
           group.attr("transform", `translate(${translateX}, ${translateY})`)
         })
-        // .attr("transform", function(d: any) {
-        //     const group = d3.select(this)
-        //     const tag_rect = group.select("rect.cluster-label-border")
-        //     const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
-        //     const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
-        //     d.zoom_translate = `translate(${translateX}, ${translateY})`
-        //     d.zoom = zoom
-        //     return `translate(${translateX}, ${translateY})`
-        // })
     },
 
     liftArticleClusterLabel(svgId, cluster_data) {
@@ -317,6 +308,90 @@ const tags = {
       // centerArea.selectAll("line.sub-cluster-label-border-connector").remove()
     },
 
+    addEntityClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors, showEntityClusterLabelDefault) {
+      const canvas = d3.select('#' + svgId).select("g.margin")
+      const zoom = d3.zoomTransform(canvas.node() as Element)
+      // cluster label
+      const tag = canvas.selectAll("g.entity-border-tag-group")
+        .data(cluster_borders, (d: any) => d.cluster_label)
+        .join("g")
+        .attr("class", "entity-border-tag-group")
+        .attr("opacity", showEntityClusterLabelDefault ? 1 : 0)
+        .each(function(d: any) {
+          d3.select(this).select("g.entity-cluster-label-group").remove()
+          const group = d3.select(this).append("g").attr("class", "entity-cluster-label-group")
+          group.select("text.entity-cluster-label").remove()
+          group.select("rect.entity-cluster-label-border").remove()
+
+          const labels = hierarchical_topics[d.cluster_label]
+          const spans = labels.split(", ")
+          const maxLabelLength = Math.max(...spans.map((label: string) => label.length)) 
+          // label
+          group.append("text")
+            .datum(d)
+            .attr("class", "entity-cluster-label")
+            // .text((d: any) => labels)
+            .attr("x", (d: any) => Math.max(0, d.centroid[0] - maxLabelLength*8))
+            .attr("y", (d: any) => Math.max(0, d.centroid[1] - spans.length*10))
+            .attr("font-size", "1.8rem")
+            .attr("text-anchor", "middle")
+            .attr("pointer-events", "none")
+            .each(function() {
+              const text = d3.select(this)
+              const x = text.attr("x")
+              const y = text.attr("y")
+              const dy = 1.1
+                // lineHeight = 1.1, // ems
+              text.selectAll("tspan")
+                .data(spans)
+                .join("tspan")
+                .attr("x", x)
+                .attr("y", y)
+                .attr("dy", (d, i) => i*dy + "em")
+                .text((d: any, i: number) => `${i+1}. ${d}`)
+                .attr("text-anchor", "start")
+                .attr("dominant-baseline", "central")
+            })
+            // .call(tags.wrap, 300)
+
+          // border
+          const tspans = group.selectAll("tspan").nodes()
+          const start_x = Math.min(...tspans.map((tspan: any) => tspan.getStartPositionOfChar(0).x))
+          const start_y = (tspans[0]! as any).getStartPositionOfChar(0).y- (tspans[0]! as any).getExtentOfChar(0).height/2
+          const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
+          const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
+          const padding_x = 10
+          const padding_y = 10
+          const tspan_border = group.append("rect")
+            .datum(d)
+            .attr("class", "entity-cluster-label-border")
+            .attr("x", start_x - padding_x)
+            .attr("y", d.y = start_y - padding_y)
+            .attr("width", width + 2*padding_x)
+            .attr("height", height + 2*padding_y)
+            .attr("pointer-events", "none")
+            .attr("fill", "white")
+            .attr("stroke-width", 3)
+            .attr('stroke', (d) => cluster_colors[d.cluster_label])
+            .attr("opacity", 0.5)
+            .lower()
+          // const centroid = group.append("circle")
+          //   .datum(d)
+          //   .attr("class", "centroid")
+          //   .attr("cx", (d: any) => d.centroid[0])
+          //   .attr("cy", (d: any) => d.centroid[1])
+          //   .attr("r", 5)
+          //   .attr("fill", "red")
+
+          const tag_rect = group.select("rect.entity-cluster-label-border")
+          const translateX = +tag_rect.attr("x") * zoom.k + zoom.x + +tag_rect.attr("width")/2 * (zoom.k-1)  - +tag_rect.attr("x")
+          const translateY = +tag_rect.attr("y") * zoom.k + zoom.y + +tag_rect.attr("height")/2 * (zoom.k-1) - +tag_rect.attr("y")
+          d.zoom_translate = `translate(${translateX}, ${translateY})`
+          d.zoom = zoom
+          group.attr("transform", `translate(${translateX}, ${translateY})`)
+        })
+    },
+
     wrap(text, width) {
         text.each(function (d, i) {
             var text = d3.select(this),
@@ -355,6 +430,7 @@ const tags = {
             // text.selectAll("tspan").attr("y", parseFloat(y) - em_to_px / 2 * lineHeight * (line_num - 1) / 2)
             text.selectAll("tspan").attr("y", parseFloat(y))
         });
+      
     }
 }
 

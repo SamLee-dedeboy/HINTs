@@ -79,7 +79,7 @@ def get_article_partition(uid):
             "sub_clusters": cluster_children_dict,
             "cluster_order": cluster_order,
             "update_cluster_order": update_cluster_order,   
-            "hierarchical_topics": user_hgraph.hierarchical_topics,
+            "hierarchical_topics": user_hgraph.article_hierarchical_topics,
             "article_cluster_linked_entities": article_cluster_entities,
         },
         "entity_graph": {
@@ -88,6 +88,7 @@ def get_article_partition(uid):
             "entity_sub_clusters": entity_cluster_children_dict,
             "entity_cluster_order": entity_cluster_order,
             "entity_update_cluster_order": entity_update_cluster_order,
+            "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
         }
     }
     return json.dumps(hgraph, default=vars)
@@ -134,7 +135,7 @@ def filter_hgraph(uid: int):
             "sub_clusters": cluster_children_dict,
             "cluster_order": cluster_order,
             "update_cluster_order": update_cluster_order,   
-            "hierarchical_topics": user_hgraph.hierarchical_topics,
+            "hierarchical_topics": user_hgraph.article_hierarchical_topics,
             "article_cluster_linked_entities": article_cluster_entities,
             "filtered": True,
         },
@@ -144,6 +145,7 @@ def filter_hgraph(uid: int):
             "entity_sub_clusters": entity_cluster_children_dict,
             "entity_cluster_order": entity_cluster_order,
             "entity_update_cluster_order": entity_update_cluster_order,
+            "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
             "filtered": True,
         }
     }
@@ -217,7 +219,7 @@ def expand_article_cluster(uid):
         "sub_clusters": cluster_children_dict,
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
-        "hierarchical_topics": user_hgraph.hierarchical_topics,
+        "hierarchical_topics": user_hgraph.article_hierarchical_topics,
         "article_cluster_linked_entities": article_cluster_entities,
     }
     return json.dumps(article_graph, default=vars)
@@ -285,78 +287,79 @@ def expand_entity_cluster(uid):
         "entity_sub_clusters": entity_cluster_children_dict,
         "entity_cluster_order": entity_cluster_order,
         "entity_update_cluster_order": entity_update_cluster_order,
+        "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
     }
     return json.dumps(hgraph, default=vars)
 
-@app.route("/user/optimize_partition/<uid>", methods=["POST"])
-def optimize_partition(uid):
-    uid = int(uid)
-    # retain original setups
-    clusters = request.json['clusters']
-    target_articles = request.json['docs']
-    user_hgraph = graph_controller.getUserHGraph(uid)
+# @app.route("/user/optimize_partition/<uid>", methods=["POST"])
+# def optimize_partition(uid):
+#     uid = int(uid)
+#     # retain original setups
+#     clusters = request.json['clusters']
+#     target_articles = request.json['docs']
+#     user_hgraph = graph_controller.getUserHGraph(uid)
 
-    sub_clusters, cluster_children_dict = user_hgraph.getSubClusters(clusters.keys(), isList=True, cluster_type='article')
-    ### optimization 
-    optimal_sub_clusters, optimized_cluster_children_dict = Utils.findOptimalPartition(clusters, sub_clusters, cluster_children_dict, target_articles, user_hgraph)
+#     sub_clusters, cluster_children_dict = user_hgraph.getSubClusters(clusters.keys(), isList=True, cluster_type='article')
+#     ### optimization 
+#     optimal_sub_clusters, optimized_cluster_children_dict = Utils.findOptimalPartition(clusters, sub_clusters, cluster_children_dict, target_articles, user_hgraph)
 
-    ### apply the optimized result to the user hgraph
-    clusters, \
-    article_node_dict, \
-    cluster_order, \
-    update_cluster_order = \
-        Utils.addClusterLabelAndOrder(
-            user_hgraph.article_dict, 
-            clusters, 
-            optimal_sub_clusters, gosper_curve_points
-        )
-    article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, user_hgraph.entity_dict, article_node_dict)
+#     ### apply the optimized result to the user hgraph
+#     clusters, \
+#     article_node_dict, \
+#     cluster_order, \
+#     update_cluster_order = \
+#         Utils.addClusterLabelAndOrder(
+#             user_hgraph.article_dict, 
+#             clusters, 
+#             optimal_sub_clusters, gosper_curve_points
+#         )
+#     article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, user_hgraph.entity_dict, article_node_dict)
 
     
-    article_graph = {
-        "links": user_hgraph.entity_links,
-        "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
-        "clusters": clusters,
-        "sub_clusters": optimized_cluster_children_dict,
-        "cluster_order": cluster_order,
-        "update_cluster_order": update_cluster_order,
-        "hierarchical_topics": user_hgraph.hierarchical_topics,
-        "article_cluster_linked_entities": article_cluster_entities,
-    }
-    return json.dumps(article_graph, default=vars)
+#     article_graph = {
+#         "links": user_hgraph.entity_links,
+#         "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
+#         "clusters": clusters,
+#         "sub_clusters": optimized_cluster_children_dict,
+#         "cluster_order": cluster_order,
+#         "update_cluster_order": update_cluster_order,
+#         "hierarchical_topics": user_hgraph.hierarchical_topics,
+#         "article_cluster_linked_entities": article_cluster_entities,
+#     }
+#     return json.dumps(article_graph, default=vars)
 
 
-@app.route("/user/storyline/<uid>", methods=["POST"])
-def get_storyline(uid):
-    uid = int(uid)
-    clusters = request.json['clusters']
-    user_hgraph = graph_controller.getUserHGraph(uid)
-    article_node_dict = Utils.addClusterLabel(user_hgraph.article_dict, clusters)
-    entity_node_dict = user_hgraph.entity_dict
-    entity_links = user_hgraph.entity_links
+# @app.route("/user/storyline/<uid>", methods=["POST"])
+# def get_storyline(uid):
+#     uid = int(uid)
+#     clusters = request.json['clusters']
+#     user_hgraph = graph_controller.getUserHGraph(uid)
+#     article_node_dict = Utils.addClusterLabel(user_hgraph.article_dict, clusters)
+#     entity_node_dict = user_hgraph.entity_dict
+#     entity_links = user_hgraph.entity_links
 
-    storyline = defaultdict(lambda :defaultdict(list))
-    for entity_link in entity_links:
-        source = entity_link['source']
-        target = entity_link['target']
-        if source in article_node_dict:
-            article_node = article_node_dict[source]
-            entity_node = entity_node_dict[target]
-        else:
-            article_node = article_node_dict[target]
-            entity_node = entity_node_dict[source]
+#     storyline = defaultdict(lambda :defaultdict(list))
+#     for entity_link in entity_links:
+#         source = entity_link['source']
+#         target = entity_link['target']
+#         if source in article_node_dict:
+#             article_node = article_node_dict[source]
+#             entity_node = entity_node_dict[target]
+#         else:
+#             article_node = article_node_dict[target]
+#             entity_node = entity_node_dict[source]
 
-        # bin article nodes by cluster
-        cluster_label = article_node['cluster_label']
-        storyline[entity_node['id']][cluster_label].append(article_node['id'])
-    res = {
-        "storyline": storyline,
-        "links": entity_links,
-        "entity_data": entity_node_dict,
-        "article_data": article_node_dict,
-    }
-    Utils.save_json(res, 'tmp_storylinedata.json')
-    return json.dumps(res)
+#         # bin article nodes by cluster
+#         cluster_label = article_node['cluster_label']
+#         storyline[entity_node['id']][cluster_label].append(article_node['id'])
+#     res = {
+#         "storyline": storyline,
+#         "links": entity_links,
+#         "entity_data": entity_node_dict,
+#         "article_data": article_node_dict,
+#     }
+#     Utils.save_json(res, 'tmp_storylinedata.json')
+#     return json.dumps(res)
 
 @app.route("/static/p_hilbert/", methods=["POST"])
 def peripheral_hilbert():
@@ -391,25 +394,3 @@ def search():
     Utils.save_json(doc_data, 'tmp_search.json')
     # res = { doc_id: relatedness for doc_id, relatedness in docs }
     return json.dumps({"docs": doc_data, "suggested_threshold": suggested_threshold})
-
-# @app.route("/data/cluster", methods=["POST"])
-# def get_cluster():
-#     level = request.json['level']
-#     cluster_label = request.json['cluster_label']
-#     print(level, cluster_label)
-#     article_nodes, \
-#     entity_nodes, \
-#     argument_nodes, \
-#     candidate_entity_nodes, \
-#     links, \
-#     connected_clusters = event_hgraph.getClusterDetail(level, cluster_label)
-
-#     cluster = {
-#         "article_nodes": data_transformer.transform_article(article_nodes),
-#         # "entity_nodes": entity_nodes,
-#         # "argument_nodes": argument_nodes,
-#         "candidate_entity_nodes": candidate_entity_nodes,
-#         "links": links,
-#         # "connected_clusters": connected_clusters,
-#     }
-#     return json.dumps(cluster, default=vars)

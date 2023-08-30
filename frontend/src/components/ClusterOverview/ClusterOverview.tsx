@@ -27,6 +27,7 @@ interface ClusterOverviewProps {
   entitySubClusterColorDict: any
   brushMode: boolean
   searchMode: boolean
+  showEntityClusterLabelDefault: boolean,
   selectedClusters: string[]
   mergedClusters: any[]
   gosper: any[]
@@ -48,6 +49,7 @@ function ClusterOverview({
   entitySubClusterColorDict,
   brushMode, 
   searchMode,
+  showEntityClusterLabelDefault,
   selectedClusters,
   mergedClusters,
   gosper,
@@ -214,6 +216,17 @@ function ClusterOverview({
   }, [searchMode])
 
   useEffect(() => {
+    const canvas = d3.select('#' + svgId).select("g.margin")
+    if(showEntityClusterLabelDefault) canvas.selectAll("g.entity-border-tag-group").attr("opacity", 1)
+    if(!showEntityClusterLabelDefault) canvas.selectAll("g.entity-border-tag-group").attr("opacity", 0)
+    const border_group = canvas.select("g.entity-border-group")
+    border_group.selectAll("path.concave-hull")
+      .on("mouseover", entity_border_handlers.mouseover)
+      .on("mouseout", entity_border_handlers.mouseout)
+      .on("click", entity_border_handlers.click)
+  }, [showEntityClusterLabelDefault])
+
+  useEffect(() => {
     update_selected_cluster()
     // rebind selected clusters
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
@@ -224,6 +237,7 @@ function ClusterOverview({
       // .call(bindDrag)
       .on("click", article_border_handlers.click)
   }, [selectedClusters, searchMode, highlightNodeIds, articleClusterBorderPoints, clickedClusters, clickedCluster])
+
 
   useEffect(() => {
     update_highlight(highlightNodeIds, [])
@@ -241,10 +255,6 @@ function ClusterOverview({
   useEffect(() => {
     zoom.setProps(undefined, undefined, undefined, articleClusterBorderPoints)
   }, [articleClusterBorderPoints])
-
-  // useEffect(() => {
-  //   listenKeyDown()
-  // }, [hoveredArticleCluster])
 
 
   function init() {
@@ -538,8 +548,6 @@ function ClusterOverview({
   const entity_border_handlers = {
     mouseover: function(e, d) {
       const canvas = d3.select('#' + svgId).select("g.margin")
-      // show connected articles
-      // show_connected_entities(d.cluster_label)
       // highlight nodes
       canvas.selectAll("circle.entity-node")
         .filter((node: any) => node.cluster_label === d.cluster_label)
@@ -547,12 +555,21 @@ function ClusterOverview({
           d.sub_cluster_color = entitySubClusterColorDict[d.sub_cluster_label]
           return d.sub_cluster_color;
         })
-        .attr("opacity", 1)
+        .attr("opacity", clickedCluster? 0.5 : 1)
+      if(clickedCluster) {
+        show_connected_entities(clickedCluster.cluster_label)
+      }
       // highlight border
-      // if(e.ctrlKey || e.metaKey) {
-      //   d3.select(this).attr("stroke-width", 4)
-      // }
-      d3.select(this).attr("opacity", 1)
+      d3.select(this).attr("stroke-width", 4)
+        .attr("stroke", entityClusterColorDict[d.cluster_label])
+        .attr("opacity", 1)
+        .attr("filter", "url(#drop-shadow-border)")
+      const hovered_entity_tag = canvas.selectAll("g.entity-border-tag-group")
+        .filter((rect_data: any) => d.cluster_label === rect_data.cluster_label)
+        .attr("opacity", 1)
+      hovered_entity_tag.select("rect.entity-cluster-label-border")
+        .attr("stroke-width", 10)
+        .attr("opacity", 1)
       setHoveredEntityCluster(d.cluster_label)
       // tooltip
       // const tooltip_coord = SVGToScreen(d.max_x+margin.left, d.min_y+margin.top)
@@ -574,17 +591,23 @@ function ClusterOverview({
     },
     mouseout: function(e, d) {
       const canvas = d3.select('#' + svgId).select("g.margin")
-      const tooltipDiv = d3.select(".tooltip");
-      // remove connected entities
-      // remove_connected_entities(d.cluster_label)
-      
       // reset hovered cluster color
       canvas.selectAll("circle.entity-node")
         .filter((node: any) => node.cluster_label === d.cluster_label)
         .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
         .attr("opacity", 0.5)
+      if(clickedCluster) {
+        show_connected_entities(clickedCluster.cluster_label)
+      }
       // border
-      d3.select(this).attr("opacity", 0.5).attr("stroke-width", 1)
+      d3.select(this).attr("stroke-width", 1)
+        .attr("stroke", "black")
+        .attr("opacity", 0.5)
+      canvas.selectAll("g.entity-border-tag-group")
+        .attr("opacity", showEntityClusterLabelDefault? 1 : 0)
+      canvas.selectAll("rect.entity-cluster-label-border")
+        .attr("stroke-width", 3)
+        .attr("opacity", 0.5)
       setHoveredEntityCluster("")
       
       // hide tooltip
@@ -645,6 +668,9 @@ function ClusterOverview({
       0.2,  // concavity
       'sketch' // smoothing
     )
+
+    // cluster label
+    tags.addEntityClusterLabel(svgId, cluster_borders, entity_graph.entity_hierarchical_topics, entityClusterColorDict, showEntityClusterLabelDefault)
     const border_group = canvas.select("g.entity-border-group")
     const tooltipDiv = d3.select(".tooltip");
     border_group.selectAll("path.concave-hull")
@@ -840,7 +866,6 @@ function ClusterOverview({
   }
 
   function hideSubClusterStructure(e, d) {
-    console.log("hiding sub cluster structure")
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const tooltipDiv = d3.select(".tooltip");
 
@@ -955,7 +980,7 @@ function ClusterOverview({
                 <filter id="drop-shadow-border" x="-10%" y="-10%" width="120%" height="120%">
                     <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0" />
                     <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3" />
-                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal" flood-color="rgba(0, 0, 0, 0.8)" />
+                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal" floodColor="rgba(0, 0, 0, 0.8)" />
                 </filter>
               </defs>
             </svg>

@@ -12,11 +12,13 @@ class EventHGraph:
         atn_gpt_hierarchy_article = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies_article.json'))
         atn_gpt_partitions_entity = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions_entity.json'))
         atn_gpt_hierarchy_entity = json.load(open(data_path + 'AllTheNews/network/server/ravasz_hierarchies_entity.json'))
-        hierarchical_topics = json.load(open(data_path + 'AllTheNews/network/server/hierarchical_topics_mod.json'))
+        article_hierarchical_topics = json.load(open(data_path + 'AllTheNews/network/server/hierarchical_topics_articles.json'))
+        entity_hierarchical_topics = json.load(open(data_path + 'AllTheNews/network/server/hierarchical_topics_entities.json'))
 
         self.hierarchy_article = atn_gpt_hierarchy_article
         self.hierarchy_entity = atn_gpt_hierarchy_entity
-        self.hierarchical_topics = hierarchical_topics
+        self.article_hierarchical_topics = article_hierarchical_topics
+        self.entity_hierarchical_topics = entity_hierarchical_topics
 
         #################
         #################

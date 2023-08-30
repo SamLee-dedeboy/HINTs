@@ -18,6 +18,7 @@ export type d_EntityGraph = {
     entity_sub_clusters: any[],
     entity_cluster_order: any,
     entity_update_cluster_order: any,
+    entity_hierarchical_topics: any,
     links: t_Link[],
     filtered? : boolean,
 }
