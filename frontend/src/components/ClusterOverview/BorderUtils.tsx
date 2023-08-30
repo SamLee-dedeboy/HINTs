@@ -34,6 +34,8 @@ const borders = {
     },
 
     generate_polygon(points, concavity=0.2) {
+        if(points.length === 1) return { polygon: points, centroid: points[0]}
+        if(points.length === 2) return { polygon: points, centroid: [(points[0][0]+points[1][0])/2, (points[0][1]+points[1][1])/2]}
         const polygon = concaveman(points, concavity, 0)
         const centroid = this.get_border_centroid(polygon)
         return { polygon, centroid }

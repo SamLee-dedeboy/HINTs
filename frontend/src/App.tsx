@@ -23,6 +23,7 @@ function App() {
   const [level, setLevel] = useState<any>(5)
   const [brushMode, setBrushMode] = useState<boolean>(false)
   const [defaultShowEntityClusterLabel, setDefaultShowEntityClusterLabel] = useState<boolean>(true)
+  const [defaultShowArticleClusterLabel, setDefaultShowArticleClusterLabel] = useState<boolean>(true)
   // let selectionMode = false
 
   // searching related
@@ -455,7 +456,7 @@ function App() {
               searchMode={searchMode}
               brushMode={brushMode} 
               showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
-              selectedClusters={selectedClusters}
+              showArticleClusterLabelDefault={defaultShowArticleClusterLabel}
               mergedClusters={mergedClusters}
               gosper={gosper}
               />
@@ -480,6 +481,10 @@ function App() {
                 <div className='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
                   <span className='switch-label mr-2'>Show Entity Label</span>
                   <Switch className={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
+                </div>
+                <div className='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
+                  <span className='switch-label mr-2'>Show Article Label</span>
+                  <Switch className={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
                 </div>
                 <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button>
                 {/* <div className='switch-container flex justify-center mr-2 w-fit'>

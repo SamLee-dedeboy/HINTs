@@ -3,7 +3,7 @@ import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
 const tags = {
-    addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors) {
+    addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors, showArticleClusterLabelDefault) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const zoom = d3.zoomTransform(centerArea.node() as Element)
       // cluster label
@@ -11,6 +11,7 @@ const tags = {
         .data(cluster_borders, (d: any) => d.cluster_label)
         .join("g")
         .attr("class", "article-border-tag-group")
+        .attr("opacity", showArticleClusterLabelDefault ? 1 : 0)
         .each(function(d: any) {
           d3.select(this).select("g.cluster-label-group").remove()
           const group = d3.select(this).append("g").attr("class", "cluster-label-group")
@@ -136,11 +137,12 @@ const tags = {
           .filter((filter_data: any) => cluster_label === filter_data.cluster_label)
         sub_cluster_labels.forEach(sub_cluster_label => {
             const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
-            if(sub_cluster_node_data.length <= 5) return
+            // if(sub_cluster_node_data.length <= 5) return
             const points = sub_cluster_node_data.map(node => [node.x, node.y])
             const { polygon, centroid } = borders.generate_polygon(points, concavity)
             const { intersection_point } = borders.findIntersection(parent_border_points, centroid)
-            const offset = 50
+            console.log(points, centroid, intersection_point)
+            const offset = 20
             const dy = intersection_point[1] - centroid[1] 
             const dx = intersection_point[0] - centroid[0]
             const slope = Math.abs(dy / dx)
