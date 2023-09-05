@@ -3,4 +3,5 @@ export type tDocument = {
     title: string,
     summary: string,
     relevance? :number
+    highlight? : boolean
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useDeferredValue } from 'react'
+import { useState, useMemo, useEffect, useRef, MutableRefObject } from 'react'
 import { server_address } from './shared'
 import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph, tooltipContent } from './types'
 import './App.css'
@@ -32,14 +32,16 @@ function App() {
   const [searchMode, setSearchMode] = useState<boolean>(false)
   const [query, setQuery] = useState<string>("")
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
-  const [docsRanked, setDocsRanked] = useState<any[]>([]) 
+  // const [docsRanked, setDocsRanked] = useState<any[] | undefined>(undefined) 
+  const docsRanked: MutableRefObject<any[] | undefined> = useRef(undefined)
   const [relevanceThreshold, setRelevanceThreshold] = useState<number>(0.80)
   const [selectedDocs, setSelectedDocs] = useState<tDocument[]>([])
   const [selectedDocCluster, setSelectedDocCluster] = useState<string | undefined>(undefined)
   const [fetchingSubCluster, setFetchingSubCluster] = useState<boolean>(false)
   const selectedDocIds = useMemo(() => selectedDocs.map(doc => doc.id), [selectedDocs])
 
-  const searchResultDocs = useMemo(() => docsRanked.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked, relevanceThreshold])
+  const searchResultDocs = useMemo(() => docsRanked.current?.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked.current, relevanceThreshold])
+  const searchResultDocIds = useMemo(() => searchResultDocs?.map(doc => doc.id), [searchResultDocs])
 
   const [hilbert, setHilbert] = useState<any>() 
   const [selectedClusters, setSelectedClusters] = useState<string[]>([])
@@ -56,6 +58,10 @@ function App() {
         setHGraphLoaded(true)
       })
   }, [])
+
+  useEffect(() => {
+    console.log(docsRanked)
+  }, [docsRanked])
 
 
   // colors
@@ -288,13 +294,13 @@ function App() {
   }
 
   async function search() {
-    if(query === "") {
-      setSearchMode(true)
-      console.log(tmpDocs)
-      setDocsRanked(tmpDocs)
-      setRelevanceThreshold(0.80)
-      return
-    }
+    // if(query === "") {
+    //   setSearchMode(true)
+    //   console.log(tmpDocs)
+    //   setDocsRanked(tmpDocs)
+    //   setRelevanceThreshold(0.80)
+    //   return
+    // }
     setSearchLoading(true)
     setSearchMode(true)
     const base = article_graph?.article_nodes.map(node => node.id)
@@ -312,8 +318,9 @@ function App() {
       console.log({search_response})
       const docs_ranked = search_response.docs
       const suggested_threshold = search_response.suggested_threshold
+      console.log({docs_ranked})
       setSearchLoading(false)
-      setDocsRanked(docs_ranked)
+      docsRanked.current = search_response.docs
       setRelevanceThreshold(Number(suggested_threshold.toFixed(2)))
       // updateRelevantDocIds(docs_ranked, relevanceThreshold)
       // setEventHGraph(expanded_hgraph)
@@ -333,7 +340,7 @@ function App() {
   function applyFilter() {
     if(article_graph === undefined) return
     if(entity_graph === undefined) return
-    if(searchResultDocs.length === 0) return
+    if(searchResultDocs === undefined) return
     return new Promise((resolve, reject) => {
       const article_ids = article_graph.article_nodes.filter(article => searchResultDocs.includes(article.id)).map(article => article.id)
       const clusters = article_graph.clusters
@@ -443,6 +450,7 @@ function App() {
       console.log(color)
     }
     setSelectedDocCluster(cluster_label)
+    console.log({docsRanked})
     fetchArticles(article_doc_ids)
   }
 
@@ -458,6 +466,16 @@ function App() {
       })
         .then(res => res.json())
         .then(articles => {
+          if(docsRanked.current) {
+            console.log("adding relevance")
+            const doc_relevance_dict = {}
+            docsRanked.current.forEach(doc => {
+              doc_relevance_dict[doc.id] = doc.relevance
+            })
+            articles.forEach(article => {
+              article.relevance = doc_relevance_dict[article.id]
+            })
+          }
           console.log({articles})
           setSelectedDocs(articles)
           resolve("success")
@@ -482,11 +500,11 @@ function App() {
               article_graph={article_graph!} 
               entity_graph={entity_graph!}
               peripheral={hilbert}
-              highlightNodeIds={searchResultDocs} 
+              highlightNodeIds={searchResultDocIds} 
               onNodesSelected={fetchTopic} 
               onArticleClusterClicked={handleArticleClusterClicked} 
               onEntityClusterClicked={handleEntityClusterClicked} 
-              onArticleLabelClicked={handleTooltipItemClicked}
+              onArticleLabelClicked={(cluster_label) => handleTooltipItemClicked(cluster_label)}
               setTooltipData={setTooltipData}
               articleClusterColorDict={articleClusterColorDict}
               articleSubClusterColorDict={articleSubClusterColorDict}
@@ -579,7 +597,8 @@ function App() {
             selectedDocs.length > 0 &&
             <DocList docs={selectedDocs} 
               cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
-              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}></DocList>
+              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
+              highlightDocs={searchResultDocs}/>
           }
           </div>
         }

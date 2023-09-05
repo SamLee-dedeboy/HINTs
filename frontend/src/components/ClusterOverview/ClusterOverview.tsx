@@ -15,7 +15,7 @@ interface ClusterOverviewProps {
   svgId: string
   article_graph: d_ArticleGraph
   entity_graph: d_EntityGraph
-  highlightNodeIds: string[]
+  highlightNodeIds: string[] | undefined
   peripheral: any
   onNodesSelected: (node_ids: string[]) => void
   onArticleClusterClicked: (e: any, cluster_label: string, clusters: any) => void
@@ -213,7 +213,7 @@ function ClusterOverview({
   }, [brushMode])
 
   useEffect(() => {
-    if(searchMode) update_highlight(highlightNodeIds, [])
+    if(searchMode) update_highlight(highlightNodeIds)
     if(!searchMode)remove_highlight() 
   }, [searchMode])
 
@@ -244,7 +244,8 @@ function ClusterOverview({
 
 
   useEffect(() => {
-    update_highlight(highlightNodeIds, [])
+    console.log({highlightNodeIds})
+    update_highlight(highlightNodeIds)
   }, [highlightNodeIds])
 
   useEffect(() => {
@@ -829,9 +830,10 @@ function ClusterOverview({
     
   }
 
-  function update_highlight(highlightNodeIds, highlightClusters, attr='id') {
-    const canvas = d3.select('#' + svgId).select("g.margin")
-    const article_node_group = canvas.select("g.article-node-group")
+  function update_highlight(highlightNodeIds) {
+    if(!highlightNodeIds) return
+    const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+    const article_node_group = centerArea.select("g.article-node-group")
     // set normal nodes to background
     article_node_group.selectAll("circle.article-node")
       .attr("stroke", 'white')
@@ -839,7 +841,7 @@ function ClusterOverview({
 
     // update highlighted nodes 
     article_node_group.selectAll("circle.article-node")
-      .filter((node: any) => highlightNodeIds.includes(node[attr]))
+      .filter((node: any) => highlightNodeIds.includes(node.id))
       // .attr("stroke", 'black')
       .attr("opacity", 1)
   }

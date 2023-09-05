@@ -8,11 +8,12 @@ type DocCardProps = {
 function DocCard({doc, index, theme}: DocCardProps) {
   const setOpacity = (hex, alpha) => `${hex}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
   const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
+  const highlight = doc.highlight ? 'opacity-100' : 'opacity-50'
 
 
   return (
     <>
-      <div className="doc-card-container flex flex-col px-2 my-2 font-serif">
+      <div className={`doc-card-container flex flex-col px-2 my-2 font-serif ${highlight}`}>
         <div className='doc-card-header flex items-center rounded-t border-x-2 border-t-2 border-solid shadow-lg font-semibold text-lg' style={{borderColor: themeColor}}>
             <div className="doc-card-title px-1 mr-2 " style={{borderColor: themeColor}}> {doc.title} </div>
             {/* { doc.relevance && <div className="doc-card-relevance mr-2"> Relevance: {doc.relevance.toFixed(2) }  </div>}

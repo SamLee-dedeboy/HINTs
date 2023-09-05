@@ -5,11 +5,35 @@ type DocListProps = {
   docs: Array<tDocument>
   cluster_label: string
   theme: string
+  highlightDocs: Array<any> | undefined
 }
-function DocList({docs, cluster_label, theme}: DocListProps) {
+function DocList({docs, cluster_label, theme, highlightDocs}: DocListProps) {
   const setOpacity = (hex, alpha) => `${hex}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
   const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
-  console.log(themeColor, cluster_label)
+  const highlightDocIds = useMemo(() => highlightDocs?.map(doc => doc.id), [highlightDocs])
+  const highlightedDocs = useMemo(() => {
+    // add highlight flag
+    docs.forEach(doc => {
+      if(highlightDocIds === undefined) {
+        doc.highlight = true;
+        return
+      }
+      if(highlightDocIds.length === 0) {
+        doc.highlight = false;
+        return
+      }
+      if(highlightDocIds.includes(doc.id)) {
+        doc.highlight = true;
+      }
+    })
+    // sort by relevance
+    if(highlightDocs && highlightDocs.length > 0) {
+      docs.sort((a, b) => b.relevance! - a.relevance!)
+    }
+    console.log({docs})
+    return docs
+  }, [docs, highlightDocs])
+
   return (
     <>
       <div className="doc-list-container px-2">
@@ -19,7 +43,7 @@ function DocList({docs, cluster_label, theme}: DocListProps) {
         </div>
         <div className="doc-list-content">
           {
-            docs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme} key={doc.id}></DocCard> ))
+            highlightedDocs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme} key={doc.id}></DocCard> ))
           }
         </div>
       </div>
