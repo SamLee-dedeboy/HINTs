@@ -8,11 +8,16 @@ In this paper, we model two types of hypergraphs: article hypergraph and partici
 For example, in a news article, the participants can be named entities such as people, organizations, or locations.
 In a research article, the participants can be the concepts or techniques used in the article.
 
+Conducting analysis on article hypergraph and participant hypergraph correspond to topic-based and entity-based analysis, respectively.
 Following the definition of a hypergraph node, a hyperedge can be used to represent two types of multi-way relationships:
 (1) A hyperedge between \textit{articles} can be constructed if the articles all mention the same participant. 
 In this case, the hyperedge represents the co-mention of a participant, i.e.\ a named entity or a concept;
 (2) A hyperedge between \textit{participants} can be constructed if the participants are mentioned together in the same article.
 In this case, the hyperedge represents a co-occurrence relationship between participants.
+Once the two hypergraphs are constructed, they are hierarchically clustered separately.
+Clusters in the article hypergraph represents topics that are discussed in the dataset.
+Clusters in the participant hypergraph represents participants (entities or concepts) that frequently co-occurred in an article.
+For better interpretability of the clustering result, we further assign \textit{tags} for each cluster, which is further explained in~\autoref{sec: tag_assignment}.
 
 Although these two types of hyperedges are constructed differently, we utilize the \textit{dual} of a hypergraph to simplify the construction process.
 The dual of a hypergraph is simply another hypergraph, where the hyperedges are now nodes and the nodes are now hyperedges. (Add formulas here to explain).
@@ -23,7 +28,7 @@ This construction process also allows us to use the same clustering algorithm on
 \subsubsection{Hierarchical Clustering}\label{sec: clustering}
 Common clustering algorithms for graphs consider only graph connectivity.
 However, for the best interpretability of the clustering result, the node embeddings must be also used in the clustering process.
-The necessity of incorporating node embeddings is further explained in~\autoref{sec: topic_assignment}.
+The necessity of incorporating node embeddings is further explained in~\autoref{sec: tag_assignment}.
 Therefore, this limits our choice of clustering algorithms to attributed node clustering algorithms.
 
 Although there are existing approaches that can cluster attributed nodes on graphs such as EVA~\cite{citraro2020eva} and iLouvain~\cite{combe2015louvain}, they are not designed for hypergraphs.
@@ -69,5 +74,6 @@ OpenAI's embedding API
 \subsubsection{Participant Extraction}\label{sec: participant_extraction}
 Chatgpt for major participant extraction and another model for entity linking
 
-\subsubsection{Topic Assignment}\label{sec: topic_assignment}
+\subsubsection{Topic Assignment}\label{sec: tag_assignment}
 Chatgpt to assign topics to each cluster
+

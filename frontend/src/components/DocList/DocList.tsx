@@ -19,7 +19,7 @@ function DocList({docs, cluster_label, theme}: DocListProps) {
         </div>
         <div className="doc-list-content">
           {
-            docs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme}></DocCard> ))
+            docs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme} key={doc.id}></DocCard> ))
           }
         </div>
       </div>

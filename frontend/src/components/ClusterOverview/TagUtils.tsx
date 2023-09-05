@@ -3,7 +3,7 @@ import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
 const tags = {
-    addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors, showArticleClusterLabelDefault) {
+    addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors, showArticleClusterLabelDefault, onArticleLabelClicked) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const zoom = d3.zoomTransform(centerArea.node() as Element)
       // cluster label
@@ -45,11 +45,25 @@ const tags = {
             .attr("y", d.y = start_y - padding_y)
             .attr("width", width + 2*padding_x)
             .attr("height", height + 2*padding_y)
-            .attr("pointer-events", "none")
             .attr("fill", "white")
             .attr("stroke-width", 3)
             .attr('stroke', (d) => cluster_colors[d.cluster_label])
             .attr("opacity", 0.5)
+            .attr("cursor", "pointer")
+            .attr("pointer-events", "bounding-box")
+            .on("mouseover", function() {
+              d3.select(this)
+                .attr("stroke-width", 10)
+                .attr("opacity", 1)
+            })
+            .on("mouseout", function() {
+              d3.select(this)
+                .attr("stroke-width", 3)
+                .attr("opacity", 0.5)
+            })
+            .on("click", function(e, d: any) {
+              onArticleLabelClicked(d.cluster_label)
+            })
             .lower()
           // const centroid = group.append("circle")
           //   .datum(d)
@@ -68,7 +82,7 @@ const tags = {
         })
     },
 
-    liftArticleClusterLabel(svgId, cluster_data) {
+    liftArticleClusterLabel(svgId, cluster_data, onArticleLabelClicked) {
       cluster_data.lifted = true
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       // move cluster label to top
@@ -89,6 +103,22 @@ const tags = {
       cluster_data.lifted_offset = -tag_offset_y
       target_border_group.transition().duration(1000)
         .attr("transform", prev_translate_str + " " + `translate(0, ${-tag_offset_y*zoom_scale})`)
+      // add mouse events
+      border_rect.attr("cursor", "pointer")
+        .attr("pointer-events", "bounding-box")
+        .on("mouseover", function() {
+          d3.select(this)
+            .attr("stroke-width", 10)
+            .attr("opacity", 1)
+        })
+        .on("mouseout", function() {
+          d3.select(this)
+            .attr("stroke-width", 3)
+            .attr("opacity", 0.5)
+        })
+        .on("click", function(e, d: any) {
+          onArticleLabelClicked(d.cluster_label)
+        })
       
 
       const rect_transform_y = +prev_translate_str.split(",")[1].replace(")", "") - tag_offset_y*zoom_scale
@@ -128,7 +158,8 @@ const tags = {
         cluster_label: string, 
         sub_cluster_labels: string[], 
         sub_cluster_colors: any,
-        concavity: number
+        concavity: number,
+        onArticleLabelClicked: (cluster_label: string) => void
     ) {
         const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
@@ -141,7 +172,6 @@ const tags = {
             const points = sub_cluster_node_data.map(node => [node.x, node.y])
             const { polygon, centroid } = borders.generate_polygon(points, concavity)
             const { intersection_point } = borders.findIntersection(parent_border_points, centroid)
-            console.log(points, centroid, intersection_point)
             const offset = 20
             const dy = intersection_point[1] - centroid[1] 
             const dx = intersection_point[0] - centroid[0]
@@ -244,13 +274,28 @@ const tags = {
             .attr("y", (d) => d.y = tag_rect_y)
             .attr("width", tag_rect_width)
             .attr("height", tag_rect_height)
-            .attr("pointer-events", "none")
             .attr("fill", "white")
             .attr("stroke-width", 2)
             .attr('stroke', sub_cluster_colors[d.label])
             .attr("opacity", 1)
             .lower()
             .attr("transform", `translate(${translateX}, ${translateY})`)
+            .attr("cursor", "pointer")
+            .on("mouseover", function() {
+              d3.select(this)
+                .attr("stroke-width", 10)
+                .attr("opacity", 1)
+              d3.select(this.parentNode)
+                .raise()
+            })
+            .on("mouseout", function() {
+              d3.select(this)
+                .attr("stroke-width", 3)
+                .attr("opacity", 0.5)
+            })
+            .on("click", function(e, d) {
+              onArticleLabelClicked(d.label)
+            })
 
           // text: account for zoom 
           sub_cluster_label.attr("transform", `translate(${translateX}, ${translateY})`)

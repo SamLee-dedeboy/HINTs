@@ -20,6 +20,7 @@ interface ClusterOverviewProps {
   onNodesSelected: (node_ids: string[]) => void
   onArticleClusterClicked: (e: any, cluster_label: string, clusters: any) => void
   onEntityClusterClicked: (e: any, cluster_label: string, clusters: any) => void
+  onArticleLabelClicked: (e: any, cluster_label: string) => void
   setTooltipData: (content: tooltipContent) => void
   articleClusterColorDict: any
   articleSubClusterColorDict: any
@@ -42,6 +43,7 @@ function ClusterOverview({
   onNodesSelected, 
   onArticleClusterClicked, 
   onEntityClusterClicked,
+  onArticleLabelClicked,
   setTooltipData,
   articleClusterColorDict,
   articleSubClusterColorDict,
@@ -217,7 +219,6 @@ function ClusterOverview({
 
 
   useEffect(() => {
-    console.log({showArticleClusterLabelDefault})
     // rebind selected clusters
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
     const border_group = centerArea.select("g.article-border-group")
@@ -416,7 +417,7 @@ function ClusterOverview({
     setArticleClusterBorderPoints(tmp_dict)
 
     // cluster label
-    tags.addArticleClusterLabel(svgId, cluster_borders, article_graph.hierarchical_topics, articleClusterColorDict, showArticleClusterLabelDefault)
+    tags.addArticleClusterLabel(svgId, cluster_borders, article_graph.hierarchical_topics, articleClusterColorDict, showArticleClusterLabelDefault, onArticleLabelClicked)
 
     // border paths
     const tooltipDiv = d3.select(".tooltip");
@@ -480,10 +481,10 @@ function ClusterOverview({
         .attr("stroke", articleClusterColorDict[d.cluster_label])
         .attr("opacity", 1)
         .attr("filter", "url(#drop-shadow-border)")
-      d3.selectAll("rect.cluster-label-border")
-        .filter((rect_data: any) => d.cluster_label === rect_data.cluster_label)
-        .attr("stroke-width", 10)
-        .attr("opacity", 1)
+      // d3.selectAll("rect.cluster-label-border")
+      //   .filter((rect_data: any) => d.cluster_label === rect_data.cluster_label)
+      //   .attr("stroke-width", 10)
+      //   .attr("opacity", 1)
       d3.selectAll("g.article-border-tag-group")
         .filter((tag_data: any) => d.cluster_label === tag_data.cluster_label)
         .attr("opacity", 1)
@@ -495,12 +496,12 @@ function ClusterOverview({
         .attr("stroke", "black")
         .attr("opacity", 0.5)
         .attr("filter", "none")
-      d3.selectAll("rect.cluster-label-border")
-        .attr("stroke-width", 3)
-        .attr("opacity", 0.5)
+      // d3.selectAll("rect.cluster-label-border")
+      //   .attr("stroke-width", 3)
+      //   .attr("opacity", 0.5)
       d3.selectAll("g.article-border-tag-group")
         .attr("opacity", showArticleClusterLabelDefault? 1 : 0)
-        .filter((tag_data: any) => clickedCluster.cluster_label === tag_data.cluster_label)
+        .filter((tag_data: any) => clickedCluster?.cluster_label === tag_data.cluster_label)
         .attr("opacity", 1)
     },
 
@@ -532,7 +533,7 @@ function ClusterOverview({
           } else { // highlight clicked cluster
             if(clickedCluster) hideSubClusterStructure(e, clickedCluster)
             setClickedCluster(d)
-            showSubClusterStructure(e, d)
+            showSubClusterStructure(e, d, onArticleLabelClicked)
           }
           // if(clickedClusters.includes(d.cluster_label)) {
           //   removeClickedCluster(d.cluster_label)
@@ -843,7 +844,7 @@ function ClusterOverview({
       .attr("opacity", 1)
   }
 
-  function showSubClusterStructure(e, d) {
+  function showSubClusterStructure(e, d, onArticleLabelClicked) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       // update sub-cluster labels
       tags.updateArticleSubClusterLabels(
@@ -853,34 +854,16 @@ function ClusterOverview({
         d.cluster_label, 
         article_graph.sub_clusters[d.cluster_label],
         articleSubClusterColorDict,
-        1.5
+        1.5,
+        onArticleLabelClicked
       )
-      tags.liftArticleClusterLabel(svgId, d)
+      tags.liftArticleClusterLabel(svgId, d, onArticleLabelClicked)
 
       // update border color
       d3.select(this).attr("stroke-width", 4)
         .attr("stroke", articleClusterColorDict[d.cluster_label])
         .attr("opacity", 1)
         .attr("filter", "url(#drop-shadow-border)")
-      // const sub_cluster_borders = generate_sub_cluster_borders(
-      //   article_graph.article_nodes,
-      //   article_graph.sub_clusters[d.cluster_label],
-      //   1.5,
-      //   "rounded"
-      // )
-      // centerArea.select("g.article-border-group")
-      //   .selectAll("path.sub-cluster-border")
-      //   .data(sub_cluster_borders, (d: any) => d.sub_cluster_label)
-      //   .join("path")
-      //   .attr("class", "sub-cluster-border")
-      //   .attr("d", dpath => dpath.path)
-      //   .attr("fill", "#e1e1e1")
-      //   .attr("stroke", (dpath: any) => articleSubClusterColorDict[dpath.sub_cluster_label])
-      //   .attr("stroke-width", 1)
-      //   .attr("transform", "translate(0,0)")
-      //   .attr("opacity", 0)
-        // .on("mouseover", article_border_handlers.sub_cluster.mouseover)
-        // .on("mouseout", article_border_handlers.sub_cluster.mouseout)
 
       // show connected entities
       show_connected_entities(d.cluster_label)

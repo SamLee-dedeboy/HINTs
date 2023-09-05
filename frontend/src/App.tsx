@@ -428,10 +428,9 @@ function App() {
     })
   }
 
-  function handleTooltipItemClicked(item) {
-    console.log({item})
+  function handleTooltipItemClicked(cluster_label) {
+    console.log("clicked: ", {cluster_label})
     if(article_graph === undefined) return
-    const cluster_label = item.cluster_label
     let article_doc_ids = article_graph.clusters[cluster_label]
     if(article_doc_ids) {
       setFetchingSubCluster(false)
@@ -487,6 +486,7 @@ function App() {
               onNodesSelected={fetchTopic} 
               onArticleClusterClicked={handleArticleClusterClicked} 
               onEntityClusterClicked={handleEntityClusterClicked} 
+              onArticleLabelClicked={handleTooltipItemClicked}
               setTooltipData={setTooltipData}
               articleClusterColorDict={articleClusterColorDict}
               articleSubClusterColorDict={articleSubClusterColorDict}
@@ -561,7 +561,7 @@ function App() {
               <div className="topic-viewer w-full"> {topic} </div>
             </div>
             <div className='statistics-container w-full flex-1 border rounded '>
-              {
+              {/* {
                 tooltipData &&
                 <Tooltip tooltipData={tooltipData} 
                 articleClusterColorDict={articleClusterColorDict}
@@ -569,7 +569,7 @@ function App() {
                 entityClusterColorDict={entityClusterColorDict}
                 onItemClicked={handleTooltipItemClicked}
                 />
-              }
+              } */}
             </div>
           </div>
         }
