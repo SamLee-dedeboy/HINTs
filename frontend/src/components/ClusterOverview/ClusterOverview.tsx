@@ -311,7 +311,7 @@ function ClusterOverview({
     addBrush()
     sfc.initPeripheral(peripheral)
     sfc.initGosper(gosper)  
-    tags.init(centerAreaOffset, canvasSize)
+    tags.init(svgId, centerAreaOffset, canvasSize)
     // listenKeyDown()
     listenZoom()
     // setTooltipData(initialTooltipData)
@@ -419,7 +419,6 @@ function ClusterOverview({
 
     // cluster label
     tags.addArticleClusterLabel(
-      svgId, 
       cluster_borders, 
       article_graph, 
       articleClusterColorDict, 
@@ -525,7 +524,7 @@ function ClusterOverview({
           // reset highlight
           if(clickedCluster.current !== undefined) {
             if(clickedCluster.current?.cluster_label === d.cluster_label) {
-              tags.removeSubClusterLabels(svgId)
+              tags.removeSubClusterLabels()
               centerArea.select("line.cluster-label-border-connector").remove()
               centerArea.selectAll("g.article-border-tag-group")
                 .select("g.cluster-label-group")
@@ -601,17 +600,7 @@ function ClusterOverview({
   const entity_border_handlers = {
     mouseover: function(e, d) {
       const canvas = d3.select('#' + svgId).select("g.margin")
-      // highlight nodes
-      // canvas.selectAll("circle.entity-node")
-      //   .filter((node: any) => node.cluster_label === d.cluster_label)
-      //   .attr("fill", (d: any) => { 
-      //     d.sub_cluster_color = entitySubClusterColorDict[d.sub_cluster_label]
-      //     return d.sub_cluster_color;
-      //   })
-      //   .attr("opacity", clickedCluster? 0.5 : 1)
-      // if(clickedCluster) {
-      //   show_connected_entities(clickedCluster.cluster_label)
-      // }
+      // add highlighted entities
       // highlight border
       d3.select(this).attr("stroke-width", 4)
         .attr("stroke", entityClusterColorDict[d.cluster_label])
@@ -620,11 +609,32 @@ function ClusterOverview({
       const hovered_entity_tag = canvas.selectAll("g.entity-border-tag-group")
         .filter((rect_data: any) => d.cluster_label === rect_data.cluster_label)
         .attr("opacity", 1)
-      hovered_entity_tag.select("rect.entity-cluster-label-border")
-        .attr("stroke-width", 10)
-        .attr("opacity", 1)
-      // adjust label position
-      hovered_entity_tag.attr("transform", (d: any) => (`translate(${d.hover_offset[0]},${d.hover_offset[1]})`))
+      if(clickedCluster.current) {
+        const cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[clickedCluster.current.cluster_label].map(link => link[1])
+        const hovered_cluster_entity_ids = entity_graph.entity_clusters[d.cluster_label]
+        const cluster_highlighted_entity_ids = hovered_cluster_entity_ids.filter(id => cluster_link_entity_ids.includes(id))
+        if(cluster_highlighted_entity_ids.length !== 0) {
+          const cluster_highlighted_entity_titles = cluster_highlighted_entity_ids.map(id => entity_data_dict[id].title)
+          tags.addHighlightedEntityLabel(d.cluster_label, cluster_highlighted_entity_titles, entityClusterColorDict)
+          hovered_entity_tag.select("rect.highlighted-entity-label-border")
+            .attr("stroke-width", 10)
+            .attr("opacity", 1)
+          hovered_entity_tag.select("rect.entity-cluster-label-border")
+            .attr("stroke-width", 10)
+            .attr("opacity", 1)
+          // adjust label position
+          hovered_entity_tag.attr("transform", (d: any) => (`translate(${d.hover_offset_expanded[0]},${d.hover_offset_expanded[1]})`))
+        } else {
+          // adjust label position
+          hovered_entity_tag.attr("transform", (d: any) => (`translate(${d.hover_offset[0]},${d.hover_offset[1]})`))
+        }
+      } else {
+        hovered_entity_tag.select("rect.entity-cluster-label-border")
+          .attr("stroke-width", 10)
+          .attr("opacity", 1)
+        // adjust label position
+        hovered_entity_tag.attr("transform", (d: any) => (`translate(${d.hover_offset[0]},${d.hover_offset[1]})`))
+      }
 
       setHoveredEntityCluster(d.cluster_label)
       // tooltip
@@ -653,7 +663,8 @@ function ClusterOverview({
         .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
         .attr("opacity", 0.5)
       if(clickedCluster.current) {
-        tags.show_connected_entities(svgId, article_graph, clickedCluster.current.cluster_label)
+        tags.show_connected_entities(article_graph, clickedCluster.current.cluster_label)
+        tags.hideHighlightedEntityLabel()
       }
       // border
       d3.select(this).attr("stroke-width", 1)
@@ -672,7 +683,23 @@ function ClusterOverview({
     },
     click: function(e, d) {
       if(!e.defaultPrevented) {
-        onEntityClusterClicked(e, d.cluster_label, entity_graph.entity_clusters)
+        if(e.ctrlKey || e.metaKey) {
+          onEntityClusterClicked(e, d.cluster_label, entity_graph.entity_clusters)
+        } else {
+          const canvas = d3.select('#' + svgId).select("g.margin")
+          // highlight nodes
+          const nodes = canvas.selectAll("circle.entity-node")
+            .filter((node: any) => node.cluster_label === d.cluster_label)
+            .attr("fill", (d: any) => { 
+              d.sub_cluster_color = entitySubClusterColorDict[d.sub_cluster_label]
+              return d.sub_cluster_color;
+            })
+            .attr("opacity", 1)
+          if(clickedCluster.current) {
+            nodes.attr("opacity", 0.5)
+            tags.show_connected_entities(article_graph, clickedCluster.current.cluster_label)
+           }
+        }
       }
     }
   }
@@ -724,7 +751,7 @@ function ClusterOverview({
     )
 
     // cluster label
-    tags.addEntityClusterLabel(svgId, cluster_borders, entity_graph.entity_hierarchical_topics, entityClusterColorDict, showEntityClusterLabelDefault)
+    tags.addEntityClusterLabel(cluster_borders, entity_graph.entity_hierarchical_topics, entityClusterColorDict, showEntityClusterLabelDefault)
     const border_group = canvas.select("g.entity-border-group")
     const tooltipDiv = d3.select(".tooltip");
     border_group.selectAll("path.concave-hull")
@@ -796,7 +823,6 @@ function ClusterOverview({
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       // update sub-cluster labels
       tags.updateArticleSubClusterLabels(
-        svgId,
         articleClusterBorderPoints[d.cluster_label],
         article_graph,
         d.cluster_label, 
@@ -805,7 +831,7 @@ function ClusterOverview({
         1.5,
         onArticleLabelClicked
       )
-      tags.liftArticleClusterLabel(svgId, d, article_graph, onArticleLabelClicked)
+      tags.liftArticleClusterLabel(d, article_graph, onArticleLabelClicked)
 
       // update border color
       d3.select(this).attr("stroke-width", 4)
@@ -853,8 +879,8 @@ function ClusterOverview({
       const tooltipDiv = d3.select(".tooltip");
 
       // remove sub-cluster labels
-      tags.removeSubClusterLabels(svgId)
-      tags.restoreLiftedArticleClusterLabel(svgId, d)
+      tags.removeSubClusterLabels()
+      tags.restoreLiftedArticleClusterLabel(d)
 
       d3.select(this).attr("stroke-width", 1)
         .attr("stroke", "black")
@@ -952,8 +978,8 @@ function ClusterOverview({
         <div className='event-cluster-header'>
           Event Cluster
         </div>
-        <div className="svg-container overflow-hidden flex justify-center"> 
-            <svg id={svgId} className='event-cluster-svg'> 
+        <div className="svg-container flex justify-center h-full"> 
+            <svg id={svgId} className='event-cluster-svg h-full z-10'> 
               <defs>
               {/* border shadow filter */}
                 <filter id="drop-shadow-border" x="-10%" y="-10%" width="120%" height="120%">

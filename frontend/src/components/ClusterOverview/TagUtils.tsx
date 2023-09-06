@@ -3,21 +3,22 @@ import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
 const tags: any = {
+    svgId: undefined,
     centerAreaOffset: undefined,
     canvasSize: undefined,
-    init(centerAreaOffset, canvasSize) {
+    init(svgId, centerAreaOffset, canvasSize) {
+      this.svgId = svgId
       this.centerAreaOffset = centerAreaOffset
       this.canvasSize = canvasSize
     },
     addArticleClusterLabel(
-      svgId: string, 
       cluster_borders: any[], 
       article_graph: any, 
       cluster_colors: any, 
       showArticleClusterLabelDefault: boolean, 
       onArticleLabelClicked: (cluster_data: any) => void
     ) {
-      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+      const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       const zoom = d3.zoomTransform(centerArea.node() as Element)
       // cluster label
       const tag = centerArea.selectAll("g.article-border-tag-group")
@@ -75,8 +76,8 @@ const tags: any = {
                 .attr("opacity", 0.5)
             })
             .on("click", function(e, d: any) {
-              tags.remove_connected_entities(svgId)
-              tags.show_connected_entities(svgId, article_graph, d.cluster_label)
+              tags.remove_connected_entities()
+              tags.show_connected_entities(article_graph, d.cluster_label)
               onArticleLabelClicked(d)
             })
             .lower()
@@ -97,9 +98,9 @@ const tags: any = {
         })
     },
 
-    liftArticleClusterLabel(svgId, cluster_data, article_graph, onArticleLabelClicked: (cluster_data: any) => void) {
+    liftArticleClusterLabel(cluster_data, article_graph, onArticleLabelClicked: (cluster_data: any) => void) {
       cluster_data.lifted = true
-      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+      const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       // move cluster label to top
       const target_border_group = centerArea.selectAll("g.cluster-label-group")
         .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
@@ -132,8 +133,8 @@ const tags: any = {
             .attr("opacity", 0.5)
         })
         .on("click", function(e, d: any) {
-          tags.remove_connected_entities(svgId)
-          tags.show_connected_entities(svgId, article_graph, d.cluster_label)
+          tags.remove_connected_entities()
+          tags.show_connected_entities(article_graph, d.cluster_label)
           onArticleLabelClicked(d)
         })
       
@@ -155,9 +156,9 @@ const tags: any = {
       target_border_group.raise()
     },
 
-    restoreLiftedArticleClusterLabel(svgId, cluster_data) {
+    restoreLiftedArticleClusterLabel(cluster_data) {
       cluster_data.lifted = false
-      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+      const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
 
       const target_border_group = centerArea.selectAll("g.article-border-tag-group")
         .select("g.cluster-label-group")
@@ -169,7 +170,6 @@ const tags: any = {
     },
 
     updateArticleSubClusterLabels(
-        svgId: string, 
         parent_border_points: any[],
         article_graph: d_ArticleGraph,
         cluster_label: string, 
@@ -178,7 +178,7 @@ const tags: any = {
         concavity: number,
         onArticleLabelClicked: (cluster_data: any) => void
     ) {
-        const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+        const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
         const tag_data: any[] = []
         const parent_cluster_group = centerArea.selectAll("g.article-border-tag-group")
@@ -314,8 +314,8 @@ const tags: any = {
                 .attr("stroke-width", 3)
             })
             .on("click", function(e, d) {
-              tags.remove_connected_entities(svgId)
-              tags.show_connected_entities(svgId, article_graph, d.label)
+              tags.remove_connected_entities()
+              tags.show_connected_entities(article_graph, d.label)
               d.cluster_label = d.label
               onArticleLabelClicked(d)
             })
@@ -370,16 +370,16 @@ const tags: any = {
 
     },
 
-    removeSubClusterLabels(svgId: string) {
-      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+    removeSubClusterLabels() {
+      const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       centerArea.selectAll("g.sub-cluster-label-group").remove()
       // centerArea.selectAll("text.sub-cluster-label").remove()
       // centerArea.selectAll("rect.sub-cluster-label-border").remove()
       // centerArea.selectAll("line.sub-cluster-label-border-connector").remove()
     },
 
-    addEntityClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors, showEntityClusterLabelDefault) {
-      const canvas = d3.select('#' + svgId).select("g.margin")
+    addEntityClusterLabel(cluster_borders, hierarchical_topics, cluster_colors, showEntityClusterLabelDefault) {
+      const canvas = d3.select('#' + tags.svgId).select("g.margin")
       const zoom = d3.zoomTransform(canvas.node() as Element)
       // cluster label
       const tag = canvas.selectAll("g.entity-border-tag-group")
@@ -466,26 +466,92 @@ const tags: any = {
           if(d.centroid[0] > tags.centerAreaOffset.left 
             && d.centroid[0] < tags.canvasSize.width - tags.centerAreaOffset.right
             && d.centroid[1] < tags.centerAreaOffset.top) {
+              d.centroid_position = "top"
               d.hover_offset = [0, Math.min(tags.centerAreaOffset.top, Math.max(d.max_y - d.min_y, rect_outer_height/2))]
           // left
           } else if(d.centroid[0] < tags.centerAreaOffset.left
             && d.centroid[1] < tags.canvasSize.height - tags.centerAreaOffset.bottom) {
+              d.centroid_position = "left"
               d.hover_offset = [Math.min(tags.centerAreaOffset.left, Math.max(d.max_x-d.min_x, rect_outer_width/2+30)), 0]
           // bottom
           } else if(d.centroid[1] > tags.canvasSize.height - tags.centerAreaOffset.bottom) {
+            d.centroid_position = "bottom"
             d.hover_offset = [0, -Math.min(tags.centerAreaOffset.bottom, Math.max(d.max_y-d.min_y, rect_outer_height/2))]
           // right
           } else {
+            d.centroid_position = "right"
             d.hover_offset = [-Math.min(tags.centerAreaOffset.right, Math.max(d.max_x-d.min_x, rect_outer_width/2)), 0]
           }
         })
     },
 
-    show_connected_entities(svgId, article_graph: d_ArticleGraph, article_cluster_label) {
-      console.log("show connected entities")
+    addHighlightedEntityLabel(cluster_label: string, entity_titles: string[], cluster_colors: any) {
+      const canvas = d3.select('#' + tags.svgId).select("g.margin")
+      const hovered_entity_tag = canvas.selectAll("g.entity-border-tag-group")
+        .filter((rect_data: any) => cluster_label === rect_data.cluster_label)
+      const group = hovered_entity_tag.select("g.entity-cluster-label-group")
+      group.select("text.highlighted-entity-label").remove()
+      group.select("rect.highlighted-entity-label-border").remove()
+      const cluster_label_text = group.select("text.entity-cluster-label")
+      const cluster_label_rect = group.select("rect.entity-cluster-label-border")
+      const original_rect_width = +cluster_label_rect.attr("width")
+      const original_rect_height = +cluster_label_rect.attr("height")
+      const highlighted_entity_text = group.append("text")
+        .datum(entity_titles.join(", "))
+        .text(d =>  d)
+        .attr("class", "highlighted-entity-label")
+        .attr("x", +cluster_label_text.attr("x") + original_rect_width)
+        .attr("y", +cluster_label_text.attr("y"))
+        .attr("font-size", "1.8rem")
+        .attr("text-anchor", "start")
+        .attr("pointer-events", "none")
+        .call(tags.wrap, 600)
+      highlighted_entity_text.append("tspan")
+        .attr("text-anchor", "bottom")
+        .attr("dominant-baseline", "central")
+        .text("Mentioned Entities: ")
+        .lower()
+      const tspans = highlighted_entity_text.selectAll("tspan").nodes()
+      const start_x = Math.min(...tspans.map((tspan: any) => tspan.getStartPositionOfChar(0).x))
+      const start_y = (tspans[0]! as any).getStartPositionOfChar(0).y- (tspans[0]! as any).getExtentOfChar(0).height/2
+      const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
+      const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
+      const padding_x = 10
+      const padding_y = 10
+      const rect_outer_width = width + 2*padding_x
+      const rect_outer_height = height + 2*padding_y
+      group.append("rect")
+        .attr("class", "highlighted-entity-label-border")
+        .attr("x", start_x - padding_x)
+        .attr("y", start_y - padding_y)
+        .attr("width", rect_outer_width)
+        .attr("height", rect_outer_height)
+        .attr("pointer-events", "none")
+        .attr("fill", "white")
+        .attr("stroke-width", 3)
+        .attr('stroke', (d) => cluster_colors[cluster_label])
+        .attr("opacity", 0.5)
+        .lower()
+      hovered_entity_tag.each(function(d: any) {
+        if(d.centroid_position === "right") {
+          d.hover_offset_expanded = [d.hover_offset[0] - rect_outer_width - 10, d.hover_offset[1]]
+        } else {
+          d.hover_offset_expanded = d.hover_offset
+        }
+      })
+    },
+    hideHighlightedEntityLabel() {
+      const canvas = d3.select('#' + tags.svgId).select("g.margin")
+      const hovered_entity_tag = canvas.selectAll("g.entity-border-tag-group")
+      hovered_entity_tag.select("rect.highlighted-entity-label-border").attr("opacity", 0)
+      hovered_entity_tag.select("text.highlighted-entity-label").attr("opacity", 0)
+
+    },
+
+    show_connected_entities(article_graph: d_ArticleGraph, article_cluster_label) {
       // groups
-      const canvas = d3.select('#' + svgId).select("g.margin")
-      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+      const canvas = d3.select('#' + tags.svgId).select("g.margin")
+      const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       const entity_node_group = canvas.select("g.entity-node-group")
       const article_node_group = centerArea.select("g.article-node-group")
       // sub cluster centroids
@@ -493,10 +559,9 @@ const tags: any = {
           .filter((filter_data: any) => article_cluster_label === filter_data.cluster_label || filter_data.label)
       // const sub_cluster_centroids = (cluster_group.datum() as any).sub_cluster_centroids
 
-      console.log(article_graph.cluster_entity_inner_links, article_cluster_label)
       // cluster link ids
       const cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[1])
-      const cluster_link_article_ids = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[0])
+      // const cluster_link_article_ids = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[0])
       // put normal nodes to back
       const cluster_entities = entity_node_group.selectAll("circle.entity-node")
           .filter((d: any) => cluster_link_entity_ids.includes(d.id))
@@ -544,8 +609,8 @@ const tags: any = {
           .attr("pointer-events", "none")
     },
 
-    remove_connected_entities(svgId: string) {
-      const canvas = d3.select('#' + svgId).select("g.margin")
+    remove_connected_entities() {
+      const canvas = d3.select('#' + tags.svgId).select("g.margin")
       canvas.select("g.entity-node-group").selectAll("circle.entity-node")
         .attr("opacity", 0.5)
         .attr("stroke-width", 1)
@@ -561,7 +626,7 @@ const tags: any = {
                 lineHeight = 1.1, // ems
                 x = text.attr("x"),
                 y = text.attr("y"),
-                dy = 0, //parseFloat(text.attr("dy")),
+                dy = 1.1, //parseFloat(text.attr("dy")),
                 tspan = text.text(null)
                     .append("tspan")
                     .attr("x", x)

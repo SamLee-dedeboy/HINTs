@@ -24,7 +24,7 @@ function App() {
   const [topic, setTopic] = useState<any>()
   const [level, setLevel] = useState<any>(5)
   const [brushMode, setBrushMode] = useState<boolean>(false)
-  const [defaultShowEntityClusterLabel, setDefaultShowEntityClusterLabel] = useState<boolean>(true)
+  const [defaultShowEntityClusterLabel, setDefaultShowEntityClusterLabel] = useState<boolean>(false)
   const [defaultShowArticleClusterLabel, setDefaultShowArticleClusterLabel] = useState<boolean>(true)
   // let selectionMode = false
 
