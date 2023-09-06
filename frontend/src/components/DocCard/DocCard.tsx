@@ -14,12 +14,12 @@ function DocCard({doc, index, theme}: DocCardProps) {
   return (
     <>
       <div className={`doc-card-container flex flex-col px-2 my-2 font-serif ${highlight}`}>
-        <div className='doc-card-header flex items-center rounded-t border-x-2 border-t-2 border-solid shadow-lg font-semibold text-lg' style={{borderColor: themeColor}}>
+        <div className='doc-card-header flex items-center rounded-t border-x-2 border-t-2 border-solid font-semibold text-lg' style={{borderColor: themeColor}}>
             <div className="doc-card-title px-1 mr-2 " style={{borderColor: themeColor}}> {doc.title} </div>
             {/* { doc.relevance && <div className="doc-card-relevance mr-2"> Relevance: {doc.relevance.toFixed(2) }  </div>}
             <div className="doc-card-index ml-auto mr-2"> #{index} </div> */}
         </div>
-        <div className='doc-card-content flex flex-col border-2 rounded-b shadow-lg' style={{borderColor: themeColor}}>
+        <div className='doc-card-content flex flex-col border-x-2 border-t-[0px] border-b-2 rounded-b shadow-lg' style={{borderColor: themeColor}}>
           {/* <span className="w-fit px-1 font-bold italic"> Summary: </span> */}
           <p className="doc-card-content text-left px-1 "> {doc.summary} </p>
         </div>
