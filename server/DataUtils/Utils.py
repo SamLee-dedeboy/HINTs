@@ -3,8 +3,8 @@ import random
 import math
 import itertools
 from collections import defaultdict
-def getArticleClusterEntities(links, article_dict, entity_dict):
-    cluster_entities_dict = defaultdict(list)
+def getArticleClusterLinks(links, article_dict, entity_dict):
+    cluster_links_dict = defaultdict(list)
     for link in links:
         source = link['source']
         target = link['target']
@@ -13,8 +13,8 @@ def getArticleClusterEntities(links, article_dict, entity_dict):
         entity_node = source_node if source_node['type'] == 'entity' else target_node
         article_node = source_node if source_node['type'] == 'article' else target_node
         cluster_label = article_node['cluster_label']
-        cluster_entities_dict[cluster_label].append(entity_node['id'])
-    return cluster_entities_dict
+        cluster_links_dict[cluster_label].append([article_node['id'], entity_node['id']])
+    return cluster_links_dict
 
     # cluster_entities_dict = {}
     # for cluster_label, article_nodes in clusters.items():
@@ -25,6 +25,17 @@ def getArticleClusterEntities(links, article_dict, entity_dict):
     #     cluster_entities_dict[cluster_label] = cluster_entity_nodes 
 
     # return cluster_entities_dict
+def getClusterEntityInnerLinks(article_dict):
+    cluster_links_dict = defaultdict(list)
+    for article_id, article_data in article_dict.items():
+        cluster_label = article_data['cluster_label']
+        sub_cluster_label = article_data['sub_cluster_label']
+        participant_ids = [participant['entity_id'] for participant in article_data['event']['participants']]
+        combinations = itertools.combinations(participant_ids, 2)
+        for source, target in combinations:
+            cluster_links_dict[cluster_label].append([source, target])
+            cluster_links_dict[sub_cluster_label].append([source, target])
+    return cluster_links_dict
 
 def prepareData(user_hgraph, level, type='article'):
     if type == 'article':

@@ -3,6 +3,7 @@ from collections import defaultdict
 from pprint import pprint
 import numpy as np
 import copy
+import itertools
 
 class EventHGraph:
     def __init__(self, data_path) -> None:
@@ -282,6 +283,7 @@ def prepare_data(nodes, links):
 
     # entity links
     entity_links = list(filter(lambda link: link['source'] in entity_node_ids or link['target'] in entity_node_ids, links))
+
     # compute statistics
     # network_statistics = _network_statistics(article_node_ids, entity_node_ids, links)
 

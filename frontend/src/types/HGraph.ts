@@ -8,7 +8,8 @@ export type d_ArticleGraph = {
     cluster_order: any,
     hierarchical_topics: any,
     update_cluster_order: any,
-    article_cluster_linked_entities: any,
+    // article_cluster_links: any,
+    cluster_entity_inner_links: any,
     filtered? : boolean,
 }
 export type d_EntityGraph = {

@@ -523,6 +523,17 @@ function App() {
       </div>
       <div className='right-panel flex basis-1/2 w-1/12'>
         {
+          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
+            {
+            selectedDocs.length > 0 &&
+            <DocList docs={selectedDocs} 
+              cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
+              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
+              highlightDocs={searchResultDocs}/>
+          }
+          </div>
+        }
+        {
           <div className='middle-container basis-2/5 flex flex-col '>
             <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
               {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
@@ -589,17 +600,6 @@ function App() {
                 />
               } */}
             </div>
-          </div>
-        }
-        {
-          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
-            {
-            selectedDocs.length > 0 &&
-            <DocList docs={selectedDocs} 
-              cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
-              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
-              highlightDocs={searchResultDocs}/>
-          }
           </div>
         }
         </div>

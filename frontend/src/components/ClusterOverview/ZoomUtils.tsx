@@ -27,8 +27,26 @@ function handleZoom(event) {
         .attr("stroke", "black")
 
     const { transform } = event
+    const centerArea = d3.select("g.center-area")
+        .each(function(d: any) {d.zoom = transform;})
     d3.selectAll("g.article-border-group").attr("transform", transform)
     d3.selectAll("g.article-node-group").attr("transform", transform)
+    d3.select("g.link-group").selectAll("path")
+        .attr("d", (d: any) => {
+          const path = d3.path()
+          let source, target;
+          if(d.type === "inner") {
+            source = [d.source.x*transform.k + transform.x + d.offset[0], d.source.y*transform.k + transform.y + d.offset[1]]
+            target = [d.target.x*transform.k + transform.x + d.offset[0], d.target.y*transform.k + transform.y + d.offset[1]]
+          } else {
+            source = [d.source.x*transform.k + transform.x + d.offset[0], d.source.y*transform.k + transform.y + d.offset[1]]
+            target = [d.target.x, d.target.y]
+          }
+          path.moveTo(source[0], source[1])
+        //   path.quadraticCurveTo(source[0], target[1], target[0], target[1])
+          path.lineTo(target[0], target[1])
+          return path.toString()
+        })
     // d3.selectAll("g.entity-node-group").attr("transform", transform)
     // d3.selectAll("g.entity-border-group").attr("transform", transform)
     // d3.select("rect.center-area-background").attr("transform", transform)
@@ -86,6 +104,7 @@ function resetZoom() {
     d3.selectAll("g.entity-border-group").call(zoom.transform, d3.zoomIdentity)
     d3.select("rect.center-area-background").call(zoom.transform, d3.zoomIdentity)
     d3.selectAll("g.cluster-label-group").call(zoom.transform, d3.zoomIdentity)
+    d3.select("g.link-group").call(zoom.transform, d3.zoomIdentity)
 }
 
 

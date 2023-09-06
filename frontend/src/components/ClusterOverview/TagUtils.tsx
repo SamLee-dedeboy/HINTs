@@ -3,7 +3,14 @@ import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
 const tags = {
-    addArticleClusterLabel(svgId, cluster_borders, hierarchical_topics, cluster_colors, showArticleClusterLabelDefault, onArticleLabelClicked) {
+    addArticleClusterLabel(
+      svgId: string, 
+      cluster_borders: any[], 
+      article_graph: any, 
+      cluster_colors: any, 
+      showArticleClusterLabelDefault: boolean, 
+      onArticleLabelClicked: (cluster_data: any) => void
+    ) {
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       const zoom = d3.zoomTransform(centerArea.node() as Element)
       // cluster label
@@ -22,7 +29,7 @@ const tags = {
           group.append("text")
             .datum(d)
             .attr("class", "cluster-label")
-            .text((d: any) => hierarchical_topics[d.cluster_label])
+            .text((d: any) => article_graph.hierarchical_topics[d.cluster_label])
             .attr("x", (d: any) => d.centroid[0])
             .attr("y", (d: any) => d.centroid[1])
             .attr("font-size", "1.8rem")
@@ -62,7 +69,9 @@ const tags = {
                 .attr("opacity", 0.5)
             })
             .on("click", function(e, d: any) {
-              onArticleLabelClicked(d.cluster_label)
+              tags.remove_connected_entities(svgId)
+              tags.show_connected_entities(svgId, article_graph, d.cluster_label)
+              onArticleLabelClicked(d)
             })
             .lower()
           // const centroid = group.append("circle")
@@ -82,7 +91,7 @@ const tags = {
         })
     },
 
-    liftArticleClusterLabel(svgId, cluster_data, onArticleLabelClicked) {
+    liftArticleClusterLabel(svgId, cluster_data, article_graph, onArticleLabelClicked: (cluster_data: any) => void) {
       cluster_data.lifted = true
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       // move cluster label to top
@@ -117,7 +126,9 @@ const tags = {
             .attr("opacity", 0.5)
         })
         .on("click", function(e, d: any) {
-          onArticleLabelClicked(d.cluster_label)
+          tags.remove_connected_entities(svgId)
+          tags.show_connected_entities(svgId, article_graph, d.cluster_label)
+          onArticleLabelClicked(d)
         })
       
 
@@ -159,7 +170,7 @@ const tags = {
         sub_cluster_labels: string[], 
         sub_cluster_colors: any,
         concavity: number,
-        onArticleLabelClicked: (cluster_label: string) => void
+        onArticleLabelClicked: (cluster_data: any) => void
     ) {
         const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
@@ -205,6 +216,11 @@ const tags = {
                 "closest_point": intersection_point,
                 "direction": direction
             })
+        })
+        parent_cluster_group.each(function(d: any) {
+          let sub_cluster_centroids = {}
+          tag_data.forEach(tag_datum => (sub_cluster_centroids[tag_datum.label] = [tag_datum.centroid, tag_datum.position]))
+          d.sub_cluster_centroids = sub_cluster_centroids
         })
 
         parent_cluster_group.selectAll("g.sub-cluster-label-group")
@@ -284,17 +300,18 @@ const tags = {
             .on("mouseover", function() {
               d3.select(this)
                 .attr("stroke-width", 10)
-                .attr("opacity", 1)
-              d3.select(this.parentNode)
+              d3.select(this.parentNode as any)
                 .raise()
             })
             .on("mouseout", function() {
               d3.select(this)
                 .attr("stroke-width", 3)
-                .attr("opacity", 0.5)
             })
             .on("click", function(e, d) {
-              onArticleLabelClicked(d.label)
+              tags.remove_connected_entities(svgId)
+              tags.show_connected_entities(svgId, article_graph, d.label)
+              d.cluster_label = d.label
+              onArticleLabelClicked(d)
             })
 
           // text: account for zoom 
@@ -323,7 +340,7 @@ const tags = {
           const direction = d.direction
           const tag_width: number = parseFloat(d3.select(this).select("rect.sub-cluster-label-border").attr("width"))
           const tag_height: number = parseFloat(d3.select(this).select("rect.sub-cluster-label-border").attr("height"))
-          let tx, ty;
+          let tx: number, ty: number;
           if(direction === "top") {
             tx = 0
             ty = lineHeight/2 + 5 // 5=padding_y
@@ -437,6 +454,76 @@ const tags = {
           d.zoom = zoom
           group.attr("transform", `translate(${translateX}, ${translateY})`)
         })
+    },
+
+    show_connected_entities(svgId, article_graph: d_ArticleGraph, article_cluster_label) {
+      console.log("show connected entities")
+      // groups
+      const canvas = d3.select('#' + svgId).select("g.margin")
+      const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+      const entity_node_group = canvas.select("g.entity-node-group")
+      const article_node_group = centerArea.select("g.article-node-group")
+      // sub cluster centroids
+      const cluster_group = centerArea.selectAll(".cluster-label-group .sub-cluster-label-group")
+          .filter((filter_data: any) => article_cluster_label === filter_data.cluster_label || filter_data.label)
+      // const sub_cluster_centroids = (cluster_group.datum() as any).sub_cluster_centroids
+
+      console.log(article_graph.cluster_entity_inner_links, article_cluster_label)
+      // cluster link ids
+      const cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[1])
+      const cluster_link_article_ids = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[0])
+      // put normal nodes to back
+      const cluster_entities = entity_node_group.selectAll("circle.entity-node")
+          .filter((d: any) => cluster_link_entity_ids.includes(d.id))
+          .attr("opacity", 1)
+          .attr("stroke-width", 2)
+          .data()
+
+      return
+      // links    
+      let link_data: any[] = []
+      article_graph.cluster_entity_inner_links[article_cluster_label].forEach((link: string[]) => {
+        const source = entity_data_dict[link[0]]
+        const target = entity_data_dict[link[1]]
+        link_data.push({ source, target })
+      })
+      // const zoom = (centerArea.datum() as any).zoom || d3.zoomIdentity
+      canvas.select("g.link-group").selectAll("path.link")
+        .data(link_data)
+        .join("path")
+          .attr("class", "link")
+          .attr("stroke", (d: any) => d.color || "grey")
+          .attr("stroke-width", 1)
+          .attr("opacity", 0.7)
+          .attr("fill", "none")
+          .attr("d", (d) => {
+            const path = d3.path()
+            // let source, target;
+            // if(d.type === "inner") {
+            //   source = [d.source.x*zoom.k + zoom.x + d.offset[0], d.source.y*zoom.k + zoom.y + d.offset[1]]
+            //   target = [d.target.x*zoom.k + zoom.x + d.offset[0], d.target.y*zoom.k + zoom.y + d.offset[1]]
+            // } else {
+            //   source = [d.source.x*zoom.k + zoom.x + d.offset[0], d.source.y*zoom.k + zoom.y + d.offset[1]]
+            //   target = [d.target.x, d.target.y]
+            // }
+            path.moveTo(d.source.x, d.source.y)
+            path.lineTo(d.target.x, d.target.y)
+            // path.quadraticCurveTo(source[0], target[1], target[0], target[1])
+            
+            return path.toString()
+          })
+          // .attr("x1", (d: any) => d.source.x*zoom.k + zoom.x + d.offset[0])
+          // .attr("y1", (d: any) => d.source.y*zoom.k + zoom.y + d.offset[1])
+          // .attr("x2", (d: any) => d.target.x)
+          // .attr("y2", (d: any) => d.target.y)
+          .attr("pointer-events", "none")
+    },
+
+    remove_connected_entities(svgId: string) {
+      const canvas = d3.select('#' + svgId).select("g.margin")
+      canvas.select("g.entity-node-group").selectAll("circle.entity-node")
+        .attr("opacity", 0.5)
+        .attr("stroke-width", 1)
     },
 
     wrap(text, width) {
