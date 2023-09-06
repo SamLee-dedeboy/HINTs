@@ -2,7 +2,13 @@ import * as d3 from "d3"
 import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
-const tags = {
+const tags: any = {
+    centerAreaOffset: undefined,
+    canvasSize: undefined,
+    init(centerAreaOffset, canvasSize) {
+      this.centerAreaOffset = centerAreaOffset
+      this.canvasSize = canvasSize
+    },
     addArticleClusterLabel(
       svgId: string, 
       cluster_borders: any[], 
@@ -426,13 +432,15 @@ const tags = {
           const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
           const padding_x = 10
           const padding_y = 10
+          const rect_outer_width = width + 2*padding_x
+          const rect_outer_height = height + 2*padding_y
           const tspan_border = group.append("rect")
             .datum(d)
             .attr("class", "entity-cluster-label-border")
             .attr("x", start_x - padding_x)
             .attr("y", d.y = start_y - padding_y)
-            .attr("width", width + 2*padding_x)
-            .attr("height", height + 2*padding_y)
+            .attr("width", rect_outer_width)
+            .attr("height", rect_outer_height)
             .attr("pointer-events", "none")
             .attr("fill", "white")
             .attr("stroke-width", 3)
@@ -453,6 +461,23 @@ const tags = {
           d.zoom_translate = `translate(${translateX}, ${translateY})`
           d.zoom = zoom
           group.attr("transform", `translate(${translateX}, ${translateY})`)
+          // calculate offset for hovering effect
+          // top
+          if(d.centroid[0] > tags.centerAreaOffset.left 
+            && d.centroid[0] < tags.canvasSize.width - tags.centerAreaOffset.right
+            && d.centroid[1] < tags.centerAreaOffset.top) {
+              d.hover_offset = [0, Math.min(tags.centerAreaOffset.top, Math.max(d.max_y - d.min_y, rect_outer_height/2))]
+          // left
+          } else if(d.centroid[0] < tags.centerAreaOffset.left
+            && d.centroid[1] < tags.canvasSize.height - tags.centerAreaOffset.bottom) {
+              d.hover_offset = [Math.min(tags.centerAreaOffset.left, Math.max(d.max_x-d.min_x, rect_outer_width/2+30)), 0]
+          // bottom
+          } else if(d.centroid[1] > tags.canvasSize.height - tags.centerAreaOffset.bottom) {
+            d.hover_offset = [0, -Math.min(tags.centerAreaOffset.bottom, Math.max(d.max_y-d.min_y, rect_outer_height/2))]
+          // right
+          } else {
+            d.hover_offset = [-Math.min(tags.centerAreaOffset.right, Math.max(d.max_x-d.min_x, rect_outer_width/2)), 0]
+          }
         })
     },
 

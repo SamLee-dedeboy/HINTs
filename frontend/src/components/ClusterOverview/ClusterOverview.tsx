@@ -311,6 +311,7 @@ function ClusterOverview({
     addBrush()
     sfc.initPeripheral(peripheral)
     sfc.initGosper(gosper)  
+    tags.init(centerAreaOffset, canvasSize)
     // listenKeyDown()
     listenZoom()
     // setTooltipData(initialTooltipData)
@@ -622,6 +623,9 @@ function ClusterOverview({
       hovered_entity_tag.select("rect.entity-cluster-label-border")
         .attr("stroke-width", 10)
         .attr("opacity", 1)
+      // adjust label position
+      hovered_entity_tag.attr("transform", (d: any) => (`translate(${d.hover_offset[0]},${d.hover_offset[1]})`))
+
       setHoveredEntityCluster(d.cluster_label)
       // tooltip
       // const tooltip_coord = SVGToScreen(d.max_x+margin.left, d.min_y+margin.top)
@@ -657,6 +661,7 @@ function ClusterOverview({
         .attr("opacity", 0.5)
       canvas.selectAll("g.entity-border-tag-group")
         .attr("opacity", showEntityClusterLabelDefault? 1 : 0)
+        .attr("transform", `translate(${0},${0})`)
       canvas.selectAll("rect.entity-cluster-label-border")
         .attr("stroke-width", 3)
         .attr("opacity", 0.5)
@@ -877,15 +882,17 @@ function ClusterOverview({
       const nodes_data = nodes.filter(node => cluster_node_ids.includes(node.id))
       // if(nodes_data.length === 0) return
 
-      const {polygon, path, centroid, max_x, min_y} = borders.generate_border(nodes_data, concavity, smoothing)
+      const {polygon, path, centroid, min_x, max_x, min_y, max_y} = borders.generate_border(nodes_data, concavity, smoothing)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": cluster_order.indexOf(cluster_label),
         "update_cluster_order": update_cluster_order[cluster_label],
         "points": polygon,
         "path": path,
+        "min_x": min_x,
         "max_x": max_x,
         "min_y": min_y,
+        "max_y": max_y,
         "centroid": centroid,
       })
     })
@@ -945,7 +952,7 @@ function ClusterOverview({
         <div className='event-cluster-header'>
           Event Cluster
         </div>
-        <div className="svg-container flex overflow-hidden"> 
+        <div className="svg-container overflow-hidden flex justify-center"> 
             <svg id={svgId} className='event-cluster-svg'> 
               <defs>
               {/* border shadow filter */}

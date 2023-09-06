@@ -342,7 +342,7 @@ function App() {
     if(entity_graph === undefined) return
     if(searchResultDocs === undefined) return
     return new Promise((resolve, reject) => {
-      const article_ids = article_graph.article_nodes.filter(article => searchResultDocs.includes(article.id)).map(article => article.id)
+      const article_ids = article_graph.article_nodes.filter(article => searchResultDocIds?.includes(article.id)).map(article => article.id)
       const clusters = article_graph.clusters
       const entity_clusters = entity_graph.entity_clusters
       console.log("filtering: ", article_ids, clusters)
@@ -486,55 +486,9 @@ function App() {
   
   return (
     <div className="App flex w-full h-full font-serif">
-      <div className='left-panel flex basis-1/2 h-full'>
+      <div className='left-panel flex basis-[85%] h-full justify-between'>
         {
-          <div className="article-hgraph-container flex flex-1 h-full">
-          {
-            !HGraphLoaded &&
-            <div className="loading-hint"> Loading... </div>
-          }
-          {
-            HGraphLoaded && 
-            // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
-            <ClusterOverview svgId={"article-cluster-overview-svg"} 
-              article_graph={article_graph!} 
-              entity_graph={entity_graph!}
-              peripheral={hilbert}
-              highlightNodeIds={searchResultDocIds} 
-              onNodesSelected={fetchTopic} 
-              onArticleClusterClicked={handleArticleClusterClicked} 
-              onEntityClusterClicked={handleEntityClusterClicked} 
-              onArticleLabelClicked={(cluster_label) => handleTooltipItemClicked(cluster_label)}
-              setTooltipData={setTooltipData}
-              articleClusterColorDict={articleClusterColorDict}
-              articleSubClusterColorDict={articleSubClusterColorDict}
-              entityClusterColorDict={entityClusterColorDict}
-              entitySubClusterColorDict={entitySubClusterColorDict}
-              searchMode={searchMode}
-              brushMode={brushMode} 
-              showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
-              showArticleClusterLabelDefault={defaultShowArticleClusterLabel}
-              mergedClusters={mergedClusters}
-              gosper={gosper}
-              />
-          }
-          </div>
-        }
-      </div>
-      <div className='right-panel flex basis-1/2 w-1/12'>
-        {
-          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
-            {
-            selectedDocs.length > 0 &&
-            <DocList docs={selectedDocs} 
-              cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
-              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
-              highlightDocs={searchResultDocs}/>
-          }
-          </div>
-        }
-        {
-          <div className='middle-container basis-2/5 flex flex-col '>
+          <div className='middle-container basis-1/4 flex flex-col'>
             <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
               {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
               <div className='toggler-container flex flex-col py-3'>
@@ -602,7 +556,53 @@ function App() {
             </div>
           </div>
         }
-        </div>
+        {
+          <div className="article-hgraph-container flex flex-1 h-full">
+          {
+            !HGraphLoaded &&
+            <div className="loading-hint"> Loading... </div>
+          }
+          {
+            HGraphLoaded && 
+            // <EventHgraph svgId={'event-network'} network_data={event_hgraph} total_communities={event_hgraph?.communities.length || 1}></EventHgraph>
+            <ClusterOverview svgId={"article-cluster-overview-svg"} 
+              article_graph={article_graph!} 
+              entity_graph={entity_graph!}
+              peripheral={hilbert}
+              highlightNodeIds={searchResultDocIds} 
+              onNodesSelected={fetchTopic} 
+              onArticleClusterClicked={handleArticleClusterClicked} 
+              onEntityClusterClicked={handleEntityClusterClicked} 
+              onArticleLabelClicked={(cluster_label) => handleTooltipItemClicked(cluster_label)}
+              setTooltipData={setTooltipData}
+              articleClusterColorDict={articleClusterColorDict}
+              articleSubClusterColorDict={articleSubClusterColorDict}
+              entityClusterColorDict={entityClusterColorDict}
+              entitySubClusterColorDict={entitySubClusterColorDict}
+              searchMode={searchMode}
+              brushMode={brushMode} 
+              showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
+              showArticleClusterLabelDefault={defaultShowArticleClusterLabel}
+              mergedClusters={mergedClusters}
+              gosper={gosper}
+              />
+          }
+          </div>
+        }
+      </div>
+      <div className='right-panel flex basis-[35%] w-1/12'>
+        {
+          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
+            {
+            selectedDocs.length > 0 &&
+            <DocList docs={selectedDocs} 
+              cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
+              theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
+              highlightDocs={searchResultDocs}/>
+          }
+          </div>
+        }
+      </div>
 
       </div>
   )

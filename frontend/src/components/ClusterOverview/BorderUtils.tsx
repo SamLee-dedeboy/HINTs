@@ -16,6 +16,8 @@ const borders = {
             points.push([node.x + offset_x, node.y + offset_y]) // 9
         })
         const max_x = Math.max(...points.map(p => p[0]))
+        const min_x = Math.min(...points.map(p => p[0]))
+        const max_y = Math.max(...points.map(p => p[1]))
         const min_y = Math.min(...points.map(p => p[1]))
         // const polygon = concaveman(points, concavity, 0)
         const polygon = concaveman(points, concavity, 0)
@@ -30,7 +32,7 @@ const borders = {
         } else {
             path = this.createSmoothPathFromPointsWithLines(polygon)
         }
-        return { polygon, path, centroid, max_x, min_y }
+        return { polygon, path, centroid, min_x, max_x, min_y, max_y }
     },
 
     generate_polygon(points, concavity=0.2) {
