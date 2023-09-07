@@ -408,7 +408,8 @@ function ClusterOverview({
       article_graph.cluster_order, 
       article_graph.update_cluster_order,
       1.5, // concavity
-      "rounded" // smoothing
+      "rounded", // smoothing
+      "gosper"
     )
 
     let tmp_dict = {}
@@ -747,7 +748,8 @@ function ClusterOverview({
       entity_graph.entity_clusters, 
       entity_graph.entity_cluster_order, entity_graph.entity_update_cluster_order, 
       0.2,  // concavity
-      'sketch' // smoothing
+      'sketch', // smoothing
+      "hilbert"
     )
 
     // cluster label
@@ -901,14 +903,14 @@ function ClusterOverview({
       // setTooltipData(initialTooltipData)
   }
 
-  function generate_cluster_borders(nodes, clusters, cluster_order, update_cluster_order, concavity=0.2, smoothing='rounded') {
+  function generate_cluster_borders(nodes, clusters, cluster_order, update_cluster_order, concavity=0.2, smoothing='rounded', curve_type) {
     let border_paths: any[] = []
     Object.keys(clusters).forEach(cluster_label => {
       const cluster_node_ids = clusters[cluster_label]
       const nodes_data = nodes.filter(node => cluster_node_ids.includes(node.id))
       // if(nodes_data.length === 0) return
 
-      const {polygon, path, centroid, min_x, max_x, min_y, max_y} = borders.generate_border(nodes_data, concavity, smoothing)
+      const {polygon, path, centroid, min_x, max_x, min_y, max_y} = borders.generate_border(nodes_data, concavity, smoothing, curve_type)
       border_paths.push({
         "cluster_label": cluster_label,
         "cluster_order": cluster_order.indexOf(cluster_label),

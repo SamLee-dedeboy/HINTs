@@ -1,20 +1,58 @@
 import concaveman from "concaveman"
+import * as d3 from "d3"
 const borders = {
-    generate_border(nodes_data, concavity=0.2, smoothing='rounded') {
+    generate_border(nodes_data, concavity=0.2, smoothing='rounded', curve_type) {
+        // 0.6873313602390351, 9.935177303243627
+        let offsets: any[] = []
         const offset_x = (nodes_data[0] as any).cell_width
         const offset_y = (nodes_data[0] as any).cell_height
+        if(curve_type === "gosper") {
+            const kx = 0.6873313602390351
+            const ky = 9.935177303243627
+            const vertical_dx = Math.sqrt((offset_y * offset_y) / (1 + ky * ky))
+            const vertical_dy = ky * vertical_dx
+            const horizontal_dx = Math.sqrt((offset_x * offset_x) / (1 + kx * kx))
+            const horizontal_dy = kx * horizontal_dx
+            offsets = [
+                [-vertical_dx-horizontal_dx, -vertical_dy+horizontal_dy], // 1
+                [-vertical_dx, -vertical_dy], // 2
+                // [-vertical_dx+horizontal_dx, -vertical_dy-horizontal_dy], // 3
+                [-horizontal_dx, horizontal_dy], // 4
+                [horizontal_dx, -horizontal_dy], // 6
+                // [vertical_dx-horizontal_dx, vertical_dy+horizontal_dy], // 7
+                [vertical_dx, vertical_dy], // 8
+                [vertical_dx+horizontal_dx, vertical_dy-horizontal_dy] // 9
+            ]
+        } else {
+            offsets = [
+                [-offset_x, -offset_y], // 1
+                [0, -offset_y], // 2
+                [offset_x, -offset_y], // 3
+                [-offset_x, 0], // 4
+                [offset_x, 0], // 6
+                [-offset_x, offset_y], // 7
+                [0, offset_y], // 8
+                [offset_x, offset_y] // 9
+            ]
+        }
         // add concave hull forst to make its z-index lower
         let points: any[] = []
-        nodes_data.forEach((node: any) => {
-            points.push([node.x - offset_x, node.y - offset_y]) // 1
-            points.push([node.x, node.y - offset_y]) // 2
-            points.push([node.x + offset_x, node.y - offset_y]) // 3
-            points.push([node.x - offset_x, node.y]) // 4
-            points.push([node.x + offset_x, node.y]) // 6
-            points.push([node.x - offset_x, node.y + offset_y]) // 7
-            points.push([node.x, node.y + offset_y]) // 8
-            points.push([node.x + offset_x, node.y + offset_y]) // 9
+        nodes_data.forEach((node: any, index: number) => {
+            offsets.forEach(offset => {
+                points.push([node.x + offset[0], node.y + offset[1]])
+            })
         })
+        // d3.select("#article-cluster-overview-svg").select("g.center-area")
+        //     .selectAll("circle.test_polygon")
+        //     .data(points)
+        //     .join("circle")
+        //     .attr('class', 'test_polygon')
+        //     .attr('cx', d => d[0])
+        //     .attr('cy', d => d[1])
+        //     .attr('r', 4.5)
+        //     .attr("fill", "black")
+        //     .attr("opacity", 0.5)
+        //     .lower()
         const max_x = Math.max(...points.map(p => p[0]))
         const min_x = Math.min(...points.map(p => p[0]))
         const max_y = Math.max(...points.map(p => p[1]))
@@ -26,7 +64,8 @@ const borders = {
         // const path = this.createSmoothPathFromPointsWithCurves(polygon);
         let path;
         if(smoothing === 'rounded') {
-            path = this.createRoundedCornersFromPointsWithLines(polygon)
+            // path = this.createRoundedCornersFromPointsWithLines(polygon)
+            path = this.createSmoothPath(polygon)
         } else if(smoothing === 'sketch') {
             path = this.createSmoothPathFromPointsWithCurves(polygon)
         } else {
@@ -131,6 +170,14 @@ const borders = {
 
         path += ' Z';
         return path
+    },
+    createSmoothPath(points: [number, number][]) {
+        const path_generator = d3.line()
+            .x((p) => p[0])
+            .y((p) => p[1])
+            // .curve(d3.curveLinear);
+            .curve(d3.curveBasis);
+        return path_generator(points)
     },
 
     get_border_centroid(pts) {
