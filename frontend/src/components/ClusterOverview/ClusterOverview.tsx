@@ -125,6 +125,8 @@ function ClusterOverview({
   // entities
   const [hoveredEntityCluster, setHoveredEntityCluster] = useState<string>("")
   
+  // key
+  const pressedKey: MutableRefObject<string> = useRef("")
   const article_data_dict = useMemo(() => {
     let res = {}
     article_graph.article_nodes.forEach(article => {
@@ -312,7 +314,7 @@ function ClusterOverview({
     sfc.initPeripheral(peripheral)
     sfc.initGosper(gosper)  
     tags.init(svgId, centerAreaOffset, canvasSize)
-    // listenKeyDown()
+    listenKeyBoard()
     listenZoom()
     // setTooltipData(initialTooltipData)
   }
@@ -327,6 +329,11 @@ function ClusterOverview({
     )
     const svg = d3.select('#' + svgId)
       .call(zoom)
+  }
+
+  function listenKeyBoard() {
+    d3.select("body").on("keydown", (e) => pressedKey.current = "" + e.keyCode)
+    d3.select("body").on("keyup", (e) => pressedKey.current = "")
   }
 
   // function listenKeyDown() {
@@ -537,6 +544,18 @@ function ClusterOverview({
           }
           onArticleClusterClicked(e, d.cluster_label, article_graph.clusters)
           clickedCluster.current = undefined
+        } else if(pressedKey.current === "68") {
+          // remove border
+          d3.select(this).remove()
+          // remove tag
+          d3.selectAll("g.article-border-tag-group")
+            .filter((tag_data: any) => d.cluster_label === tag_data.cluster_label)
+            .remove()
+          // remove nodes
+          d3.selectAll("circle.article-node")
+            .filter((node: any) => node.cluster_label === d.cluster_label)
+            .remove()
+          // TODO: reflect the deletion to backend
         } else {
           // if clicking on a highlighted cluster, un-highlight it
           if(clickedCluster.current && clickedCluster.current.cluster_label === d.cluster_label) {
@@ -686,6 +705,17 @@ function ClusterOverview({
       if(!e.defaultPrevented) {
         if(e.ctrlKey || e.metaKey) {
           onEntityClusterClicked(e, d.cluster_label, entity_graph.entity_clusters)
+        } else if(pressedKey.current === "68") {
+          d3.select(this).remove()
+          // remove tag
+          d3.selectAll("g.entity-border-tag-group")
+            .filter((tag_data: any) => d.cluster_label === tag_data.cluster_label)
+            .remove()
+          // remove nodes
+          d3.selectAll("circle.entity-node")
+            .filter((node: any) => node.cluster_label === d.cluster_label)
+            .remove()
+          // TODO: reflect the deletion to backend
         } else {
           const canvas = d3.select('#' + svgId).select("g.margin")
           // highlight nodes

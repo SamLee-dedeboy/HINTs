@@ -344,27 +344,28 @@ const tags: any = {
           const tspans = group.selectAll("tspan").nodes()
           const lineHeight = (tspans[0] as any).getExtentOfChar(0).height
           const direction = d.direction
-          const tag_width: number = parseFloat(d3.select(this).select("rect.sub-cluster-label-border").attr("width"))
-          const tag_height: number = parseFloat(d3.select(this).select("rect.sub-cluster-label-border").attr("height"))
+          const tag_width: number = +d3.select(this).select("rect.sub-cluster-label-border").attr("width")
+          const tag_height: number = +d3.select(this).select("rect.sub-cluster-label-border").attr("height")
           let tx: number, ty: number;
           if(direction === "top") {
             tx = 0
-            ty = lineHeight/2 + 5 // 5=padding_y
+            ty = -lineHeight
           } else if(direction === "bottom") {
             tx = 0
-            ty = -(tag_height/2-5) // 5=padding_y
+            ty = -(tag_height-5) // 5=padding_y
           } else if(direction === "left") {
             tx = tag_width/2
-            ty = 0
+            ty = -tag_height/2
           } else if(direction === "right") {
             tx = -(tag_width/2)
             ty = 0
           }
+          console.log(article_graph.hierarchical_topics[d.label], direction)
           group.selectAll("line.sub-cluster-label-border-connector")
-            // .attr("transform", `translate(${-tx}, ${-ty})`)
+            .attr("transform", `translate(${-tx}, ${-ty})`)
 
-          return `translate(0,0)`
-          // return `translate(${tx},${ty})`
+          // return `translate(0,0)`
+          return `translate(${tx},${ty})`
         })
 
 
