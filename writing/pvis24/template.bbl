@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{abdelaal2022network}
 M.~Abdelaal, N.~D. Schiele, K.~Angerbauer, K.~Kurzhals, M.~Sedlmair, and
@@ -7,6 +7,12 @@ M.~Abdelaal, N.~D. Schiele, K.~Angerbauer, K.~Kurzhals, M.~Sedlmair, and
   network representations.
 \newblock {\em IEEE Transactions on Visualization and Computer Graphics},
   29(1):896--906, 2022.
+
+\bibitem{auber2013gospermap}
+D.~Auber, C.~Huet, A.~Lambert, B.~Renoust, A.~Sallaberry, and A.~Saulnier.
+\newblock Gospermap: Using a gosper curve for laying out hierarchical data.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  19(11):1820--1832, 2013.
 
 \bibitem{kaminski2021hgraphcommunity}
 P.~P. . F.~T. Bogumił~Kamiński.
@@ -50,6 +56,35 @@ T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
   Proceedings of the Eighth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2019 8}, pp. 286--297. Springer, 2020.
 
+\bibitem{ma2013largegraph}
+K.-L. Ma and C.~W. Muelder.
+\newblock Large-scale graph visualization and analytics.
+\newblock {\em Computer}, 46(7):39--46, 2013. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}MC\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2013\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}242}}
+
+
+\bibitem{muelder2008sfc}
+C.~Muelder and K.-L. Ma.
+\newblock Rapid graph layout using space filling curves.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  14(6):1301--1308, 2008.
+
+\bibitem{ouvrard2017hypergraph}
+X.~Ouvrard, J.~L. Goff, and S.~Marchand{-}Maillet.
+\newblock Networks of collaborations: Hypergraph modeling and visualisation.
+\newblock {\em CoRR}, abs/1707.00115, 2017.
+
+\bibitem{park2012concavehull}
+J.-S. Park and S.-J. Oh.
+\newblock A new concave hull algorithm and concaveness measure for
+  n-dimensional datasets.
+\newblock {\em Journal of Information science and engineering}, 28(3):587--600,
+  2012.
+
 \bibitem{steinbach2000doccluster}
 M.~Steinbach, G.~Karypis, and V.~Kumar.
 \newblock A comparison of document clustering techniques.
@@ -60,5 +95,11 @@ M.~Vijaymeena and K.~Kavitha.
 \newblock A survey on similarity measures in text mining.
 \newblock {\em Machine Learning and Applications: An International Journal},
   3(2):19--28, 2016.
+
+\bibitem{gilbert}
+J.~Červený.
+\newblock https://github.com/jakubcerveny/gilbert/commits/master generalized
+  hilbert ("gilbert") space-filling curve for rectangular domains of arbitrary
+  (non-power of two) sizes., 2019.
 
 \end{thebibliography}

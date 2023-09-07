@@ -1,4 +1,4 @@
-\section{Methodology}
+\section{Methodology}\label{sec: methodology}
 \subsection{Modeling}
 \subsubsection{Hypergraph Construction}
 A hypergraph is a generalization of a graph in which an edge can connect any number of nodes~\cite{fischer2021hypergraphsurvey}.
@@ -15,8 +15,8 @@ In this case, the hyperedge represents the co-mention of a participant, i.e.\ a 
 (2) A hyperedge between \textit{participants} can be constructed if the participants are mentioned together in the same article.
 In this case, the hyperedge represents a co-occurrence relationship between participants.
 Once the two hypergraphs are constructed, they are hierarchically clustered separately.
-Clusters in the article hypergraph represents topics that are discussed in the dataset.
-Clusters in the participant hypergraph represents participants (entities or concepts) that frequently co-occurred in an article.
+Clusters in the article hypergraph represent topics that are discussed in the dataset.
+Clusters in the participant hypergraph represent participants (entities or concepts) that frequently co-occurred in an article.
 For better interpretability of the clustering result, we further assign \textit{tags} for each cluster, which is further explained in~\autoref{sec: tag_assignment}.
 
 Although these two types of hyperedges are constructed differently, we utilize the \textit{dual} of a hypergraph to simplify the construction process.

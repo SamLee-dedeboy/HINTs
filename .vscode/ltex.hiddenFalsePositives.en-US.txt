@@ -1,0 +1,1 @@
+{"rule":"NOUN_VERB_CONFUSION","sentence":"^\\QIn our system, we use the space-filling curve (SFC) layout method to layout the extra-node representation of the hypergraph.\\E$"}
