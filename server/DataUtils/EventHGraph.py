@@ -6,7 +6,9 @@ import copy
 import itertools
 
 class EventHGraph:
-    def __init__(self, data_path) -> None:
+    def __init__(self, data_path, init=True) -> None:
+        if not init:
+            return 
         # AllTheNews
         atn_gpt_network_data = json.load(open(data_path + 'AllTheNews/network/server/frontend.json'))
         atn_gpt_partitions_article = json.load(open(data_path + 'AllTheNews/network/server/ravasz_partitions_article.json'))
@@ -24,13 +26,7 @@ class EventHGraph:
         #################
         #################
         # prepare data
-        # self.nodes, self.links, self.partitions_article, self.partitions_entity = filter_network(
-        #     atn_gpt_network_data['nodes'],
-        #     atn_gpt_network_data['links'],
-        #     atn_gpt_partitions_article,
-        #     atn_gpt_partitions_entity,
-        # )
-        self.nodes = atn_gpt_network_data['nodes']
+        nodes = atn_gpt_network_data['nodes']
         self.links = atn_gpt_network_data['links']
         self.partitions_article = atn_gpt_partitions_article
         self.partitions_entity = atn_gpt_partitions_entity
@@ -44,7 +40,7 @@ class EventHGraph:
         self.entity_nodes, \
         self.entity_dict, \
         self.entity_links, \
-         = prepare_data(self.nodes, self.links)
+         = prepare_data(nodes, self.links)
 
         #################
         #################
@@ -59,10 +55,18 @@ class EventHGraph:
             self.hierarchy_entity, self.partitions_entity, self.entity_dict, 
         )
 
-        self.original_article_nodes = self.article_nodes
-        self.original_entity_nodes = self.entity_nodes
-        self.original_entity_links = self.entity_links
+        # self.original_article_nodes = self.article_nodes
+        # self.original_entity_nodes = self.entity_nodes
+        # self.original_entity_links = self.entity_links
         self.filtered = False
+    
+    def save_states(self):
+        return {
+            "article_nodes": [article_node['id'] for article_node in self.article_nodes],
+            "entity_nodes": [entity_node['id'] for entity_node in self.entity_nodes],
+            "links": self.links,
+            "filtered": self.filtered,
+        }
 
     def resetFiltering(self):
         if self.filtered:
@@ -86,10 +90,6 @@ class EventHGraph:
         self.entity_dict = {node['id']: node for node in self.entity_nodes}
         return
 
-    # def apply_filters(self, filters, test=False):
-    #     if test:
-    #         return _get_hierarchy(self.nodes, self.links, self.ravasz_partitions, filters)
-    #     return _apply_filters(filters, self.nodes, self.links, self.community_size_dict)
     def getArticleNodes(self, article_node_ids):
         return [self.article_dict[article_node_id] for article_node_id in article_node_ids]
 
@@ -121,9 +121,6 @@ class EventHGraph:
             else:
                 res[cluster_label] = node_ids
         return res
-
-
-        
     
     def getSubClusterNumDict(self, cluster_labels, cluster_type):
         if cluster_type == 'article':
@@ -225,33 +222,33 @@ class EventHGraph:
         filteredClusterLabels = list(filter(lambda cluster_label: cluster_label in all_partition_labels, nonFilteredClusterLabels))
         return filteredClusterLabels
     
-    def getClusterDetail(self, level, cluster_label):
-        # get the article nodes
-        article_node_ids = _binPartitions(self.nodes, self.partitions_article[level])[int(cluster_label)]
-        article_nodes = [self.article_dict[node_id] for node_id in article_node_ids]
+    # def getClusterDetail(self, level, cluster_label):
+    #     # get the article nodes
+    #     article_node_ids = _binPartitions(self.nodes, self.partitions_article[level])[int(cluster_label)]
+    #     article_nodes = [self.article_dict[node_id] for node_id in article_node_ids]
 
-        # get the argument links
-        cluster_links = [link for link in self.links if link['source'] in article_node_ids or link['target'] in article_node_ids]
-        # filter out entities from arguments
-        entity_node_ids = [link['source'] if link['target'] in article_node_ids else link['target'] for link in cluster_links]
-        entity_nodes = [self.node_dict[node_id] for node_id in entity_node_ids] 
+    #     # get the argument links
+    #     cluster_links = [link for link in self.links if link['source'] in article_node_ids or link['target'] in article_node_ids]
+    #     # filter out entities from arguments
+    #     entity_node_ids = [link['source'] if link['target'] in article_node_ids else link['target'] for link in cluster_links]
+    #     entity_nodes = [self.node_dict[node_id] for node_id in entity_node_ids] 
 
-        # add up article and entities to form cluster nodes
-        cluster_node_ids = article_node_ids + entity_node_ids
-        # filter out links that connect article and argument (not entities)
-        article_entity_links = [link for link in cluster_links if link['source'] in cluster_node_ids and link['target'] in cluster_node_ids]
+    #     # add up article and entities to form cluster nodes
+    #     cluster_node_ids = article_node_ids + entity_node_ids
+    #     # filter out links that connect article and argument (not entities)
+    #     article_entity_links = [link for link in cluster_links if link['source'] in cluster_node_ids and link['target'] in cluster_node_ids]
 
-        # compute statistics
-        # cluster_statistics = _network_statistics(article_node_ids, entity_node_ids, article_entity_links)
+    #     # compute statistics
+    #     # cluster_statistics = _network_statistics(article_node_ids, entity_node_ids, article_entity_links)
 
-        # sort entities by degree
-        # entity_nodes_sorted = sorted(entity_nodes, key=lambda node: cluster_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
-        # candidate_entity_nodes = entity_nodes_sorted[:10]
+    #     # sort entities by degree
+    #     # entity_nodes_sorted = sorted(entity_nodes, key=lambda node: cluster_statistics['entity_node_statistics'][node['id']]['degree'], reverse=True)
+    #     # candidate_entity_nodes = entity_nodes_sorted[:10]
 
-        return article_nodes, \
-                entity_nodes, \
-                article_entity_links, \
-                None
+    #     return article_nodes, \
+    #             entity_nodes, \
+    #             article_entity_links, \
+    #             None
 
 def filter_network(nodes, links, partitions_article, partitions_entity, target_article_ids=None):
     if target_article_ids != None:

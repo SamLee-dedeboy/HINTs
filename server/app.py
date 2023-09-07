@@ -24,16 +24,16 @@ gosper_curve_points = gosper.plot_level(5)
 philbert_curve_points = pHilbert.peripheral_hilbert(128, 20)
 print("init done")
 
-@app.route("/user/hgraph/<uid>", methods=["POST"])
-def get_article_partition(uid):
-    uid = int(uid)
+@app.route("/user/hgraph/", methods=["POST"])
+def get_article_partition():
+    # uid = int(uid)
+    uid = 0
     article_level = request.json['article_level']
     entity_level = request.json['entity_level']
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
     # reset filtering
-    user_hgraph.resetFiltering()
-    # candidate_entity_nodes = user_hgraph.entity_nodes_sorted[:entity_node_num]
+    # user_hgraph.resetFiltering()
 
     ### article
     # clusters and sub clusters
@@ -78,17 +78,19 @@ def get_article_partition(uid):
             "entity_cluster_order": entity_cluster_order,
             "entity_update_cluster_order": entity_update_cluster_order,
             "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
-        }
+        },
+        "user_hgraph": user_hgraph.save_states()
     }
     return json.dumps(hgraph, default=vars)
 
-@app.route("/user/filter/<uid>", methods=["POST"])
-def filter_hgraph(uid: int):
-    uid = int(uid)
+@app.route("/user/filter/", methods=["POST"])
+def filter_hgraph():
+    # uid = int(uid)
     article_node_ids = request.json['article_ids']
     clusters = request.json['clusters']
     entity_clusters = request.json['entity_clusters']
-    user_hgraph = graph_controller.getUserHGraph(uid)
+    user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
+    # user_hgraph = graph_controller.getUserHGraph(uid)
 
     # article
     # filter clusters
@@ -138,17 +140,21 @@ def filter_hgraph(uid: int):
             "entity_update_cluster_order": entity_update_cluster_order,
             "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
             "filtered": True,
-        }
+        },
+        "user_hgraph": user_hgraph.save_states()
     }
     return json.dumps(hgraph, default=vars)
 
-@app.route("/user/expand_cluster/article/<uid>", methods=["POST"])
-def expand_article_cluster(uid):
-    uid = int(uid)
+@app.route("/user/expand_cluster/article/", methods=["POST"])
+def expand_article_cluster():
+    # uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
     clusters = request.json['clusters']
-    user_hgraph = graph_controller.getUserHGraph(uid)
+    print("loading user hgraph")
+    user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
+    print("loading done")
+    # user_hgraph = graph_controller.getUserHGraph(uid)
     sub_clusters, cluster_children_dict = user_hgraph.getSubClusters(clusters.keys(), cluster_type='article', isList=True)
     ###############
     # expand cluster
@@ -215,15 +221,20 @@ def expand_article_cluster(uid):
         # "article_cluster_links": article_cluster_links,
         "cluster_entity_inner_links": cluster_entity_inner_links,
     }
-    return json.dumps(article_graph, default=vars)
+    res = {
+        "article_graph": article_graph,
+        "user_hgraph": user_hgraph.save_states()
+    }
+    return json.dumps(res, default=vars)
 
-@app.route("/user/expand_cluster/entity/<uid>", methods=["POST"])
-def expand_entity_cluster(uid):
-    uid = int(uid)
+@app.route("/user/expand_cluster/entity/", methods=["POST"])
+def expand_entity_cluster():
+    # uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
     entity_clusters = request.json['clusters']
-    user_hgraph = graph_controller.getUserHGraph(uid)
+    user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
+    # user_hgraph = graph_controller.getUserHGraph(uid)
     entity_sub_clusters, entity_cluster_children_dict = user_hgraph.getSubClusters(entity_clusters.keys(), isList=True, cluster_type='entity')
     ###############
     # expand cluster
@@ -282,7 +293,11 @@ def expand_entity_cluster(uid):
         "entity_update_cluster_order": entity_update_cluster_order,
         "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
     }
-    return json.dumps(hgraph, default=vars)
+    res = {
+        "entity_graph": hgraph,
+        "user_hgraph": user_hgraph.save_states()
+    }
+    return json.dumps(res, default=vars)
 
 # @app.route("/user/optimize_partition/<uid>", methods=["POST"])
 # def optimize_partition(uid):

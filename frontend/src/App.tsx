@@ -14,7 +14,7 @@ import { tDocument } from './types/Doc'
 const Search = Input.Search;
 
 function App() {
-  const user_id = 0
+  const user_hgraph_ref: MutableRefObject<any> = useRef(undefined)
   const [article_graph, setArticleGraph] = useState<d_ArticleGraph>()
   const [entity_graph, setEntityGraph] = useState<d_EntityGraph>()
   const [HGraphLoaded, setHGraphLoaded] = useState(false)
@@ -190,7 +190,7 @@ function App() {
   function fetchPartitionArticle() {
     return new Promise((resolve, reject) => {
       console.log("fetching article with partition", level, 3)
-      fetch(`${server_address}/user/hgraph/${user_id}`, {
+      fetch(`${server_address}/user/hgraph/`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
@@ -201,6 +201,7 @@ function App() {
         .then(res => res.json())
         .then(async (hgraph: t_EventHGraph) => {
           console.log({hgraph})
+          user_hgraph_ref.current = hgraph.user_hgraph
           await setArticleGraph(hgraph.article_graph)
           await setEntityGraph(hgraph.entity_graph)
           resolve("success")
@@ -250,18 +251,21 @@ function App() {
   async function handleEntityClusterClicked(e, cluster_id, clusters) {
     return new Promise((resolve, reject) => {
       console.log("fetching for entity cluster", cluster_id)
-      fetch(`${server_address}/user/expand_cluster/entity/${user_id}`, {
+      const cluster_label = cluster_id
+      const user_hgraph = user_hgraph_ref.current
+      fetch(`${server_address}/user/expand_cluster/entity/`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
+        body: JSON.stringify({ cluster_label, clusters, user_hgraph })
       })
         .then(res => res.json())
         .then(expanded_graph => {
           console.log({expanded_graph})
-          setEntityGraph(expanded_graph)
+          setEntityGraph(expanded_graph.entity_graph)
+          user_hgraph_ref.current = expanded_graph.user_hgraph
           resolve("success")
           // setClusterData(cluster_data)
           // setClusterDataFetched(true)
@@ -274,18 +278,21 @@ function App() {
       // setClusterSelected(true)
       // setClusterDataFetched(false)
       console.log("fetching for cluster", cluster_id, clusters)
-      fetch(`${server_address}/user/expand_cluster/article/${user_id}`, {
+      const cluster_label = cluster_id
+      const user_hgraph = user_hgraph_ref.current
+      fetch(`${server_address}/user/expand_cluster/article/`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ cluster_label: cluster_id, clusters: clusters })
+        body: JSON.stringify({ cluster_label, clusters: clusters, user_hgraph })
       })
         .then(res => res.json())
         .then(expanded_graph => {
           console.log({expanded_graph})
-          setArticleGraph(expanded_graph)
+          setArticleGraph(expanded_graph.article_graph)
+          user_hgraph_ref.current = expanded_graph.user_hgraph
           resolve("success")
           // setClusterData(cluster_data)
           // setClusterDataFetched(true)
@@ -346,19 +353,21 @@ function App() {
       const clusters = article_graph.clusters
       const entity_clusters = entity_graph.entity_clusters
       console.log("filtering: ", article_ids, clusters)
-      fetch(`${server_address}/user/filter/${user_id}`, {
+      const user_hgraph = user_hgraph_ref.current
+      fetch(`${server_address}/user/filter/`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ article_ids, clusters, entity_clusters })
+        body: JSON.stringify({ article_ids, clusters, entity_clusters, user_hgraph })
       })
         .then(res => res.json())
         .then(filtered_hgraph => {
           console.log({filtered_hgraph})
           setArticleGraph(filtered_hgraph.article_graph)
           setEntityGraph(filtered_hgraph.entity_graph)
+          user_hgraph_ref.current = filtered_hgraph.user_hgraph
           // setEventHGraphLoaded(true)
           resolve("success")
         })

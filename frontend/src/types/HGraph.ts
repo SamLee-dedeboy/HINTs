@@ -25,5 +25,6 @@ export type d_EntityGraph = {
 }
 export type t_EventHGraph = {
     article_graph: d_ArticleGraph,
-    entity_graph: d_EntityGraph
+    entity_graph: d_EntityGraph,
+    user_hgraph: any,
 }
