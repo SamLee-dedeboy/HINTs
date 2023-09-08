@@ -383,14 +383,17 @@ const tags: any = {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       const zoom = d3.zoomTransform(canvas.node() as Element)
       // cluster label
-      const tag = canvas.selectAll("g.entity-border-tag-group")
+      const tag = canvas.select("g.entity-border-tag-group-parent")
+        .selectAll("g.entity-border-tag-group")
         .data(cluster_borders, (d: any) => d.cluster_label)
         .join("g")
         .attr("class", "entity-border-tag-group")
-        .attr("opacity", showEntityClusterLabelDefault ? 1 : 0)
         .each(function(d: any) {
-          d3.select(this).select("g.entity-cluster-label-group").remove()
-          const group = d3.select(this).append("g").attr("class", "entity-cluster-label-group")
+          d3.select(this).select("g.entity-tag-group").remove()
+          const tag_group = d3.select(this).append("g").attr("class", "entity-tag-group")
+            .attr("opacity", showEntityClusterLabelDefault ? 1 : 0)
+            .attr("pointer-events", showEntityClusterLabelDefault? "auto" : "none")
+          const group = tag_group.append("g").attr("class", "entity-cluster-label-group")
           group.select("text.entity-cluster-label").remove()
           group.select("rect.entity-cluster-label-border").remove()
 
@@ -442,12 +445,13 @@ const tags: any = {
             .attr("y", d.y = start_y - padding_y)
             .attr("width", rect_outer_width)
             .attr("height", rect_outer_height)
-            .attr("pointer-events", "none")
+            // .attr("pointer-events", "none")
             .attr("fill", "white")
             .attr("stroke-width", 3)
             .attr('stroke', (d) => cluster_colors[d.cluster_label])
             .attr("opacity", 0.5)
             .lower()
+
           // const centroid = group.append("circle")
           //   .datum(d)
           //   .attr("class", "centroid")
@@ -468,21 +472,50 @@ const tags: any = {
             && d.centroid[0] < tags.canvasSize.width - tags.centerAreaOffset.right
             && d.centroid[1] < tags.centerAreaOffset.top) {
               d.centroid_position = "top"
-              d.hover_offset = [0, Math.min(tags.centerAreaOffset.top, Math.max(d.max_y - d.min_y, rect_outer_height/2))]
+              // d.hover_offset = [0, Math.min(tags.centerAreaOffset.top, Math.max(d.max_y - d.min_y, rect_outer_height/2))]
+              d.hover_offset = [
+                0, 
+                Math.min(
+                  tags.centerAreaOffset.top - +tspan_border.attr("y") ,
+                  d.max_y - +tspan_border.attr("y") 
+                )
+              ]
           // left
           } else if(d.centroid[0] < tags.centerAreaOffset.left
             && d.centroid[1] < tags.canvasSize.height - tags.centerAreaOffset.bottom) {
               d.centroid_position = "left"
-              d.hover_offset = [Math.min(tags.centerAreaOffset.left, Math.max(d.max_x-d.min_x, rect_outer_width/2+30)), 0]
+              // d.hover_offset = [Math.min(tags.centerAreaOffset.left, Math.max(d.max_x-d.min_x, rect_outer_width/2+30)), 0]
+              d.hover_offset = [
+                Math.min(
+                  tags.centerAreaOffset.left - +tspan_border.attr("x") + 12,
+                  d.max_x - +tspan_border.attr("x")
+                ),
+                0
+              ]
           // bottom
           } else if(d.centroid[1] > tags.canvasSize.height - tags.centerAreaOffset.bottom) {
             d.centroid_position = "bottom"
-            d.hover_offset = [0, -Math.min(tags.centerAreaOffset.bottom, Math.max(d.max_y-d.min_y, rect_outer_height/2))]
+            // d.hover_offset = [0, -Math.min(tags.centerAreaOffset.bottom, Math.max(d.max_y-d.min_y, rect_outer_height/2))]
+            d.hover_offset = [
+              0, 
+              Math.max(
+                tags.canvasSize.height - tags.centerAreaOffset.bottom - +tspan_border.attr("y") - +tspan_border.attr("height") + 14,
+                d.min_y - +tspan_border.attr("y") - +tspan_border.attr("height")
+              )
+            ]
           // right
           } else {
             d.centroid_position = "right"
-            d.hover_offset = [-Math.min(tags.centerAreaOffset.right, Math.max(d.max_x-d.min_x, rect_outer_width/2)), 0]
+            // d.hover_offset = [-Math.min(tags.centerAreaOffset.right, Math.max(d.max_x-d.min_x, rect_outer_width/2)), 0]
+            d.hover_offset = [
+              Math.max(
+                tags.canvasSize.width - tags.centerAreaOffset.right - +tspan_border.attr("x") - +tspan_border.attr("width") + 14, 
+                d.min_x - +tspan_border.attr("x") - +tspan_border.attr("width")
+              ), 
+              0
+            ]
           }
+          tag_group.attr("transform", `translate(${d.hover_offset[0]}, ${d.hover_offset[1]})`)
         })
     },
 

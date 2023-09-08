@@ -10,15 +10,35 @@ function setProps(
     svgId=undefined, 
     articleClusterBorderPoints=undefined, 
     article_graph=undefined, 
-    articleSubClusterColorDict
+    articleSubClusterColorDict=undefined,
+    svgMargin=undefined,
+    centerAreaOffset=undefined,
+    centerAreaSize=undefined,
 ) {
     if(svgId) props.svgId = svgId
     if(articleClusterBorderPoints) props.articleClusterBorderPoints = articleClusterBorderPoints
     if(article_graph) props.article_graph = article_graph
     if(articleSubClusterColorDict) props.articleSubClusterColorDict = articleSubClusterColorDict
+    if(svgMargin) props.svgMargin = svgMargin
+    if(centerAreaOffset) props.centerAreaOffset = centerAreaOffset
+    if(centerAreaSize) props.centerAreaSize = centerAreaSize
 }
 
 function handleZoom(event) {
+    // // if center area is defined
+    // if(props.centerAreaOffset && props.centerAreaSize && event.sourceEvent){
+    //     const { x, y } = screenToSVG(event.sourceEvent.clientX, event.sourceEvent.clientY) 
+    //     console.log(x > props.svgMargin.left + props.centerAreaOffset.left, 
+    //         x < props.svgMargin.left + props.centerAreaOffset.left + props.centerAreaSize.width, 
+    //         y > props.svgMargin.top + props.centerAreaOffset.top, 
+    //         y < props.svgMargin.top + props.centerAreaOffset.top + props.centerAreaSize.height)
+    //     if(
+    //         !
+    //         (x > props.svgMargin.left + props.centerAreaOffset.left && x < props.svgMargin.left + props.centerAreaOffset.left + props.centerAreaSize.width &&
+    //         y > props.svgMargin.top + props.centerAreaOffset.top && y < props.svgMargin.top + props.centerAreaOffset.top + props.centerAreaSize.height)
+    //     )
+    //     return
+    // } 
     // tags.removeSubClusterLabels(zoom.svgId)
     const svg = d3.select("#" + zoom.svgId)
     svg.select("line.cluster-label-border-connector").remove()
@@ -107,5 +127,13 @@ function resetZoom() {
     d3.select("g.link-group").call(zoom.transform, d3.zoomIdentity)
 }
 
+function screenToSVG(screenX, screenY) {
+    if(!props.svgId) return
+    const svg = document.querySelector('#' + props.svgId) as any
+    var p = svg.createSVGPoint()
+     p.x = screenX
+     p.y = screenY
+     return p.matrixTransform(svg.getScreenCTM().inverse());
+ }
 
 export default zoom
