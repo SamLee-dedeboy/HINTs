@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, MutableRefObject } from 'react'
 import DocCard from '../DocCard/DocCard'
 import type { tDocument } from '../../types/Doc'
 type DocListProps = {
@@ -6,8 +6,9 @@ type DocListProps = {
   cluster_label: string
   theme: string
   highlightDocs: Array<any> | undefined
+  onQueryDocChanged: (doc_ids: Array<string>) => void
 }
-function DocList({docs, cluster_label, theme, highlightDocs}: DocListProps) {
+function DocList({docs, cluster_label, theme, highlightDocs, onQueryDocChanged}: DocListProps) {
   const setOpacity = (hex, alpha) => `${hex}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
   const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
   const highlightDocIds = useMemo(() => highlightDocs?.map(doc => doc.id), [highlightDocs])
@@ -30,10 +31,19 @@ function DocList({docs, cluster_label, theme, highlightDocs}: DocListProps) {
     if(highlightDocs && highlightDocs.length > 0) {
       docs.sort((a, b) => b.relevance! - a.relevance!)
     }
-    console.log({docs})
     return docs
   }, [docs, highlightDocs])
 
+  const clickedDocs: MutableRefObject<Array<string>> = useRef([])
+  const handleCardClicked = (doc_id: string, add: boolean) => {
+    if(add) {
+      clickedDocs.current.push(doc_id)
+    } else {
+      clickedDocs.current = clickedDocs.current.filter(id => id !== doc_id)
+    }
+    // somehow deep copy is needed here
+    onQueryDocChanged(JSON.parse(JSON.stringify(clickedDocs.current)))
+  }
   return (
     <>
       <div className="doc-list-container px-2">
@@ -43,7 +53,7 @@ function DocList({docs, cluster_label, theme, highlightDocs}: DocListProps) {
         </div>
         <div className="doc-list-content">
           {
-            highlightedDocs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme} key={doc.id}></DocCard> ))
+            highlightedDocs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme} key={doc.id} handleCardClicked={handleCardClicked}></DocCard> ))
           }
         </div>
       </div>
