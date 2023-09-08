@@ -2,6 +2,7 @@ import * as d3 from "d3"
 import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
+let clickedEntityLabels: any[] = []
 const tags: any = {
     svgId: undefined,
     centerAreaOffset: undefined,
@@ -383,16 +384,15 @@ const tags: any = {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       const zoom = d3.zoomTransform(canvas.node() as Element)
       // cluster label
-      const tag = canvas.select("g.entity-border-tag-group-parent")
-        .selectAll("g.entity-border-tag-group")
+      const tag = canvas.select("g.entity-tag-group-parent")
+        .selectAll("g.entity-tag-group")
         .data(cluster_borders, (d: any) => d.cluster_label)
         .join("g")
-        .attr("class", "entity-border-tag-group")
+        .attr("class", "entity-tag-group")
+        .attr("opacity", showEntityClusterLabelDefault ? 1 : 0)
+        .attr("pointer-events", showEntityClusterLabelDefault? "auto" : "none")
         .each(function(d: any) {
-          d3.select(this).select("g.entity-tag-group").remove()
-          const tag_group = d3.select(this).append("g").attr("class", "entity-tag-group")
-            .attr("opacity", showEntityClusterLabelDefault ? 1 : 0)
-            .attr("pointer-events", showEntityClusterLabelDefault? "auto" : "none")
+          const tag_group = d3.select(this)
           const group = tag_group.append("g").attr("class", "entity-cluster-label-group")
           group.select("text.entity-cluster-label").remove()
           group.select("rect.entity-cluster-label-border").remove()
@@ -401,7 +401,7 @@ const tags: any = {
           const spans = labels.split(", ")
           const maxLabelLength = Math.max(...spans.map((label: string) => label.length)) 
           // label
-          group.append("text")
+          const label_text = group.append("text")
             .datum(d)
             .attr("class", "entity-cluster-label")
             // .text((d: any) => labels)
@@ -432,8 +432,9 @@ const tags: any = {
           const tspans = group.selectAll("tspan").nodes()
           const start_x = Math.min(...tspans.map((tspan: any) => tspan.getStartPositionOfChar(0).x))
           const start_y = (tspans[0]! as any).getStartPositionOfChar(0).y- (tspans[0]! as any).getExtentOfChar(0).height/2
-          const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
-          const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
+          const text_bbox = label_text.node()!.getBBox()
+          const width = text_bbox.width
+          const height = text_bbox.height
           const padding_x = 10
           const padding_y = 10
           const rect_outer_width = width + 2*padding_x
@@ -519,9 +520,9 @@ const tags: any = {
         })
     },
 
-    addHighlightedEntityLabel(cluster_label: string, entity_titles: string[], cluster_colors: any) {
+    addHighlightedEntityLabel(cluster_label: string, entity_id_titles: string[], cluster_colors: any, onEntityLabelClicked: any) {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
-      const hovered_entity_tag = canvas.selectAll("g.entity-border-tag-group")
+      const hovered_entity_tag = canvas.selectAll("g.entity-tag-group")
         .filter((rect_data: any) => cluster_label === rect_data.cluster_label)
       const group = hovered_entity_tag.select("g.entity-cluster-label-group")
       group.select("text.highlighted-entity-label").remove()
@@ -531,16 +532,45 @@ const tags: any = {
       const original_rect_width = +cluster_label_rect.attr("width")
       const original_rect_height = +cluster_label_rect.attr("height")
       const highlighted_entity_text = group.append("text")
-        .datum(entity_titles.join(", "))
-        .text(d =>  d)
         .attr("class", "highlighted-entity-label")
         .attr("x", +cluster_label_text.attr("x") + original_rect_width)
         .attr("y", +cluster_label_text.attr("y"))
         .attr("font-size", "1.8rem")
         .attr("text-anchor", "start")
-        .attr("pointer-events", "none")
-        .call(tags.wrap, 600)
+      highlighted_entity_text.selectAll("tspan.entity-label")
+        .data(entity_id_titles)
+        .join("tspan")
+        .attr("class", "entity-label")
+        .attr("x", +cluster_label_text.attr("x") + original_rect_width)
+        .attr("y", (d, i) => +cluster_label_text.attr("y"))
+        .attr("dy", (d, i) => (i+1)*1.1 + "em")
+        .attr("text-anchor", "bottom")
+        .attr("dominant-baseline", "central")
+        .text((d, i) => i === entity_id_titles.length - 1? d[1] : d[1] + ", ")
+      highlighted_entity_text.call(tags.wrap_tspan, 600)
+      highlighted_entity_text.selectAll("tspan")
+        .attr("cursor", "pointer")
+        .on("mouseover", function() {
+          d3.select(this)
+            .attr("stroke", "blue")
+            .attr("stroke-width", "1.5")
+        })
+        .on("mouseout", function(e, d: any) {
+          if(clickedEntityLabels.includes(d)) return
+          d3.select(this)
+            .attr("stroke", "unset")
+            .attr("stroke-width", "unset")
+        })
+        .on("click", (e, d: any) => {
+          if(clickedEntityLabels.includes(d)) {
+            clickedEntityLabels.splice(clickedEntityLabels.indexOf(d), 1)
+          } else {
+            clickedEntityLabels.push(d)
+          }
+          onEntityLabelClicked(clickedEntityLabels)
+        })
       highlighted_entity_text.append("tspan")
+        .attr("class", "entity-label-group-title")
         .attr("text-anchor", "bottom")
         .attr("dominant-baseline", "central")
         .text("Mentioned Entities: ")
@@ -548,8 +578,11 @@ const tags: any = {
       const tspans = highlighted_entity_text.selectAll("tspan").nodes()
       const start_x = Math.min(...tspans.map((tspan: any) => tspan.getStartPositionOfChar(0).x))
       const start_y = (tspans[0]! as any).getStartPositionOfChar(0).y- (tspans[0]! as any).getExtentOfChar(0).height/2
-      const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
-      const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
+      // const width = Math.max(...tspans.map((tspan: any) => tspan.getComputedTextLength()))
+      // const height = tspans.reduce((total: number, tspan: any) => total + tspan!.getExtentOfChar(0).height, 0)
+      const text_bbox = highlighted_entity_text.node()!.getBBox()
+      const width = text_bbox.width
+      const height = text_bbox.height
       const padding_x = 10
       const padding_y = 10
       const rect_outer_width = width + 2*padding_x
@@ -576,7 +609,7 @@ const tags: any = {
     },
     hideHighlightedEntityLabel() {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
-      const hovered_entity_tag = canvas.selectAll("g.entity-border-tag-group")
+      const hovered_entity_tag = canvas.selectAll("g.entity-tag-group")
       hovered_entity_tag.select("rect.highlighted-entity-label-border").attr("opacity", 0)
       hovered_entity_tag.select("text.highlighted-entity-label").attr("opacity", 0)
 
@@ -688,7 +721,31 @@ const tags: any = {
             // text.selectAll("tspan").attr("y", parseFloat(y) - em_to_px / 2 * lineHeight * (line_num - 1) / 2)
             text.selectAll("tspan").attr("y", parseFloat(y))
         });
-      
+    },
+    wrap_tspan(element, width) {
+      element.each(function(d, i) {
+        const text = d3.select(this) 
+        const tspans = text.selectAll("tspan").nodes()
+        const text_offset = +text.attr("x")
+        let lineWidth = 0
+        let lineNumber = 0
+        tspans.forEach((tspan: any) => {
+          if(lineWidth + tspan.getComputedTextLength() > width) {
+            // move this tspan to next line
+            lineNumber += 1
+            d3.select(tspan)
+              .attr("x", text_offset)
+              .attr("dy", (lineNumber+1) * 1.1 + "em")
+            lineWidth = tspan.getComputedTextLength()
+          } else {
+            // move this tspan to current line
+            d3.select(tspan)
+              .attr("x", text_offset + lineWidth)
+              .attr("dy", (lineNumber+1) * 1.1 + "em")
+            lineWidth += tspan.getComputedTextLength()
+          }
+        })
+      })
     }
 }
 

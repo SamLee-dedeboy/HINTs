@@ -49,6 +49,8 @@ function App() {
 
   // tooltip
   const [tooltipData, setTooltipData] = useState<tooltipContent>()
+  const DocListTitle: MutableRefObject<string> = useRef("Document List")
+  const clickedClusterLabel: MutableRefObject<string> = useRef("")
 
   useEffect(() => {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
@@ -273,6 +275,11 @@ function App() {
     })
   }
 
+  async function handleEntityLabelClicked(entity_titles, doc_ids) {
+    DocListTitle.current = clickedClusterLabel.current + " and " + entity_titles.join(", ")
+    await fetchArticles(doc_ids)
+  }
+
   async function fetchExpandArticleCluster(cluster_id, clusters) {
     return new Promise((resolve, reject) => {
       // setClusterSelected(true)
@@ -374,31 +381,6 @@ function App() {
     })
   }
 
-  // function optimizeSearch() {
-  //   if(article_graph === undefined) return
-  //   if(entity_graph === undefined) return
-  //   if(searchResultDocs.length === 0) return
-  //   return new Promise((resolve, reject) => {
-  //     const clusters = article_graph.clusters
-  //     const docs = searchResultDocs.map(doc => doc.id)
-  //     console.log("optimizing: ", docs, clusters)
-  //     fetch(`${server_address}/user/optimize_partition/${user_id}`, {
-  //       method: "POST",
-  //       headers: {
-  //           "Accept": "application/json",
-  //           "Content-Type": "application/json"
-  //       },
-  //       body: JSON.stringify({ docs, clusters })
-  //     })
-  //       .then(res => res.json())
-  //       .then(optimize_article_graph => {
-  //         console.log({optimize_article_graph})
-  //         setArticleGraph(optimize_article_graph)
-  //         resolve("success")
-  //       })
-  //   })
-  // }
-
   function fetchPHilbert() {
     return new Promise((resolve, reject) => {
       const width = 128
@@ -460,6 +442,8 @@ function App() {
     }
     setSelectedDocCluster(cluster_label)
     console.log({docsRanked})
+    clickedClusterLabel.current = article_graph.hierarchical_topics[cluster_label]
+    DocListTitle.current = clickedClusterLabel.current
     fetchArticles(article_doc_ids)
   }
 
@@ -582,6 +566,7 @@ function App() {
               onNodesSelected={fetchTopic} 
               onArticleClusterClicked={handleArticleClusterClicked} 
               onEntityClusterClicked={handleEntityClusterClicked} 
+              onEntityLabelClicked={handleEntityLabelClicked}
               onArticleLabelClicked={(cluster_label) => handleTooltipItemClicked(cluster_label)}
               setTooltipData={setTooltipData}
               articleClusterColorDict={articleClusterColorDict}
@@ -605,7 +590,7 @@ function App() {
             {
             selectedDocs.length > 0 &&
             <DocList docs={selectedDocs} 
-              cluster_label={article_graph?.hierarchical_topics[selectedDocCluster!] || "Document List"} 
+              cluster_label={DocListTitle.current} 
               theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
               highlightDocs={searchResultDocs}/>
           }
