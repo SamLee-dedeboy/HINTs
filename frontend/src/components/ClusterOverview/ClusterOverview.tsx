@@ -1137,9 +1137,9 @@ function ClusterOverview({
   return (
     <>
       <div className="event-cluster-container flex flex-col items-stretch h-full flex-auto">
-        <div className='event-cluster-header'>
+        {/* <div className='event-cluster-header'>
           Event Cluster
-        </div>
+        </div> */}
         <div className="svg-container flex justify-center h-full"> 
             <svg id={svgId} className='event-cluster-svg h-full z-10'> 
               <defs>

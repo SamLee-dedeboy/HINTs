@@ -5,6 +5,7 @@ import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import DocList from './components/DocList/DocList'
 import Tooltip from './components/Tooltip/Tooltip'
+import ChatBox from './components/ChatBox/ChatBox'
 import { Input, InputNumber, Switch, Slider } from 'antd';
 import * as d3 from "d3"
 import tmpDocs from './tmp_search.json'
@@ -51,6 +52,8 @@ function App() {
   const [tooltipData, setTooltipData] = useState<tooltipContent>()
   const DocListTitle: MutableRefObject<string> = useRef("Document List")
   const clickedClusterLabel: MutableRefObject<string> = useRef("")
+  const [queryDocs, setQueryDocs] = useState<string[]>([])
+  // const queryDocs: MutableRefObject<string[]> = useRef([])
 
   useEffect(() => {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
@@ -62,8 +65,8 @@ function App() {
   }, [])
 
   useEffect(() => {
-    console.log(docsRanked)
-  }, [docsRanked])
+    console.log(queryDocs)
+  }, [queryDocs])
 
 
   // colors
@@ -479,76 +482,7 @@ function App() {
   
   return (
     <div className="App flex w-full h-full font-serif">
-      <div className='left-panel flex basis-[85%] h-full justify-between'>
-        {
-          <div className='middle-container basis-1/4 flex flex-col'>
-            <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
-              {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
-              <div className='toggler-container flex flex-col py-3'>
-                <div className='switch-container flex justify-center mr-2 w-fit '>
-                  <span className='switch-label mr-2'>Brush</span>
-                  <Switch className={"toggle-brush bg-black/25"} onChange={setBrushMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
-                </div>
-                <div className='switch-container flex justify-center mr-2 w-fit'>
-                  <span className='switch-label mr-2'>Search</span>
-                  <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
-                </div>
-                <div className='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
-                  <span className='switch-label mr-2'>Show Entity Label</span>
-                  <Switch className={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
-                </div>
-                <div className='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
-                  <span className='switch-label mr-2'>Show Article Label</span>
-                  <Switch className={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
-                </div>
-                {/* <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button> */}
-                {/* <div className='switch-container flex justify-center mr-2 w-fit'>
-                  <span className='switch-label mr-2'>Graph</span>
-                  <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
-                </div> */}
-              </div>
-              <div className='search-container w-fit flex flex-col'>
-                <Search className={"search-bar w-fit"}
-                  placeholder="input search text" 
-                  // enterButton="Search" 
-                  size="large" 
-                  onChange={(e) => setQuery(e.target.value)}
-                  onSearch={search} 
-                  loading={searchLoading} />
-                <button className={"apply-filter btn mt-1"} onClick={applyFilter}>Filter Search</button>
-              </div>
-              {/* <button className={"optimize btn ml-2"} onClick={optimizeSearch}>Optimize Search</button> */}
-              {/* <div className='search-container w-fit'>
-                <Search className={"search-bar w-fit"}
-                  placeholder="input search text" 
-                  // enterButton="Search" 
-                  size="large" 
-                  onChange={(e) => setQuery(e.target.value)}
-                  onSearch={search} 
-                  loading={searchLoading} />
-                <button className={"apply-filter btn ml-2"} onClick={applyFilter}>Filter Search</button>
-              </div> */}
-              <div className='relevance-threshold-container w-fit px-0.5'>
-                <span className='relevance-label'> Relevance &gt;= </span>
-                <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
-              </div>
-              {/* <Slider defaultValue={0} onChange={onClusterMoved} /> */}
-
-              <div className="topic-viewer w-full"> {topic} </div>
-            </div>
-            <div className='statistics-container w-full flex-1 border rounded '>
-              {/* {
-                tooltipData &&
-                <Tooltip tooltipData={tooltipData} 
-                articleClusterColorDict={articleClusterColorDict}
-                articleSubClusterColorDict={articleSubClusterColorDict}
-                entityClusterColorDict={entityClusterColorDict}
-                onItemClicked={handleTooltipItemClicked}
-                />
-              } */}
-            </div>
-          </div>
-        }
+      <div className='left-panel flex basis-[50%] h-full justify-between'>
         {
           <div className="article-hgraph-container flex flex-1 h-full">
           {
@@ -584,21 +518,82 @@ function App() {
           </div>
         }
       </div>
-      <div className='right-panel flex basis-[35%] w-1/12'>
+      <div className='middle-panel flex flex-col basis-[35%] w-1/12'>
+        <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
+          {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
+          <div className='toggler-container flex flex-col py-3'>
+            <div className='switch-container flex justify-center mr-2 w-fit '>
+              <span className='switch-label mr-2'>Brush</span>
+              <Switch className={"toggle-brush bg-black/25"} onChange={setBrushMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+            </div>
+            <div className='switch-container flex justify-center mr-2 w-fit'>
+              <span className='switch-label mr-2'>Search</span>
+              <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+            </div>
+            <div className='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
+              <span className='switch-label mr-2'>Show Entity Label</span>
+              <Switch className={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
+            </div>
+            <div className='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
+              <span className='switch-label mr-2'>Show Article Label</span>
+              <Switch className={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
+            </div>
+            {/* <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button> */}
+            {/* <div className='switch-container flex justify-center mr-2 w-fit'>
+              <span className='switch-label mr-2'>Graph</span>
+              <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
+            </div> */}
+          </div>
+          <div className='search-container w-fit flex flex-col'>
+            <Search className={"search-bar w-fit"}
+              placeholder="input search text" 
+              // enterButton="Search" 
+              size="large" 
+              onChange={(e) => setQuery(e.target.value)}
+              onSearch={search} 
+              loading={searchLoading} />
+            <button className={"apply-filter btn mt-1"} onClick={applyFilter}>Filter Search</button>
+          </div>
+          <div className='relevance-threshold-container w-fit px-0.5'>
+            <span className='relevance-label'> Relevance &gt;= </span>
+            <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
+          </div>
+          {/* <Slider defaultValue={0} onChange={onClusterMoved} /> */}
+
+          <div className="topic-viewer w-full"> {topic} </div>
+        </div>
         {
-          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto">
+          <div className="doc-list-container flex flex-col flex-1 overflow-y-auto mt-2">
             {
-            selectedDocs.length > 0 &&
+            // selectedDocs.length > 0 &&
             <DocList docs={selectedDocs} 
               cluster_label={DocListTitle.current} 
               theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
-              highlightDocs={searchResultDocs}/>
+              highlightDocs={searchResultDocs}
+              onQueryDocChanged={(docs) => { console.log(docs); setQueryDocs(docs);}}
+              />
           }
           </div>
         }
       </div>
-
+      <div className='right-panel basis-[30%] flex flex-col'>
+        <div className='statistics-container w-full flex-1 border rounded '>
+          {
+            // queryDocs.length > 0 &&
+            <ChatBox queryDocs={queryDocs}></ChatBox>
+          }
+          {/* {
+            tooltipData &&
+            <Tooltip tooltipData={tooltipData} 
+            articleClusterColorDict={articleClusterColorDict}
+            articleSubClusterColorDict={articleSubClusterColorDict}
+            entityClusterColorDict={entityClusterColorDict}
+            onItemClicked={handleTooltipItemClicked}
+            />
+          } */}
+        </div>
       </div>
+    </div>
   )
 }
 
