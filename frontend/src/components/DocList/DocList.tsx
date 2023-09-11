@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, MutableRefObject } from 'react'
 import DocCard from '../DocCard/DocCard'
 import type { tDocument } from '../../types/Doc'
 type DocListProps = {
-  docs: Array<tDocument>
+  docs: Array<tDocument> | undefined
   cluster_label: string
   theme: string
   highlightDocs: Array<any> | undefined
@@ -13,6 +13,7 @@ function DocList({docs, cluster_label, theme, highlightDocs, onQueryDocChanged}:
   const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
   const highlightDocIds = useMemo(() => highlightDocs?.map(doc => doc.id), [highlightDocs])
   const highlightedDocs = useMemo(() => {
+    if(!docs) return [{ id: "1", title: "", summary: ""}, { id: "2", title: "", summary: ""}]
     // add highlight flag
     docs.forEach(doc => {
       if(highlightDocIds === undefined) {
@@ -31,6 +32,7 @@ function DocList({docs, cluster_label, theme, highlightDocs, onQueryDocChanged}:
     if(highlightDocs && highlightDocs.length > 0) {
       docs.sort((a, b) => b.relevance! - a.relevance!)
     }
+    console.log(docs)
     return docs
   }, [docs, highlightDocs])
 

@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import json
+import openai
 from pprint import pprint
 from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils, pHilbert, gosper
 from collections import defaultdict
@@ -421,3 +422,32 @@ def generate_topic():
     example_topic = example['topic']
     topic = GptUtils.explain_articles(article_ids, event_hgraph.article_dict, example_summaries, example_topic)
     return json.dumps(topic, default=vars)
+@app.route("/static/chat", methods=["POST"])
+def chat():
+    messages = request.json['queryMessages']
+    useQueryDocs = request.json['useQueryDocs']
+    if useQueryDocs:
+        queryDocs = request.json['queryDocs']
+        useSummary = request.json['useSummary']
+        docs = embedding_searcher.searchByID(queryDocs)
+        user_query = messages[-1]['content']
+        doc_query = ""
+        for index, doc in enumerate(docs):
+            doc_query += "Selected Article {}:".format(index)
+            doc_query += doc['summary'] if useSummary else doc['content']
+            doc_query += "\n"
+        messages[-1]['content'] = user_query + "\n" + doc_query
+        response = request_gpt3_5(messages)
+    else:
+        response = request_gpt3_5(messages)
+    return json.dumps(response)
+
+
+def request_gpt3_5(messages):
+    response = openai.ChatCompletion.create(
+        # model="text-davinci-003",
+        # model="gpt-4",
+        model="gpt-3.5-turbo-16k-0613",
+        messages=messages,
+    )
+    return response['choices'][0]['message']['content']

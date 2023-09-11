@@ -36,10 +36,10 @@ function App() {
   // const [docsRanked, setDocsRanked] = useState<any[] | undefined>(undefined) 
   const docsRanked: MutableRefObject<any[] | undefined> = useRef(undefined)
   const [relevanceThreshold, setRelevanceThreshold] = useState<number>(0.80)
-  const [selectedDocs, setSelectedDocs] = useState<tDocument[]>([])
+  const [selectedDocs, setSelectedDocs] = useState<tDocument[] | undefined>(undefined)
   const [selectedDocCluster, setSelectedDocCluster] = useState<string | undefined>(undefined)
   const [fetchingSubCluster, setFetchingSubCluster] = useState<boolean>(false)
-  const selectedDocIds = useMemo(() => selectedDocs.map(doc => doc.id), [selectedDocs])
+  const selectedDocIds = useMemo(() => selectedDocs?.map(doc => doc.id), [selectedDocs])
 
   const searchResultDocs = useMemo(() => docsRanked.current?.filter(doc => doc.relevance.toFixed(2) >= relevanceThreshold.toFixed(2)), [docsRanked.current, relevanceThreshold])
   const searchResultDocIds = useMemo(() => searchResultDocs?.map(doc => doc.id), [searchResultDocs])
@@ -63,11 +63,6 @@ function App() {
         setHGraphLoaded(true)
       })
   }, [])
-
-  useEffect(() => {
-    console.log(queryDocs)
-  }, [queryDocs])
-
 
   // colors
 
@@ -577,20 +572,10 @@ function App() {
         }
       </div>
       <div className='right-panel basis-[30%] flex flex-col'>
-        <div className='statistics-container w-full flex-1 border rounded '>
+        <div className='statistics-container w-full h-full border rounded '>
           {
-            // queryDocs.length > 0 &&
             <ChatBox queryDocs={queryDocs}></ChatBox>
           }
-          {/* {
-            tooltipData &&
-            <Tooltip tooltipData={tooltipData} 
-            articleClusterColorDict={articleClusterColorDict}
-            articleSubClusterColorDict={articleSubClusterColorDict}
-            entityClusterColorDict={entityClusterColorDict}
-            onItemClicked={handleTooltipItemClicked}
-            />
-          } */}
         </div>
       </div>
     </div>

@@ -36,7 +36,8 @@ class EmbeddingSearch:
             {
                 'id': doc['doc_id'],
                 'title': doc['title'],
-                'summary': doc['summary']
+                'summary': doc['summary'],
+                'content': doc['content'],
             }
             for doc in self.embeddings_db if doc['doc_id'] in query_ids
         ]
