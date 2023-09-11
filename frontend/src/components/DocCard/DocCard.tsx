@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, MutableRefObject } from 'react'
-import type { tDocument } from '../../types/Doc'
+import type { tDocument, tSpan } from '../../types/Doc'
 type DocCardProps = {
   doc: tDocument 
   index: number 
@@ -14,6 +14,67 @@ function DocCard({doc, index, theme, handleCardClicked}: DocCardProps) {
   const [clicked, setClicked] = useState(false)
   const clickedStyle = useMemo(() => clicked ? 'border-solid bg-sky-100 ' : 'border-double', [clicked])  
   const clickable = useMemo(() => doc.title === ""? "pointer-events-none" : "pointer-events-auto", [doc])
+  const highlightedSummary: string | undefined = useMemo(() => {
+    if(doc?.summary === undefined) return undefined
+    if(doc?.entity_spans === undefined) return doc.summary
+    // return doc.summary
+    if(doc.id === "214146") console.log(doc.entity_spans)
+    return add_highlights(doc.summary, doc.entity_spans)
+    // let summary = doc.summary
+    // doc.entities.forEach((entity: tMention) => {
+    //   const spans = entity.spans
+    //   spans.forEach((span: tSpan) => {
+    //     const start = span[0]
+    //     const end = span[1]
+    //     const summary_before = summary.slice(0, start)
+    //     const summary_after  = summary.slice(end)
+    //     const wrapped_span = `<span class="bg-yellow-200">${summary.slice(start, end)}</span>`
+    //     summary = summary_before + wrapped_span + summary_after
+    //   })
+    // })
+    // console.log(summary)
+    // return summary
+  }, [doc?.summary])
+
+  function add_highlights(raw_text: string, highlights: tSpan[]) {
+    if(!highlights || highlights?.length === 0) return raw_text
+    let non_highlight_start = 0
+    let divided_text: any[] = []
+    // values:
+    // 0 (normal)
+    // 1 (highlight)
+    let divided_marks: any[] = []
+    highlights.forEach(highlight => {
+        const highlight_start = highlight[0]
+        const highlight_end = highlight[1]
+        // add normal text
+        if(non_highlight_start !== highlight_start) {
+            divided_text.push(raw_text.substring(non_highlight_start, highlight_start))
+            divided_marks.push(0)
+        }
+        // add highlight
+        divided_text.push(raw_text.substring(highlight_start, highlight_end))
+        divided_marks.push(1)
+        non_highlight_start = highlight_end 
+    })
+    if(non_highlight_start < raw_text.length) {
+        divided_text.push(raw_text.substring(non_highlight_start))
+        divided_marks.push(0)
+    }
+    let res = ""
+    divided_text.forEach((sub_text, index) => {
+        if(divided_marks[index] === 0)
+            res += sub_text
+        else
+            res += highlight_element(sub_text)
+    })
+    return res
+}
+function highlight_element(text) {
+  return `<span class="bg-yellow-200">${text}</span>`
+}
+
+
   return (
     <>
       <div 
@@ -40,7 +101,7 @@ function DocCard({doc, index, theme, handleCardClicked}: DocCardProps) {
         </div>
         <div className='doc-card-content flex flex-col' style={{borderColor: themeColor}}>
           {/* <span className="w-fit px-1 font-bold italic"> Summary: </span> */}
-          <p className="doc-card-content text-left px-1 "> {doc?.summary || ""} </p>
+          <p className="doc-card-content text-left px-1" dangerouslySetInnerHTML={{__html: highlightedSummary || ""}}/>
           <p className="text-left px-1"> #{doc.id} </p>
         </div>
       </div>

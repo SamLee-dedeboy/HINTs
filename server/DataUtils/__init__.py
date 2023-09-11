@@ -1,4 +1,4 @@
 from .DataTransformer import DataTransformer
 from .EventHGraph import EventHGraph
-from .EmbeddingSearch import EmbeddingSearch
+from .ArticleController import ArticleController
 from .GraphController import GraphController

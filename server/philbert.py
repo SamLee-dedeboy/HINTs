@@ -1,7 +1,8 @@
 from flask import Flask, request
 import json
 from flask_cors import CORS
-from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils, pHilbert, gosper
+from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, GptUtils, pHilbert, gosper
+from server.DataUtils import ArticleController
 
 app = Flask(__name__)
 CORS(app)

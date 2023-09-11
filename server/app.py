@@ -3,7 +3,7 @@ from flask_cors import CORS
 import json
 import openai
 from pprint import pprint
-from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, EmbeddingSearch, GptUtils, pHilbert, gosper
+from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, ArticleController, GptUtils, pHilbert, gosper
 from collections import defaultdict
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ openai_api_key = open("openai_api_key").read()
 
 graph_controller = GraphController(r'../preprocess/data/result/')
 event_hgraph = graph_controller.static_event_hgraph
-embedding_searcher = EmbeddingSearch(r'../preprocess/data/result/', openai_api_key)
+article_controller = ArticleController(r'../preprocess/data/result/', openai_api_key)
 data_transformer = DataTransformer()
 example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example_article.json'))
 
@@ -388,7 +388,7 @@ def gosper_curve():
 def search():
     query = request.json['query']
     base = request.json['base']
-    doc_id_relevance = embedding_searcher.search(query=query, base=base)
+    doc_id_relevance = article_controller.search(query=query, base=base)
     # binary search to find the most appropriate threshold
     # suggested_threshold = GptUtils.binary_search_threshold(doc_id_relevance, query)
     suggested_threshold = 0.8
@@ -407,7 +407,7 @@ def search():
 @app.route("/static/articles/", methods=["POST"])
 def get_articles():
     doc_ids = request.json['doc_ids']
-    articles = embedding_searcher.searchByID(doc_ids)
+    articles = article_controller.searchByID(doc_ids)
     return json.dumps(articles, default=vars)
 
 @app.route("/static/hierarchy", methods=["GET"])
@@ -429,7 +429,7 @@ def chat():
     if useQueryDocs:
         queryDocs = request.json['queryDocs']
         useSummary = request.json['useSummary']
-        docs = embedding_searcher.searchByID(queryDocs)
+        docs = article_controller.searchByID(queryDocs)
         user_query = messages[-1]['content']
         doc_query = ""
         for index, doc in enumerate(docs):

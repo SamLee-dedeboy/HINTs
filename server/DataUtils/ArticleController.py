@@ -4,10 +4,11 @@ import numpy as np
 from numpy.linalg import norm
 from scipy import spatial
 
-class EmbeddingSearch:
+class ArticleController:
     def __init__(self, data_path, api_key) -> None:
         openai.api_key = api_key
         self.embeddings_db = json.load(open(data_path + 'AllTheNews/network/server/embeddings.json'))
+        self.article_entity_dict = json.load(open(data_path + 'AllTheNews/network/server/article_participant_spans.json'))
     # search function
     def search(
         self,
@@ -37,8 +38,27 @@ class EmbeddingSearch:
                 'id': doc['doc_id'],
                 'title': doc['title'],
                 'summary': doc['summary'],
-                'content': doc['content'],
+                # 'content': doc['content'],
+                'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
             }
             for doc in self.embeddings_db if doc['doc_id'] in query_ids
         ]
         return summaries
+
+def cleanSpans(entities):
+    all_spans = flatten([entity['spans'] for entity in entities])
+    all_spans.sort(key=lambda x: x[0])
+    cleaned_spans = []
+    current_max_end = float('-inf')  # Initialize with negative infinity
+
+    for span in all_spans:
+        start, end, _ = span
+        # If the span is not contained within the current range
+        if start > current_max_end:
+            cleaned_spans.append(span)
+            current_max_end = end
+        # If the span is contained, skip it
+    return cleaned_spans
+
+def flatten(l):
+    return [item for sublist in l for item in sublist]
