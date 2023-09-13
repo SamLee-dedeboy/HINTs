@@ -1,8 +1,17 @@
 \section{Related Works}
-\subsection{Hypergraph visualization}
-\cite{fischer2021hypergraphsurvey}
-We decided to use node-link-based representation because it is more familiar to users~\cite{abdelaal2022network}.
-\subsection{Summarizing large collections of text}
+\subsection{Analyzing large collections of text}
 Topic models, entity-based summarization (VA approaches)
-\subsection{Interpretability and Trust in text analysis}
+Literature review tools
+Document retrieval tools 
+\cite{chuang2012interpretation, lee2017humantopicmodel} Interpretability and trust of text analysis
+\cite{qiu2022docflow} although a dynamic document categorization that is informed by user query, the representation of categorization and answers is still a sequence of words that lacks Interpretability.
+Can only answer simple factual questions, experts do not know what they are missing
+
+\subsection{LLM for Information Extraction}
+\cite{li2023evaluateChatgpt}
+performance on different tasks: standard IE (poor) vs.Open IE (good). Therefore we use ReFined for EL and chatgpt for others
+Explainability: Ask the model to explain its prediction: a possible solution to provide explainability for topic assignment and entity linking
+Calibration: over-confidence
+Faithfulness: verified to be good
+
 

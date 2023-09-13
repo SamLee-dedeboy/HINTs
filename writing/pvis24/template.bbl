@@ -21,6 +21,13 @@ P.~P. . F.~T. Bogumił~Kamiński.
   Proceedings of the Ninth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2020}, pp. 152--163. Springer, 2021.
 
+\bibitem{chuang2012interpretation}
+J.~Chuang, D.~Ramage, C.~Manning, and J.~Heer.
+\newblock Interpretation and trust: Designing model-driven visualizations for
+  text analysis.
+\newblock In {\em Proceedings of the SIGCHI conference on human factors in
+  computing systems}, pp. 443--452, 2012.
+
 \bibitem{citraro2020eva}
 S.~Citraro and G.~Rossetti.
 \newblock Eva: Attribute-aware network segmentation.
@@ -56,6 +63,19 @@ T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
   Proceedings of the Eighth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2019 8}, pp. 286--297. Springer, 2020.
 
+\bibitem{lee2017humantopicmodel}
+T.~Y. Lee, A.~Smith, K.~Seppi, N.~Elmqvist, J.~Boyd-Graber, and L.~Findlater.
+\newblock The human touch: How non-expert users perceive, interpret, and fix
+  topic models.
+\newblock {\em International Journal of Human-Computer Studies}, 105:28--42,
+  2017.
+
+\bibitem{li2023evaluateChatgpt}
+B.~Li, G.~Fang, Y.~Yang, Q.~Wang, W.~Ye, W.~Zhao, and S.~Zhang.
+\newblock Evaluating chatgpt's information extraction capabilities: An
+  assessment of performance, explainability, calibration, and faithfulness.
+\newblock {\em arXiv preprint arXiv:2304.11633}, 2023.
+
 \bibitem{ma2013largegraph}
 K.-L. Ma and C.~W. Muelder.
 \newblock Large-scale graph visualization and analytics.
@@ -85,10 +105,34 @@ J.-S. Park and S.-J. Oh.
 \newblock {\em Journal of Information science and engineering}, 28(3):587--600,
   2012.
 
+\bibitem{qiu2022docflow}
+R.~Qiu, Y.~Tu, Y.-S. Wang, P.-Y. Yen, and H.-W. Shen.
+\newblock Docflow: A visual analytics system for question-based document
+  retrieval and categorization.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 2022.
+
 \bibitem{steinbach2000doccluster}
 M.~Steinbach, G.~Karypis, and V.~Kumar.
 \newblock A comparison of document clustering techniques.
 \newblock 2000.
+
+\bibitem{sultanum2022chartwalk}
+N.~Sultanum, F.~Naeem, M.~Brudno, and F.~Chevalier.
+\newblock Chartwalk: Navigating large collections of text notes in electronic
+  health records for clinical chart review.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  29(1):1244--1254, 2022.
+
+\bibitem{sultanum2023datatales}
+N.~Sultanum and A.~Srinivasan.
+\newblock Datatales: Investigating the use of large language models for
+  authoring data-driven articles.
+\newblock {\em arXiv preprint arXiv:2308.04076}, 2023.
+
+\bibitem{vayansky2020review}
+I.~Vayansky and S.~A. Kumar.
+\newblock A review of topic modeling methods.
+\newblock {\em Information Systems}, 94:101582, 2020.
 
 \bibitem{vijaymeena2016survey}
 M.~Vijaymeena and K.~Kavitha.
