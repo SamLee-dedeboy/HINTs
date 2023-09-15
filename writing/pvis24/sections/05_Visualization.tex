@@ -1,19 +1,15 @@
 \section{Visualization}
 \subsection{SFC for HyperGraph}
-Existing hypergraph visualization approaches can be divided into three categories~\cite{fischer2021hypergraphsurvey}: 
-(1) node-link-based, (2) timeline-based, and (3) matrix-based approaches.
-We first exclude timeline-based approaches because we do not consider temporal attributes of the data in the system.
-As for matrix-based approaches, although they are known for their visual scalability, they are not suitable for our system because of their lack of support for visualizing hierarchical clusters and user interactions.
-In the design guidelines proposed by Abdelaal et.al.~\cite{abdelaal2022network} in a recent network visualization evaluation study, node-link-based approaches are recommended when:
+
+In the design guidelines proposed by Abdelaal et al.~\cite{abdelaal2022network} in a recent network visualization evaluation study, node-link-based approaches are recommended when:
 (1) tasks involve the identification of network clusters, and (2) the network is sparse.
 Condition (1) is fulfilled as explained in~\autoref{sec: design_rationale}, and (2) is guaranteed by the main participant extraction process described in~\autoref{sec: participant_extraction}. 
 Therefore, we decided to use node-link-based approaches for our system.
 
-Although there are a variety of node-link-based approaches for hypergraph visualization, we find the extra-node representation proposed by Ouvrard et.al.~\cite{ouvrard2017hypergraph} most flexible and intuitive.
+Although there are a variety of node-link-based approaches for hypergraph visualization, we find the extra-node representation proposed by Ouvrard et al.~\cite{ouvrard2017hypergraph} most flexible and intuitive.
 An extra-node representation improves existing clique-expansion of hypergraphs by adding extra nodes to represent hyperedges. 
 The extra-node representation effectively transforms the hypergraph visualization problem into a bipartite graph visualization problem.
 After that, any node-link-based graph visualization method can be applied.
-
 In our system, we use the space-filling curve (SFC) layout method to layout the extra-node representation of the hypergraph.
 The SFC layout method uses pre-computed clustering to order nodes in a sequence and then applies a space-filling curve on the node sequence to map it to a two-dimensional screen space~\cite{muelder2008sfc}.
 SFC approaches are known for their efficiency and aesthetics in visualizing large graphs~\cite{ma2013largegraph}.

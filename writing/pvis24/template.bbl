@@ -8,11 +8,30 @@ M.~Abdelaal, N.~D. Schiele, K.~Angerbauer, K.~Kurzhals, M.~Sedlmair, and
 \newblock {\em IEEE Transactions on Visualization and Computer Graphics},
   29(1):896--906, 2022.
 
+\bibitem{alexander2014serendip}
+E.~Alexander, J.~Kohlmann, R.~Valenza, M.~Witmore, and M.~Gleicher.
+\newblock Serendip: Topic model-driven visual exploration of text corpora.
+\newblock In {\em 2014 IEEE Conference on Visual Analytics Science and
+  Technology (VAST)}, pp. 173--182, 2014. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}VAST\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2014\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}7042493}}
+
+
 \bibitem{auber2013gospermap}
 D.~Auber, C.~Huet, A.~Lambert, B.~Renoust, A.~Sallaberry, and A.~Saulnier.
 \newblock Gospermap: Using a gosper curve for laying out hierarchical data.
 \newblock {\em IEEE transactions on visualization and computer graphics},
   19(11):1820--1832, 2013.
+
+\bibitem{bang2023multitask}
+Y.~Bang, S.~Cahyawijaya, N.~Lee, W.~Dai, D.~Su, B.~Wilie, H.~Lovenia, Z.~Ji,
+  T.~Yu, W.~Chung, et~al.
+\newblock A multitask, multilingual, multimodal evaluation of chatgpt on
+  reasoning, hallucination, and interactivity.
+\newblock {\em arXiv preprint arXiv:2302.04023}, 2023.
 
 \bibitem{kaminski2021hgraphcommunity}
 P.~P. . F.~T. Bogumił~Kamiński.
@@ -20,6 +39,43 @@ P.~P. . F.~T. Bogumił~Kamiński.
 \newblock In {\em Complex Networks \& Their Applications IX: Volume 1,
   Proceedings of the Ninth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2020}, pp. 152--163. Springer, 2021.
+
+\bibitem{cao2010facetatlas}
+N.~Cao, J.~Sun, Y.-R. Lin, D.~Gotz, S.~Liu, and H.~Qu.
+\newblock Facetatlas: Multifaceted visualization for rich text corpora.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  16(6):1172--1181, 2010.
+
+\bibitem{chang2009reading}
+J.~Chang, S.~Gerrish, C.~Wang, J.~Boyd-Graber, and D.~Blei.
+\newblock Reading tea leaves: How humans interpret topic models.
+\newblock {\em Advances in neural information processing systems}, 22, 2009.
+
+\bibitem{cho2016vairoma}
+I.~Cho, W.~Dou, D.~X. Wang, E.~Sauda, and W.~Ribarsky.
+\newblock Vairoma: A visual analytics system for making sense of places, times,
+  and events in roman history.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  22(1):210--219, 2016. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2015\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2467971}}
+
+
+\bibitem{choo2013utopian}
+J.~Choo, C.~Lee, C.~K. Reddy, and H.~Park.
+\newblock Utopian: User-driven topic modeling based on interactive nonnegative
+  matrix factorization.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  19(12):1992--2001, 2013. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2013\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}212}}
+
 
 \bibitem{chuang2012interpretation}
 J.~Chuang, D.~Ramage, C.~Manning, and J.~Heer.
@@ -35,12 +91,38 @@ S.~Citraro and G.~Rossetti.
   Proceedings of the Eighth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2019 8}, pp. 141--151. Springer, 2020.
 
+\bibitem{collins2009bubble}
+C.~Collins, G.~Penn, and S.~Carpendale.
+\newblock Bubble sets: Revealing set relations with isocontours over existing
+  visualizations.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  15(6):1009--1016, 2009.
+
 \bibitem{combe2015louvain}
 D.~Combe, C.~Largeron, M.~G{\'e}ry, and E.~Egyed-Zsigmond.
 \newblock I-louvain: An attributed graph clustering method.
 \newblock In {\em Advances in Intelligent Data Analysis XIV: 14th International
   Symposium, IDA 2015, Saint Etienne. France, October 22-24, 2015. Proceedings
   14}, pp. 181--192. Springer, 2015.
+
+\bibitem{devlin2018bert}
+J.~Devlin, M.-W. Chang, K.~Lee, and K.~Toutanova.
+\newblock Bert: Pre-training of deep bidirectional transformers for language
+  understanding.
+\newblock {\em arXiv preprint arXiv:1810.04805}, 2018.
+
+\bibitem{dinkla2012kelp}
+K.~Dinkla, M.~J. Van~Kreveld, B.~Speckmann, and M.~A. Westenberg.
+\newblock Kelp diagrams: Point set membership visualization.
+\newblock In {\em Computer Graphics Forum}, vol.~31, pp. 875--884. Wiley Online
+  Library, 2012.
+
+\bibitem{dou2013hierarchicaltopics}
+W.~Dou, L.~Yu, X.~Wang, Z.~Ma, and W.~Ribarsky.
+\newblock Hierarchicaltopics: Visually exploring large text collections using
+  topic hierarchies.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  19(12):2002--2011, 2013.
 
 \bibitem{fischer2021hypergraphsurvey}
 M.~T. Fischer, A.~Frings, D.~A. Keim, and D.~Seebacher.
@@ -54,6 +136,52 @@ D.~M. Gysi, A.~Voigt, T.~d.~M. Fragoso, E.~Almaas, and K.~Nowick.
   consensus network with integrated visualization tool.
 \newblock {\em BMC bioinformatics}, 19(1):1--16, 2018.
 
+\bibitem{han2022hisva}
+D.~Han, G.~Parsad, H.~Kim, J.~Shim, O.-S. Kwon, K.~A. Son, J.~Lee, I.~Cho, and
+  S.~Ko.
+\newblock Hisva: A visual analytics system for studying history.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  28(12):4344--4359, 2022. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2021\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}3086414}}
+
+
+\bibitem{izacard2022unsupervised}
+G.~Izacard, M.~Caron, L.~Hosseini, S.~Riedel, P.~Bojanowski, A.~Joulin, and
+  E.~Grave.
+\newblock Unsupervised dense information retrieval with contrastive learning.
+\newblock {\em Transactions on Machine Learning Research}, 2022.
+
+\bibitem{jacobsen2020metrosets}
+B.~Jacobsen, M.~Wallinger, S.~Kobourov, and M.~N{\"o}llenburg.
+\newblock Metrosets: Visualizing sets as metro maps.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  27(2):1257--1267, 2020.
+
+\bibitem{karpukhin-etal-2020-dense}
+V.~Karpukhin, B.~Oguz, S.~Min, P.~Lewis, L.~Wu, S.~Edunov, D.~Chen, and W.-t.
+  Yih.
+\newblock Dense passage retrieval for open-domain question answering.
+\newblock In {\em Proceedings of the 2020 Conference on Empirical Methods in
+  Natural Language Processing (EMNLP)}, pp. 6769--6781. Association for
+  Computational Linguistics, Online, Nov. 2020. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}18653\discretionary{/}{%
+}{/}v1\discretionary{/}{%
+}{/}2020\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}emnlp\discretionary{%
+}{-}{-}main\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}550}}
+
+
+\bibitem{kerren2013novel}
+A.~Kerren and I.~Jusufi.
+\newblock A novel radial visualization approach for undirected hypergraphs.
+\newblock In {\em EuroVis (Short Papers)}, 2013.
+
 \bibitem{kumar2020new}
 T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
   B.~Ravindran.
@@ -62,6 +190,13 @@ T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
 \newblock In {\em Complex Networks and Their Applications VIII: Volume 1
   Proceedings of the Eighth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2019 8}, pp. 286--297. Springer, 2020.
+
+\bibitem{lee2012ivisclustering}
+H.~Lee, J.~Kihm, J.~Choo, J.~Stasko, and H.~Park.
+\newblock ivisclustering: An interactive visual document clustering via topic
+  modeling.
+\newblock In {\em Computer graphics forum}, vol.~31, pp. 1155--1164. Wiley
+  Online Library, 2012.
 
 \bibitem{lee2017humantopicmodel}
 T.~Y. Lee, A.~Smith, K.~Seppi, N.~Elmqvist, J.~Boyd-Graber, and L.~Findlater.
@@ -87,16 +222,57 @@ K.-L. Ma and C.~W. Muelder.
 }{.}\hspace{.4pt}242}}
 
 
+\bibitem{meulemans2013kelpfusion}
+W.~Meulemans, N.~H. Riche, B.~Speckmann, B.~Alper, and T.~Dwyer.
+\newblock Kelpfusion: A hybrid set visualization technique.
+\newblock {\em IEEE transactions on visualization and computer graphics},
+  19(11):1846--1858, 2013.
+
 \bibitem{muelder2008sfc}
 C.~Muelder and K.-L. Ma.
 \newblock Rapid graph layout using space filling curves.
 \newblock {\em IEEE Transactions on Visualization and Computer Graphics},
   14(6):1301--1308, 2008.
 
+\bibitem{narechania2022vitality}
+A.~Narechania, A.~Karduni, R.~Wesslen, and E.~Wall.
+\newblock vitality: Promoting serendipitous discovery of academic literature.
+\newblock 2022.
+
+\bibitem{nasar2021named}
+Z.~Nasar, S.~W. Jaffry, and M.~K. Malik.
+\newblock Named entity recognition and relation extraction: State-of-the-art.
+\newblock {\em ACM Computing Surveys (CSUR)}, 54(1):1--39, 2021.
+
+\bibitem{oelke2014topiccoin}
+D.~Oelke, H.~Strobelt, C.~Rohrdantz, I.~Gurevych, and O.~Deussen.
+\newblock Comparative exploration of document collections: a visual analytics
+  approach.
+\newblock In {\em Computer Graphics Forum}, vol.~33, pp. 201--210. Wiley Online
+  Library, 2014.
+
+\bibitem{oliver2023scalable}
+P.~Oliver, E.~Zhang, and Y.~Zhang.
+\newblock Scalable hypergraph visualization.
+\newblock 2023.
+
 \bibitem{ouvrard2017hypergraph}
 X.~Ouvrard, J.~L. Goff, and S.~Marchand{-}Maillet.
 \newblock Networks of collaborations: Hypergraph modeling and visualisation.
 \newblock {\em CoRR}, abs/1707.00115, 2017.
+
+\bibitem{park2018conceptvector}
+D.~Park, S.~Kim, J.~Lee, J.~Choo, N.~Diakopoulos, and N.~Elmqvist.
+\newblock Conceptvector: Text visual analytics via interactive lexicon building
+  using word embedding.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  24(1):361--370, 2018. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2017\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2744478}}
+
 
 \bibitem{park2012concavehull}
 J.-S. Park and S.-J. Oh.
@@ -111,23 +287,74 @@ R.~Qiu, Y.~Tu, Y.-S. Wang, P.-Y. Yen, and H.-W. Shen.
   retrieval and categorization.
 \newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 2022.
 
+\bibitem{qu2017interactive}
+B.~Qu, P.~Kumar, E.~Zhang, P.~Jaiswal, L.~Cooper, J.~Elser, and Y.~Zhang.
+\newblock Interactive design and visualization of n-ary relationships.
+\newblock In {\em SIGGRAPH Asia 2017 Symposium on Visualization}, pp. 1--8,
+  2017.
+
+\bibitem{qu2021automatic}
+B.~Qu, E.~Zhang, and Y.~Zhang.
+\newblock Automatic polygon layout for primal-dual visualization of
+  hypergraphs.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  28(1):633--642, 2021.
+
+\bibitem{riche2010euler}
+N.~H. Riche and T.~Dwyer.
+\newblock Untangling euler diagrams.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  16(6):1090--1099, 2010. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2010\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}210}}
+
+
+\bibitem{sherkat2018interactive}
+E.~Sherkat, S.~Nourashrafeddin, E.~E. Milios, and R.~Minghim.
+\newblock Interactive document clustering revisited: A visual analytics
+  approach.
+\newblock In {\em 23rd International Conference on Intelligent User
+  Interfaces}, pp. 281--292, 2018.
+
+\bibitem{simonetoo2016euler}
+P.~Simonetto, D.~Archambault, and C.~Scheidegger.
+\newblock A simple approach for boundary improvement of euler diagrams.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  22(1):678--687, 2016. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2015\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2467992}}
+
+
+\bibitem{Stasko2007jigasw}
+J.~Stasko, C.~Gorg, Z.~Liu, and K.~Singhal.
+\newblock Jigsaw: Supporting investigative analysis through interactive
+  visualization.
+\newblock In {\em 2007 IEEE Symposium on Visual Analytics Science and
+  Technology}, pp. 131--138, 2007. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}VAST\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2007\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}4389006}}
+
+
 \bibitem{steinbach2000doccluster}
 M.~Steinbach, G.~Karypis, and V.~Kumar.
 \newblock A comparison of document clustering techniques.
 \newblock 2000.
 
-\bibitem{sultanum2022chartwalk}
-N.~Sultanum, F.~Naeem, M.~Brudno, and F.~Chevalier.
-\newblock Chartwalk: Navigating large collections of text notes in electronic
-  health records for clinical chart review.
-\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
-  29(1):1244--1254, 2022.
-
-\bibitem{sultanum2023datatales}
-N.~Sultanum and A.~Srinivasan.
-\newblock Datatales: Investigating the use of large language models for
-  authoring data-driven articles.
-\newblock {\em arXiv preprint arXiv:2308.04076}, 2023.
+\bibitem{tu2023sdrquerier}
+Y.~Tu, O.~Li, J.~Wang, H.-W. Shen, P.~Powa{\l}ko, I.~Tomescu-Dubrow, K.~M.
+  Slomczynski, S.~Blanas, and J.~C. Jenkins.
+\newblock Sdrquerier: A visual querying framework for cross-national survey
+  data recycling.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 2023.
 
 \bibitem{vayansky2020review}
 I.~Vayansky and S.~A. Kumar.
@@ -139,6 +366,39 @@ M.~Vijaymeena and K.~Kavitha.
 \newblock A survey on similarity measures in text mining.
 \newblock {\em Machine Learning and Applications: An International Journal},
   3(2):19--28, 2016.
+
+\bibitem{xiang2019surveyee}
+W.~Xiang and B.~Wang.
+\newblock A survey of event extraction from text.
+\newblock {\em IEEE Access}, 7:173111--173137, 2019.
+
+\bibitem{yan2019clfsemi}
+Y.~Yan, Y.~Tao, S.~Jin, J.~Xu, and H.~Lin.
+\newblock An interactive visual analytics system for incremental classification
+  based on semi-supervised topic modeling.
+\newblock In {\em 2019 IEEE Pacific Visualization Symposium (PacificVis)}, pp.
+  148--157, 2019. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}PacificVis\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2019\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}00025}}
+
+
+\bibitem{yang2017vistopic}
+Y.~Yang, Q.~Yao, and H.~Qu.
+\newblock Vistopic: A visual analytics system for making sense of large
+  document collections using hierarchical topic modeling.
+\newblock {\em Visual Informatics}, 1(1):40--47, 2017.
+
+\bibitem{zhang2023extractive}
+H.~Zhang, X.~Liu, and J.~Zhang.
+\newblock Extractive summarization via chatgpt for faithful summary generation.
+\newblock {\em arXiv preprint arXiv:2304.04193}, 2023.
+
+\bibitem{zhou2023contextfaithful}
+W.~Zhou, S.~Zhang, H.~Poon, and M.~Chen.
+\newblock Context-faithful prompting for large language models, 2023.
 
 \bibitem{gilbert}
 J.~Červený.

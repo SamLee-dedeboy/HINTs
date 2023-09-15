@@ -34,12 +34,12 @@ Therefore, this limits our choice of clustering algorithms to attributed node cl
 Although there are existing approaches that can cluster attributed nodes on graphs such as EVA~\cite{citraro2020eva} and iLouvain~\cite{combe2015louvain}, they are not designed for hypergraphs.
 In general, hypergraphs can be clustered in two different ways: 
 (1) Directly operate on the hyperedges by generalizing the graph clustering algorithms.
-For example, Kamiński et.al.~\cite{kaminski2021hgraphcommunity} generalizes the modularity metric for graphs to hypergraphs; 
+For example, Kamiński et al.~\cite{kaminski2021hgraphcommunity} generalizes the modularity metric for graphs to hypergraphs; 
 (2) First transform the hypergraph into a graph and then apply normal graph clustering algorithms~\cite{kumar2020new}.
 Although the first approach is more intuitive, it is less scalable and hard to incorporate node attributes.
 Thus, we decided to design our clustering algorithm following the second approach.
 
-Considering all the above, we implemented our hierarchical clustering algorithm by first transforming the hypergraph into a graph following the edge re-weighting process proposed by Kumar et.al.~\cite{kumar2020new},
+Considering all the above, we implemented our hierarchical clustering algorithm by first transforming the hypergraph into a graph following the edge re-weighting process proposed by Kumar et al.~\cite{kumar2020new},
 then an agglomerative clustering algorithm~\cite{steinbach2000doccluster} is applied on the re-weighted graph.
 In agglomerative clustering, the key is to define the similarity between nodes and similarity between clusters.
 We can easily incorporate node attributes into the clustering process by defining the similarity between nodes and clusters as a combination of attribute similarity $S_s$ and connectivity similarity $S_c$.

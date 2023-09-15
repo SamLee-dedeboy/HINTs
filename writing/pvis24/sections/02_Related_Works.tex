@@ -1,17 +1,80 @@
 \section{Related Works}
-\subsection{Analyzing large collections of text}
-Topic models, entity-based summarization (VA approaches)
-Literature review tools
-Document retrieval tools 
-\cite{chuang2012interpretation, lee2017humantopicmodel} Interpretability and trust of text analysis
-\cite{qiu2022docflow} although a dynamic document categorization that is informed by user query, the representation of categorization and answers is still a sequence of words that lacks Interpretability.
-Can only answer simple factual questions, experts do not know what they are missing
+\subsection{Visual Analytics of large collections of text}
+\subparagraph{Topic-based approaches} 
+Topic-based approaches employ certain variations of topic models to organize the documents in a meaningful way.
+Each topic is often presented as a `bag of words', which can be in the form of a sequence of words~\cite{yang2017vistopic, cho2016vairoma, dou2013hierarchicaltopics,yan2019clfsemi,han2022hisva, alexander2014serendip, lee2012ivisclustering} or word clouds~\cite{oelke2014topiccoin, cho2016vairoma}.
+The modeling result provides an overview of the dataset for subsequent analysis tasks. 
+Despite their variations in model choices, the use of topic models as an overview, as well as its `bag-of-word' visualization, is reported by Lee et al.~\cite{lee2017humantopicmodel} to be problematic in a comprehensive user study, especially for non-expert users.
+First, the discovered topics are not always semantically meaningful in human evaluation~\cite{chang2009reading}.
+Second, the `bag of words' representation causes misinterpretation of the modeling results.
+Users sometimes overlooked important words, assumed association between adjacent words, or misinterpreted the meaning of a word due to lack of context.
+Chuang et al.~\cite{chuang2012interpretation} concluded that these problems arise from a misalignment between the analysis task, visual encoding and model.
+Most systems employ topic models due to a need to provide an overview of the documents.
+When topic models are employed to conduct such an analysis task, a transformation from semantically meaningful \textit{topics} to probabilistic distribution over words is done.
+Most systems design the visualization in a way that this transformation is hidden for non-expert users because it is unnecessarily complex and unrelated to the analysis task.
+However, the sensemaking process becomes challenging without a basic understanding of the model because the `bag-of-words' representation is too far away from the user's mental picture of a topic.
+This misalignment limits the usage of topic models for non-expert users and makes the system prone to produce false positives.
 
-\subsection{LLM for Information Extraction}
-\cite{li2023evaluateChatgpt}
-performance on different tasks: standard IE (poor) vs.Open IE (good). Therefore we use ReFined for EL and chatgpt for others
-Explainability: Ask the model to explain its prediction: a possible solution to provide explainability for topic assignment and entity linking
-Calibration: over-confidence
-Faithfulness: verified to be good
+\subparagraph{Entity-based approaches}
+A line of work that makes successful model alignments is the entity-based approach.
+`Entities' usually include named entities (people, organizations, locations), or meaningful concepts known to an existing knowledge base.
+The earliest of such approaches is Jigsaw~\cite{Stasko2007jigasw}, where entities are linked if they appear in the same document.
+FacetAtlas~\cite{cao2010facetatlas} generalizes the idea of entity to `facets' which can be entities or any keywords or user's interest.
+ConceptVector~\cite{park2018conceptvector} uses `concept' to represent a similar idea. 
+Although the system is also built for document analysis, it focuses on enabling users to build these concepts in a semi-automatic manner rather than extracting them fully automatically.
+Generally, entity-based approaches exhibit better model alignments than topic-based approaches~\cite{chuang2012interpretation}, 
+but the polysemy of natural language makes them prone to produce false positives~\cite{park2018conceptvector}.
 
+\subparagraph{Embedding-based approaches}
+Finally, an important line of work organizes documents by directly modeling their semantic similarity~\cite{steinbach2000doccluster}.
+Documents are first projected into a high-dimensional vector space where similarity can be measured, and then a dimensionality reduction technique (e.g.t-SNE) is used to project the dataset onto a two-dimensional space for visualization.
+Proximity in the reduced dimension represents similarity between documents.
+Earlier works construct a sparse vector using term-frequency based scores such as \textit{TF-IDF} or BM25~\cite{choo2013utopian,sherkat2018interactive}.
+More recently, the success of pre-trained language models like BERT~\cite{devlin2018bert} popularizes the idea of embedding documents in a dense vector space~\cite{narechania2022vitality,tu2023sdrquerier,qiu2022docflow}.
+The embedding can then be used for document retrieval~\cite{karpukhin-etal-2020-dense, izacard2022unsupervised} or visualization.
+Embedding-based approaches also exhibit healthy model alignment, as the vector space directly models the analysis task (finding similar documents). 
+However, the result often lacks explainability and prevents users from trusting the result.  (TODO: cite here to support the claim?)
 
+\subsection{LLMs for Information Extraction}
+Information Extraction aims to identify structured information of interest from unstructured text data.
+Some of its subtasks include Named Entity Recognition (NER), Relation Extraction (RE) and Event Extraction (EE)~\cite{nasar2021named, xiang2019surveyee}.
+Although LLMs have proven successful in many NLP tasks, their application to IE is non-trivial.
+First, the \textit{faithfulness} of LLMs needs to be carefully evaluated.
+Faithfulness refers to the ability of a model to adhere to the provided information and not use parametric knowledge learned during training to answer user questions~\cite{zhou2023contextfaithful}.
+When conducting information extraction, it is necessary to ensure that the extracted information is actually from the provided text and not from the model's parametric knowledge.
+Second is the \textit{hallucination} problem of LLMs, where LLMs provide answers factually contradicting to input text (intrinsic) or even factually false (extrinsic). 
+In the context of IE, we mainly focus on the intrinsic hallucination problem.
+A recent evaluation conducted by Bang et al.~\cite{bang2023multitask} found that ChatGPT rarely exhibits intrinsic hallucinations, including the abstractive summarization task from which neural models usually suffer.
+
+More specifically, Li et al.~\cite{li2023evaluateChatgpt} comprehensively evaluated the capabilities of ChatGPT for common IE tasks.
+They found that ChatGPT excels under the Open-IE setting, where the model relies solely on user input to extract information from documents, but performs poorly under the Standard-IE setting, where ChatGPT is instructed to choose a correct label.
+Their findings agree with Zhang et al.~\cite{zhang2023extractive} where ChatGPT is reported to perform poorly on extractive summarization.
+A common reason for the poor performance of ChatGPT in these tasks is that they are essentially supervised learning tasks, and ChatGPT is not trained to perform them.
+To make the best use of ChatGPT (or more generally, LLMs) for IE tasks, we need to carefully design the extraction tasks as question-answering tasks instead of supervised learning tasks.
+
+% \cite{zamfirescu2023prompt, sultanum2023datatales} prompting is hard for users
+\subsection{Hypergraph Visualization}
+A hypergraph is a generalization of a graph in which an edge can connect any number of nodes.
+Fischer et al.~\cite{fischer2021hypergraphsurvey} divides existing static hypergraph visualization approaches into node-link-based and matrix-based approaches.
+Although matrix-based approaches are known for their visual scalability, they are not suitable for our system because of their lack of support for visualizing hierarchical clusters and user interactions.
+We thus focus on node-link-based approaches in this section.
+
+Node-link-based approaches are the most common and intuitive way of visualizing hypergraphs, as they directly extend existing node-link visualization on graphs to hypergraphs.
+One line of work treats hyperedges as set membership relations between nodes, thus visualization of set memberships can be directly employed.
+Many works visualize set memberships by extending the Euler diagram~\cite{collins2009bubble, riche2010euler, simonetoo2016euler} using colored contours to indicate different sets, but the visual scalability is limited to small hypergraphs. 
+KelpDiagram~\cite{dinkla2012kelp} and KepFusion~\cite{meulemans2013kelpfusion} use a kelp metaphor and improve visual scalability by optimizing link sizes.
+However, they do not consider optimizing point positions and thus are most suitable for geospatial applications.
+MetroSets~\cite{jacobsen2020metrosets} uses a metro map metaphor in which hyperedges are represented as metro lines and nodes are represented as stations.
+By optimizing the point positions to mimic a metro map, they achieved high visual scalability and pleasing aesthetics.
+Kerren et al.~\cite{kerren2013novel} uses a radial layout where points are arranged in a circle arcs around the circle represent hyperedges.
+However, the quadratic runtime limits the system to no more than 200 vertices and 20 hyperedges.
+
+A second line of work represents hyperedge as a polygon so the vertices of the hyperedges are also the vertices of the polygon~\cite{qu2017interactive, qu2021automatic, oliver2023scalable}.
+Colors of the polygon are used to indicate the cardinality of the hyperedge.
+However, these approaches have a serious overlapping issue on non-planer hypergraphs, thus limiting their scalability.
+
+Finally, some node-link-based approaches visualize hypergraphs by converting them into graphs.
+The most naive way of converting is through clique expansion, where each hyperedge is expanded into a clique.
+This conversion is known to introduce dense edge crossings and ambiguity, as one can not tell whether two nodes are connected by a hyperedge or by a path of hyperedges~\cite{ouvrard2017hypergraph}. 
+Instead, Ouvrard et al.~\cite{ouvrard2017hypergraph} proposed an extra-node representation, where extra nodes are added to represent hyperedges, essentially transforming the hypergraph into a bipartite graph.
+We find the extra-node representation most scalable and intuitive, thus our design direction follows this approach.
