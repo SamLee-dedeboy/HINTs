@@ -1,5 +1,4 @@
 import * as d3 from "d3"
-import tags from "./TagUtils"
 const zoom: any = d3.zoom()
             .scaleExtent([0.5, 10])
             .on("zoom", handleZoom)
@@ -47,7 +46,7 @@ function handleZoom(event) {
         .attr("stroke", "black")
 
     const { transform } = event
-    const centerArea = d3.select("g.center-area")
+    d3.select("g.center-area")
         .each(function(d: any) {d.zoom = transform;})
     d3.selectAll("g.article-border-group").attr("transform", transform)
     d3.selectAll("g.article-node-group").attr("transform", transform)
@@ -71,7 +70,7 @@ function handleZoom(event) {
     // d3.selectAll("g.entity-border-group").attr("transform", transform)
     // d3.select("rect.center-area-background").attr("transform", transform)
 
-    const cluster_label_group = d3.selectAll("g.cluster-label-group")
+    d3.selectAll("g.cluster-label-group")
         .attr("transform", function(d: any) {
             const group = d3.select(this)
             const tag_rect = group.select("rect.cluster-label-border")
@@ -97,7 +96,7 @@ function handleZoom(event) {
             const rect_height = +tag_rect.attr("height")
             return rect_y + rect_height + rect_transform_y
         })
-    const sub_cluster_label_group = d3.selectAll("g.sub-cluster-label-group")
+    d3.selectAll("g.sub-cluster-label-group")
         .each(function(d: any) {
             const group = d3.select(this)
             // group.selectAll("circle").attr("transform", transform)
@@ -127,13 +126,13 @@ function resetZoom() {
     d3.select("g.link-group").call(zoom.transform, d3.zoomIdentity)
 }
 
-function screenToSVG(screenX, screenY) {
-    if(!props.svgId) return
-    const svg = document.querySelector('#' + props.svgId) as any
-    var p = svg.createSVGPoint()
-     p.x = screenX
-     p.y = screenY
-     return p.matrixTransform(svg.getScreenCTM().inverse());
- }
+// function screenToSVG(screenX, screenY) {
+//     if(!props.svgId) return
+//     const svg = document.querySelector('#' + props.svgId) as any
+//     var p = svg.createSVGPoint()
+//      p.x = screenX
+//      p.y = screenY
+//      return p.matrixTransform(svg.getScreenCTM().inverse());
+//  }
 
 export default zoom

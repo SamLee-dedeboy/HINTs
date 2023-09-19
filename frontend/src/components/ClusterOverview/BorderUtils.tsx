@@ -37,7 +37,7 @@ const borders = {
         }
         // add concave hull forst to make its z-index lower
         let points: any[] = []
-        nodes_data.forEach((node: any, index: number) => {
+        nodes_data.forEach((node: any) => {
             offsets.forEach(offset => {
                 points.push([node.x + offset[0], node.y + offset[1]])
             })

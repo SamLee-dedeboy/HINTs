@@ -1,8 +1,4 @@
-
-import d3Hilbert from 'd3-hilbert';
-import spacing from "./SpacingUtils"
 import { t_EntityNode, t_ArticleNode } from '../../types';
-import { d_SFCNode } from '../../types/Node';
 
 const sfc = {
   generate_entity_hilbert_coord(nodes: t_EntityNode[], canvasSize) {
@@ -16,7 +12,7 @@ const sfc = {
     // const total_volume = nodes.length
     // const total_spaces = peripheral_hilbert.points.length
     // const gaps = spacing.evenGaps(clusters, total_volume, total_spaces)
-    nodes.forEach((node, index) => {
+    nodes.forEach((node) => {
         // const node_hilbert_order = Math.min(index + gaps[node.cluster_order], peripheral_hilbert.points.length - 1)
         // console.log(node_hilbert_order, gaps)
         const node_hilbert_order = node.sfc_order
@@ -41,7 +37,7 @@ const sfc = {
     // const total_volume = nodes.length
     // const total_spaces = gosper.points.length
     // const gaps = spacing.evenGaps(clusters, total_volume, total_spaces)
-    nodes.forEach((node, index) => {
+    nodes.forEach((node) => {
         // const node_gosper_order = Math.min(index + gaps[node.cluster_order], gosper.points.length - 1)
         const node_gosper_order = node.sfc_order
         // const node_gosper_order = node.order
@@ -76,7 +72,7 @@ const sfc = {
       .attr("opacity", 0)
       .attr("cx", (d: any) => d[0]*cell_width)
       .attr("cy", (d: any) => d[1]*cell_height)
-      .transition().delay((d, i) => i*2).duration(5)
+      .transition().delay((_, i) => i*2).duration(5)
       .attr("opacity", 1)
   },
 
