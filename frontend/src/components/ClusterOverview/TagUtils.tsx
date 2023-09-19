@@ -78,8 +78,6 @@ const tags: any = {
             })
             .on("click", function(e, d: any) {
               e.stopPropagation()
-              tags.remove_connected_entities()
-              tags.show_connected_entities(article_graph, d.cluster_label)
               onArticleLabelClicked(d)
             })
             .lower()
@@ -318,8 +316,6 @@ const tags: any = {
             })
             .on("click", function(e, d) {
               e.stopPropagation()
-              tags.remove_connected_entities()
-              tags.show_connected_entities(article_graph, d.label)
               d.cluster_label = d.label
               onArticleLabelClicked(d)
             })
@@ -627,12 +623,10 @@ const tags: any = {
     show_connected_entities(article_graph: d_ArticleGraph, article_cluster_label) {
       // groups
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
-      const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       const entity_node_group = canvas.select("g.entity-node-group")
-      centerArea.select("g.article-node-group")
       // sub cluster centroids
-      centerArea.selectAll(".cluster-label-group .sub-cluster-label-group")
-          .filter((filter_data: any) => article_cluster_label === filter_data.cluster_label || filter_data.label)
+      // centerArea.selectAll(".cluster-label-group .sub-cluster-label-group")
+      //     .filter((filter_data: any) => article_cluster_label === filter_data.cluster_label || filter_data.label)
       // const sub_cluster_centroids = (cluster_group.datum() as any).sub_cluster_centroids
 
       // cluster link ids
@@ -640,12 +634,10 @@ const tags: any = {
       // const cluster_link_article_ids = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[0])
       // put normal nodes to back
       entity_node_group.selectAll("circle.entity-node")
-          .attr("opacity", 0.2)
+          .attr("opacity", (d: any) => d.opacity = 0.2)
           .filter((d: any) => cluster_link_entity_ids.includes(d.id))
-          .attr("fill", (d:any) => d.cluster_color)
-          .attr("opacity", 1)
+          .attr("opacity", (d: any) => d.opacity = 1)
           // .attr("stroke-width", 2)
-          .data()
 
       return
       // links    
@@ -690,9 +682,8 @@ const tags: any = {
     remove_connected_entities() {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       canvas.select("g.entity-node-group").selectAll("circle.entity-node")
-        .attr("opacity", (d: any) => d.opacity)
-        .attr("fill", (d: any) => d.color)
-        .attr("stroke-width", 1)
+        .attr("opacity", (d: any) => d.opacity=0.5)
+        // .attr("fill", (d: any) => d.color)
     },
 
     wrap(text, width) {
