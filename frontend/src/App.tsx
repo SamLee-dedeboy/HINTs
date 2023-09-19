@@ -4,7 +4,6 @@ import type { t_EventHGraph, d_ArticleGraph, d_EntityGraph, tooltipContent } fro
 import './App.css'
 import ClusterOverview from './components/ClusterOverview/ClusterOverview'
 import DocList from './components/DocList/DocList'
-import Tooltip from './components/Tooltip/Tooltip'
 import ChatBox from './components/ChatBox/ChatBox'
 import { Input, InputNumber, Switch, Slider } from 'antd';
 import * as d3 from "d3"
@@ -100,7 +99,7 @@ function App() {
     Object.keys(article_graph.clusters).forEach(cluster_label => {
       // retain cluster color
       const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
-      const sub_clusters = article_graph.sub_clusters[cluster_label]
+      const sub_clusters = article_graph.cluster_children[cluster_label]
       // prepare scales 
       const sub_cluster_renumber_dict = {}
       sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
@@ -162,7 +161,7 @@ function App() {
     if(!entity_graph) return sub_cluster_color_dict
     Object.keys(entity_graph.entity_clusters).forEach(cluster_label => {
       const cluster_color = d3.hsl(entityClusterColorDict[cluster_label])
-      const sub_clusters = entity_graph.entity_sub_clusters[cluster_label]
+      const sub_clusters = entity_graph.entity_cluster_children[cluster_label]
       const sub_cluster_renumber_dict = {}
       sub_clusters.forEach((sub_cluster, index) => sub_cluster_renumber_dict[sub_cluster] = index)
       const sub_cluster_sScale = d3.scaleLinear()
@@ -232,8 +231,8 @@ function App() {
     })
   }
 
-  async function handleArticleClusterClicked(e, cluster_id, clusters) {
-    await fetchExpandArticleCluster(cluster_id, clusters)
+  async function handleArticleClusterClicked(e, cluster_id) {
+    await fetchExpandArticleCluster(cluster_id)
     return
     if(e.ctrlKey || e.metaKey) {
       if(selectedClusters.includes(cluster_id)) {
@@ -248,11 +247,12 @@ function App() {
     }
   }
 
-  async function handleEntityClusterClicked(e, cluster_id, clusters) {
+  async function handleEntityClusterClicked(e, cluster_id) {
     return new Promise((resolve, reject) => {
       console.log("fetching for entity cluster", cluster_id)
       const cluster_label = cluster_id
       const user_hgraph = user_hgraph_ref.current
+      const clusters = entity_graph!.entity_clusters
       fetch(`${server_address}/user/expand_cluster/entity/`, {
         method: "POST",
         headers: {
@@ -273,18 +273,21 @@ function App() {
     })
   }
 
-  async function handleEntityLabelClicked(entity_titles, doc_ids) {
-    DocListTitle.current = clickedClusterLabel.current + " and " + entity_titles.join(", ")
+  async function handleEntityLabelClicked(entity_titles: string[] | undefined, doc_ids: string[]) {
+    DocListTitle.current = clickedClusterLabel.current + (entity_titles? " and " + entity_titles!.join(", "): "")
+    console.log(DocListTitle.current)
     await fetchArticles(doc_ids)
   }
 
-  async function fetchExpandArticleCluster(cluster_id, clusters) {
+  async function fetchExpandArticleCluster(cluster_id) {
     return new Promise((resolve, reject) => {
       // setClusterSelected(true)
       // setClusterDataFetched(false)
+      const clusters = article_graph!.clusters
       console.log("fetching for cluster", cluster_id, clusters)
       const cluster_label = cluster_id
       const user_hgraph = user_hgraph_ref.current
+      console.log({user_hgraph})
       fetch(`${server_address}/user/expand_cluster/article/`, {
         method: "POST",
         headers: {
@@ -369,6 +372,8 @@ function App() {
       })
         .then(res => res.json())
         .then(filtered_hgraph => {
+          setSearchMode(false)
+          docsRanked.current = undefined
           console.log({filtered_hgraph})
           setArticleGraph(filtered_hgraph.article_graph)
           setEntityGraph(filtered_hgraph.entity_graph)
@@ -473,8 +478,17 @@ function App() {
         })
     })
   }
+  function handleArticleClusterRemoved(cluster_label) {
+    const cluster_article_node_ids = article_graph!.clusters[cluster_label]
+    user_hgraph_ref.current.article_nodes = user_hgraph_ref.current.article_nodes.filter(node_id => !cluster_article_node_ids.includes(node_id))
+    delete article_graph!.clusters[cluster_label]
+  } 
+  function handleEntityClusterRemoved(cluster_label) {
+    const cluster_entity_node_ids = entity_graph!.entity_clusters[cluster_label]
+    user_hgraph_ref.current.entity_nodes = user_hgraph_ref.current.entity_nodes.filter(node_id => !cluster_entity_node_ids.includes(node_id))
+    delete entity_graph!.entity_clusters[cluster_label]
+  } 
 
-  
   return (
     <div className="App flex w-full h-full font-serif">
       <div className='left-panel flex basis-[50%] h-full justify-between'>
@@ -497,7 +511,9 @@ function App() {
               onEntityClusterClicked={handleEntityClusterClicked} 
               onEntityLabelClicked={handleEntityLabelClicked}
               onArticleLabelClicked={(cluster_label) => handleTooltipItemClicked(cluster_label)}
-              setTooltipData={setTooltipData}
+              onArticleClusterRemoved={handleArticleClusterRemoved}
+              onEntityClusterRemoved={handleEntityClusterRemoved}
+              // setTooltipData={setTooltipData}
               articleClusterColorDict={articleClusterColorDict}
               articleSubClusterColorDict={articleSubClusterColorDict}
               entityClusterColorDict={entityClusterColorDict}
@@ -514,48 +530,40 @@ function App() {
         }
       </div>
       <div className='middle-panel flex flex-col basis-[35%] w-1/12'>
-        <div className='utility-container flex flex-col w-full h-fit space-y-4 pl-1 border rounded '>
+        <div className='utility-container flex  w-full h-fit pl-1 border rounded '>
           {/* <button className={"test"} onClick={fetchPartition}> Show Level {level}</button> */}
-          <div className='toggler-container flex flex-col py-3'>
-            <div className='switch-container flex justify-center mr-2 w-fit '>
-              <span className='switch-label mr-2'>Brush</span>
-              <Switch className={"toggle-brush bg-black/25"} onChange={setBrushMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+          <div className='toggler-container flex flex-col py-2 border-r-2 '>
+            <div>
+              <div className='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
+                <span className='switch-label mr-2'>Show Entity Label</span>
+                <Switch className={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
+              </div>
+              <div className='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
+                <span className='switch-label mr-2'>Show Article Label</span>
+                <Switch className={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
+              </div>
+              <div className='switch-container flex justify-center mr-2 w-fit'>
+                <span className='switch-label mr-2'>Search</span>
+                <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
+              </div>
             </div>
-            <div className='switch-container flex justify-center mr-2 w-fit'>
-              <span className='switch-label mr-2'>Search</span>
-              <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch>
-            </div>
-            <div className='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
-              <span className='switch-label mr-2'>Show Entity Label</span>
-              <Switch className={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
-            </div>
-            <div className='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
-              <span className='switch-label mr-2'>Show Article Label</span>
-              <Switch className={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch>
-            </div>
-            {/* <button className={"apply-merge btn ml-2"} onClick={applyMerge}>Merge</button> */}
-            {/* <div className='switch-container flex justify-center mr-2 w-fit'>
-              <span className='switch-label mr-2'>Graph</span>
-              <Switch className={"toggle-graph_type bg-black/25"} onChange={toggleGraphType} checkedChildren="Entity" unCheckedChildren="Article"> </Switch>
-            </div> */}
           </div>
-          <div className='search-container w-fit flex flex-col'>
-            <Search className={"search-bar w-fit"}
-              placeholder="input search text" 
-              // enterButton="Search" 
-              size="large" 
-              onChange={(e) => setQuery(e.target.value)}
-              onSearch={search} 
-              loading={searchLoading} />
-            <button className={"apply-filter btn mt-1"} onClick={applyFilter}>Filter Search</button>
+          <div className='flex flex-col px-1 py-2'>
+            <div className='search-container w-full flex items-center'>
+              <Search className={"search-bar w-full"}
+                placeholder="input search text" 
+                // enterButton="Search" 
+                size="large" 
+                onChange={(e) => setQuery(e.target.value)}
+                onSearch={search} 
+                loading={searchLoading} />
+            </div>
+            <div className='relevance-threshold-container w-fit px-0.5 mt-1'>
+              <span className='relevance-label'> Relevance &gt;= </span>
+              <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
+              <button className={"apply-filter btn p-1 ml-1"} onClick={applyFilter}>Filter Search</button>
+            </div>
           </div>
-          <div className='relevance-threshold-container w-fit px-0.5'>
-            <span className='relevance-label'> Relevance &gt;= </span>
-            <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} />
-          </div>
-          {/* <Slider defaultValue={0} onChange={onClusterMoved} /> */}
-
-          <div className="topic-viewer w-full"> {topic} </div>
         </div>
         {
           <div className="doc-list-container flex flex-col flex-1 overflow-y-auto mt-2">

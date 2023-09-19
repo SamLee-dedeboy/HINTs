@@ -8,7 +8,7 @@
 }
 
 .btn {
-  @apply bg-white border rounded mr-2 w-fit p-2 transition-colors hover:bg-sky-500/70;
+  @apply bg-white border rounded w-fit transition-colors hover:bg-sky-500/70;
 }
 
 .ant-btn {
