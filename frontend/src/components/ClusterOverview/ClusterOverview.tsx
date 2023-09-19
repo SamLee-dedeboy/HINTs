@@ -142,6 +142,11 @@ function ClusterOverview({
     return res
   }, [entity_graph.entity_nodes])
 
+  const mentioned_entities = useMemo(() => { 
+    if(highlightNodeIds === undefined) return undefined
+    return entity_graph.entity_nodes.filter(entity_node => (
+      entity_node.mentions.map(mention => mention.doc_id).some(doc_id => highlightNodeIds.includes(doc_id)))).map(entity => entity.id)
+    }, [highlightNodeIds])
   // useEffect(() => {
   //   update_article_color()
   // }, [articleClusterColorDict])
@@ -167,6 +172,9 @@ function ClusterOverview({
       d3.selectAll("circle.article-node")
         .attr("opacity", (d: any) => d.opacity = 0.5)
         .attr("fill", (d: any) => d.color = d.sub_cluster_color || d.cluster_color)
+      d3.selectAll("circle.entity-node")
+        .attr("opacity", (d: any) => d.opacity = 0.5)
+        .attr("fill", (d: any) => d.color = d.cluster_color)
       // remove_highlight() 
     }
   }, [searchMode])
@@ -185,7 +193,7 @@ function ClusterOverview({
     centerArea.selectAll("rect.cluster-label-border").on("click", (e, d) => {e.stopPropagation(); article_event_handlers.tags.click(d)})
     console.log({highlightNodeIds})
     listenClick()
-  }, [showArticleClusterLabelDefault, searchMode, highlightNodeIds, articleClusterBorderPoints, clickedCluster.current])
+  }, [showArticleClusterLabelDefault, searchMode, highlightNodeIds, articleClusterBorderPoints, clickedCluster.current, mentioned_entities])
 
   useEffect(() => {
     const canvas = d3.select('#' + svgId).select("g.margin")
@@ -274,14 +282,14 @@ function ClusterOverview({
     d3.select('#' + svgId)
       .on("click", function() {
         console.log("svg clicked", searchMode)
-        if(clickedClusterLabel.current) {
+        if(!clickedCluster.current && clickedClusterLabel.current) {
           removeHighlightCluster()
           tags.remove_connected_entities()
           clickedClusterLabel.current = undefined
         }
-        if(searchMode) {
-          tags.remove_connected_entities()
-        }
+        // if(searchMode) {
+        //   tags.remove_connected_entities()
+        // }
       })
   }
 
@@ -555,7 +563,7 @@ function ClusterOverview({
             clickedCluster.current = d
             clickedClusterLabel.current = d.cluster_label
             showSubClusterStructure(d, article_event_handlers.tags.click)
-            tags.show_connected_entities(article_graph, d.cluster_label)
+            tags.show_connected_entities(article_graph, d.cluster_label, mentioned_entities)
             highlightCluster(d.cluster_label)
           }
           // if(clickedClusters.includes(d.cluster_label)) {
@@ -572,7 +580,7 @@ function ClusterOverview({
       click: function(d) {
         console.log("tag clicked")
         // tags.remove_connected_entities()
-        tags.show_connected_entities(article_graph, d.cluster_label)
+        tags.show_connected_entities(article_graph, d.cluster_label, mentioned_entities)
         highlightCluster(d.cluster_label)
         clickedClusterLabel.current = d.cluster_label; 
         onArticleLabelClicked(d.cluster_label)
@@ -804,7 +812,7 @@ function ClusterOverview({
             .attr("opacity", 0)
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
-            .attr("opacity", 0.5)
+            .attr("opacity", (d: any) => d.opacity=0.5)
             .selection(),
         update => update.transition()
             .delay((d) => {
@@ -816,7 +824,7 @@ function ClusterOverview({
             })
             .duration(t_duration)
             .attr("fill", (d: any) => d.cluster_color = entityClusterColorDict[d.cluster_label])
-            .attr("opacity", 0.5)
+            .attr("opacity", (d: any) => d.opacity=0.5)
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y),
       )
@@ -906,18 +914,21 @@ function ClusterOverview({
       .attr("opacity", 1)
 
     // entity
-    const mentioned_entities = entity_graph.entity_nodes.filter(entity_node => (
-      entity_node.mentions.map(mention => mention.doc_id).some(doc_id => highlightNodeIds.includes(doc_id))
-    ))
-    .map(entity => entity.id)
     console.log({mentioned_entities})
-    svg.select("g.entity-node-group").selectAll("circle.entity-node")
+    const mentioned_entity_nodes = svg.select("g.entity-node-group").selectAll("circle.entity-node")
       .attr("stroke-width", 1)
       .attr("opacity", (d: any) => d.opacity = 0.2)
       .attr("fill", (d: any) => (d.color = "grey"))
-      .filter((node: any) => mentioned_entities.includes(node.id))
-      .attr("fill", (d: any) => ( d.color = entityClusterColorDict[d.cluster_label]))
+      .filter((node: any) => mentioned_entities!.includes(node.id))
+      .attr("fill", (d: any) => ( d.color = d.cluster_color))
       .attr("opacity", (d: any) => d.opacity = 1)
+    if(clickedClusterLabel.current) {
+      const cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[clickedClusterLabel.current].map(link => link[1])
+      mentioned_entity_nodes
+        .attr("opacity", 0.2)
+        .filter((node: any) => cluster_link_entity_ids.includes(node.id))
+        .attr("opacity", (d: any) => d.opacity = 1)
+    }
   }
 
   function showSubClusterStructure(d, onArticleLabelClicked: (cluster_data: any) => void) {

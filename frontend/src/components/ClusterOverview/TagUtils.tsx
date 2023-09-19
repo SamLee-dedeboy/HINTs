@@ -620,7 +620,7 @@ const tags: any = {
 
     },
 
-    show_connected_entities(article_graph: d_ArticleGraph, article_cluster_label) {
+    show_connected_entities(article_graph: d_ArticleGraph, article_cluster_label, mentioned_entities: string[] | undefined) {
       // groups
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       const entity_node_group = canvas.select("g.entity-node-group")
@@ -630,13 +630,16 @@ const tags: any = {
       // const sub_cluster_centroids = (cluster_group.datum() as any).sub_cluster_centroids
 
       // cluster link ids
-      const cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[1])
+      let cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[1])
+      if(mentioned_entities) {
+        cluster_link_entity_ids = cluster_link_entity_ids.filter(id => mentioned_entities.includes(id))
+      }
       // const cluster_link_article_ids = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[0])
       // put normal nodes to back
       entity_node_group.selectAll("circle.entity-node")
-          .attr("opacity", (d: any) => d.opacity = 0.2)
+          .attr("opacity", (d: any) => 0.2)
           .filter((d: any) => cluster_link_entity_ids.includes(d.id))
-          .attr("opacity", (d: any) => d.opacity = 1)
+          .attr("opacity", (d: any) => 1)
           // .attr("stroke-width", 2)
 
       return
@@ -682,7 +685,7 @@ const tags: any = {
     remove_connected_entities() {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       canvas.select("g.entity-node-group").selectAll("circle.entity-node")
-        .attr("opacity", (d: any) => d.opacity=0.5)
+        .attr("opacity", (d: any) => d.opacity)
         // .attr("fill", (d: any) => d.color)
     },
 
