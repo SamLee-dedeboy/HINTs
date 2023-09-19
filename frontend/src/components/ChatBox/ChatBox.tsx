@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useRef, MutableRefObject } from 'react'
 import { server_address } from '../../shared'
 import { Radio, Checkbox } from 'antd';
+import "./ChatBox.css"
 import {
   UserOutlined,
   RobotOutlined
 } from '@ant-design/icons';
-import { select } from 'd3';
 
 type ChatgptMessage = {
   role: string
@@ -37,6 +37,7 @@ function ChatBox({queryDocs}) {
     { label: 'Use Full Content', value: false }
   ]
 
+
   function keyPressed(e) {
     if(e.code === "Enter"){
       e.preventDefault();
@@ -57,6 +58,7 @@ function ChatBox({queryDocs}) {
       setMessages(tmp_messages)
       setUsePrefix(false)
       inputBox.current!.textContent = ""
+      setSearchLoading(true)
     }
   }
 
@@ -80,6 +82,7 @@ function ChatBox({queryDocs}) {
         "content": response
       }
 
+      setSearchLoading(false)
       setMessages([...messages, new_message])
     })
   }
@@ -106,6 +109,15 @@ function ChatBox({queryDocs}) {
                   <div className="inline ml-2 border rounded p-2"> { message.content } </div>
                 </div>
               ))
+            }
+            {
+              searchLoading &&
+              <div className={ `chatbox-message w-fit mx-2 text-left flex items-top my-1`} > 
+                <div className="inline text-2xl h-fit">  <RobotOutlined /> </div>
+                <div className="inline ml-2 border rounded p-2"> 
+                  <span className='animate-[flash_2s_infinite]'>...</span>
+                </div>
+              </div>
             }
           </div>
         </div>
@@ -138,11 +150,14 @@ function ChatBox({queryDocs}) {
                   </div>
                 </div>
               </div>
-              <Radio.Group options={queryOptions} 
-                className="my-2 w-fit"
-                optionType='button'
-                buttonStyle='solid'
-                onChange={({target: {value}}) => setUseSummary(value)} value={useSummary} />
+              <div className="flex items-center justify-between">
+                <Radio.Group options={queryOptions} 
+                  className="w-fit inline-block font-serif"
+                  optionType='button'
+                  buttonStyle='solid'
+                  onChange={({target: {value}}) => setUseSummary(value)} value={useSummary} />
+                <button className={"clear-chat btn ml-1 my-2 px-2 py-0 h-[32px] inline-block text-[14px] items-center"} onClick={() => setMessages([])}>Clear Chat</button>
+              </div>
             </div>
 
         </div>

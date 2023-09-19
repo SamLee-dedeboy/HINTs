@@ -18,7 +18,6 @@ function DocCard({doc, index, theme, handleCardClicked}: DocCardProps) {
     if(doc?.summary === undefined) return undefined
     if(doc?.entity_spans === undefined) return doc.summary
     // return doc.summary
-    if(doc.id === "214146") console.log(doc.entity_spans)
     return add_highlights(doc.summary, doc.entity_spans)
     // let summary = doc.summary
     // doc.entities.forEach((entity: tMention) => {
@@ -102,7 +101,10 @@ function highlight_element(text) {
         <div className='doc-card-content flex flex-col' style={{borderColor: themeColor}}>
           {/* <span className="w-fit px-1 font-bold italic"> Summary: </span> */}
           <p className="doc-card-content text-left px-1" dangerouslySetInnerHTML={{__html: highlightedSummary || ""}}/>
-          <p className="text-left px-1"> #{doc.id} </p>
+          <p className="text-left px-1 text-sm"> 
+            <span className="text-left px-1"> Article ID: #{doc.id} </span>
+            <span className="text-left px-1"> Relevance: {doc.relevance?.toFixed(2)} </span>
+          </p>
         </div>
       </div>
     </>
