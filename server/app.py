@@ -65,17 +65,18 @@ def get_article_partition():
         "article_graph": {
             "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
             "clusters": clusters,
-            "sub_clusters": cluster_children_dict,
+            "cluster_children": cluster_children_dict,
+            "sub_clusters": sub_clusters,
             "cluster_order": cluster_order,
             "update_cluster_order": update_cluster_order,   
             "hierarchical_topics": user_hgraph.article_hierarchical_topics,
-            # "article_cluster_links": article_cluster_links,
             "cluster_entity_inner_links": cluster_entity_inner_links,
         },
         "entity_graph": {
             "entity_nodes": data_transformer.transform_entity_data(user_hgraph.entity_nodes),
             "entity_clusters":  entity_clusters,
-            "entity_sub_clusters": entity_cluster_children_dict,
+            "entity_cluster_children": entity_cluster_children_dict,
+            "entity_sub_clusters": entity_sub_clusters,
             "entity_cluster_order": entity_cluster_order,
             "entity_update_cluster_order": entity_update_cluster_order,
             "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
@@ -125,7 +126,8 @@ def filter_hgraph():
         "article_graph": {
             "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
             "clusters": clusters,
-            "sub_clusters": cluster_children_dict,
+            "cluster_children": cluster_children_dict,
+            "sub_clusters": sub_clusters,
             "cluster_order": cluster_order,
             "update_cluster_order": update_cluster_order,   
             "hierarchical_topics": user_hgraph.article_hierarchical_topics,
@@ -136,7 +138,8 @@ def filter_hgraph():
         "entity_graph": {
             "entity_nodes": data_transformer.transform_entity_data(user_hgraph.entity_nodes),
             "entity_clusters":  entity_clusters,
-            "entity_sub_clusters": entity_cluster_children_dict,
+            "entity_cluster_children": entity_cluster_children_dict,
+            "entity_sub_clusters": entity_sub_clusters,
             "entity_cluster_order": entity_cluster_order,
             "entity_update_cluster_order": entity_update_cluster_order,
             "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
@@ -215,7 +218,8 @@ def expand_article_cluster():
         "links": user_hgraph.entity_links,
         "article_nodes": data_transformer.transform_article_data(article_node_dict.values()),
         "clusters": clusters,
-        "sub_clusters": cluster_children_dict,
+        "cluster_children": cluster_children_dict,
+        "sub_clusters": sub_clusters,
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.article_hierarchical_topics,
@@ -289,7 +293,8 @@ def expand_entity_cluster():
         # entities
         "entity_nodes": data_transformer.transform_entity_data(user_hgraph.entity_nodes),
         "entity_clusters":  entity_clusters,
-        "entity_sub_clusters": entity_cluster_children_dict,
+        "entity_cluster_children": entity_cluster_children_dict,
+        "entity_sub_clusters": entity_sub_clusters,
         "entity_cluster_order": entity_cluster_order,
         "entity_update_cluster_order": entity_update_cluster_order,
         "entity_hierarchical_topics": user_hgraph.entity_hierarchical_topics,
@@ -407,7 +412,7 @@ def search():
 @app.route("/static/articles/", methods=["POST"])
 def get_articles():
     doc_ids = request.json['doc_ids']
-    articles = article_controller.searchByID(doc_ids)
+    articles = article_controller.searchByID(doc_ids, includeContent=False)
     return json.dumps(articles, default=vars)
 
 @app.route("/static/hierarchy", methods=["GET"])
@@ -429,7 +434,7 @@ def chat():
     if useQueryDocs:
         queryDocs = request.json['queryDocs']
         useSummary = request.json['useSummary']
-        docs = article_controller.searchByID(queryDocs)
+        docs = article_controller.searchByID(queryDocs, includeContent=True)
         user_query = messages[-1]['content']
         doc_query = ""
         for index, doc in enumerate(docs):

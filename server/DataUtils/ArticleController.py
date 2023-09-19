@@ -32,13 +32,13 @@ class ArticleController:
         # return strings_and_relatednesses[:top_n]
         return strings_and_relatednesses
 
-    def searchByID(self, query_ids: list[str]):
+    def searchByID(self, query_ids: list[str], includeContent: bool = False):
         summaries = [
             {
                 'id': doc['doc_id'],
                 'title': doc['title'],
                 'summary': doc['summary'],
-                # 'content': doc['content'],
+                'content': doc['content'] if includeContent else None,
                 'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
             }
             for doc in self.embeddings_db if doc['doc_id'] in query_ids
