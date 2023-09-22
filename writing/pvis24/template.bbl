@@ -1,5 +1,10 @@
 \begin{thebibliography}{10}
 
+\bibitem{allthenews}
+{All The News}.
+\newblock
+  \url{https://components.one/datasets/all-the-news-2-news-articles-dataset}.
+
 \bibitem{abdelaal2022network}
 M.~Abdelaal, N.~D. Schiele, K.~Angerbauer, K.~Kurzhals, M.~Sedlmair, and
   D.~Weiskopf.
@@ -59,11 +64,6 @@ N.~Cao, J.~Sun, Y.-R. Lin, D.~Gotz, S.~Liu, and H.~Qu.
 \newblock {\em IEEE transactions on visualization and computer graphics},
   16(6):1172--1181, 2010.
 
-\bibitem{chang2009reading}
-J.~Chang, S.~Gerrish, C.~Wang, J.~Boyd-Graber, and D.~Blei.
-\newblock Reading tea leaves: How humans interpret topic models.
-\newblock {\em Advances in neural information processing systems}, 22, 2009.
-
 \bibitem{cho2016vairoma}
 I.~Cho, W.~Dou, D.~X. Wang, E.~Sauda, and W.~Ribarsky.
 \newblock Vairoma: A visual analytics system for making sense of places, times,
@@ -104,13 +104,6 @@ S.~Citraro and G.~Rossetti.
   Proceedings of the Eighth International Conference on Complex Networks and
   Their Applications COMPLEX NETWORKS 2019 8}, pp. 141--151. Springer, 2020.
 
-\bibitem{collins2009bubble}
-C.~Collins, G.~Penn, and S.~Carpendale.
-\newblock Bubble sets: Revealing set relations with isocontours over existing
-  visualizations.
-\newblock {\em IEEE transactions on visualization and computer graphics},
-  15(6):1009--1016, 2009.
-
 \bibitem{combe2015louvain}
 D.~Combe, C.~Largeron, M.~G{\'e}ry, and E.~Egyed-Zsigmond.
 \newblock I-louvain: An attributed graph clustering method.
@@ -123,12 +116,6 @@ J.~Devlin, M.-W. Chang, K.~Lee, and K.~Toutanova.
 \newblock Bert: Pre-training of deep bidirectional transformers for language
   understanding.
 \newblock {\em arXiv preprint arXiv:1810.04805}, 2018.
-
-\bibitem{dinkla2012kelp}
-K.~Dinkla, M.~J. Van~Kreveld, B.~Speckmann, and M.~A. Westenberg.
-\newblock Kelp diagrams: Point set membership visualization.
-\newblock In {\em Computer Graphics Forum}, vol.~31, pp. 875--884. Wiley Online
-  Library, 2012.
 
 \bibitem{dou2013hierarchicaltopics}
 W.~Dou, L.~Yu, X.~Wang, Z.~Ma, and W.~Ribarsky.
@@ -162,17 +149,25 @@ D.~Han, G.~Parsad, H.~Kim, J.~Shim, O.-S. Kwon, K.~A. Son, J.~Lee, I.~Cho, and
 }{.}\hspace{.4pt}3086414}}
 
 
+\bibitem{Isenberg:2017:VMC}
+P.~Isenberg, F.~Heimerl, S.~Koch, T.~Isenberg, P.~Xu, C.~Stolper, M.~Sedlmair,
+  J.~Chen, T.~M{\"o}ller, and J.~Stasko.
+\newblock vispubdata.org: A metadata collection about {IEEE} visualization
+  ({VIS}) publications.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  23(9):2199--2206, Sept. 2017. doi: {{%
+10\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}1109\discretionary{/}{%
+}{/}TVCG\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2016\hspace{.1pt}\discretionary{.}{%
+}{.}\hspace{.4pt}2615308}}
+
+
 \bibitem{izacard2022unsupervised}
 G.~Izacard, M.~Caron, L.~Hosseini, S.~Riedel, P.~Bojanowski, A.~Joulin, and
   E.~Grave.
 \newblock Unsupervised dense information retrieval with contrastive learning.
 \newblock {\em Transactions on Machine Learning Research}, 2022.
-
-\bibitem{jacobsen2020metrosets}
-B.~Jacobsen, M.~Wallinger, S.~Kobourov, and M.~N{\"o}llenburg.
-\newblock Metrosets: Visualizing sets as metro maps.
-\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
-  27(2):1257--1267, 2020.
 
 \bibitem{karpukhin-etal-2020-dense}
 V.~Karpukhin, B.~Oguz, S.~Min, P.~Lewis, L.~Wu, S.~Edunov, D.~Chen, and W.-t.
@@ -189,11 +184,6 @@ V.~Karpukhin, B.~Oguz, S.~Min, P.~Lewis, L.~Wu, S.~Edunov, D.~Chen, and W.-t.
 }{-}{-}main\hspace{.1pt}\discretionary{.}{%
 }{.}\hspace{.4pt}550}}
 
-
-\bibitem{kerren2013novel}
-A.~Kerren and I.~Jusufi.
-\newblock A novel radial visualization approach for undirected hypergraphs.
-\newblock In {\em EuroVis (Short Papers)}, 2013.
 
 \bibitem{kumar2020new}
 T.~Kumar, S.~Vaidyanathan, H.~Ananthapadmanabhan, S.~Parthasarathy, and
@@ -241,12 +231,6 @@ P.~Maddigan and T.~Susnjak.
   chatgpt, codex and gpt-3 large language models.
 \newblock {\em IEEE Access}, 2023.
 
-\bibitem{meulemans2013kelpfusion}
-W.~Meulemans, N.~H. Riche, B.~Speckmann, B.~Alper, and T.~Dwyer.
-\newblock Kelpfusion: A hybrid set visualization technique.
-\newblock {\em IEEE transactions on visualization and computer graphics},
-  19(11):1846--1858, 2013.
-
 \bibitem{muelder2008sfc}
 C.~Muelder and K.-L. Ma.
 \newblock Rapid graph layout using space filling curves.
@@ -269,11 +253,6 @@ D.~Oelke, H.~Strobelt, C.~Rohrdantz, I.~Gurevych, and O.~Deussen.
   approach.
 \newblock In {\em Computer Graphics Forum}, vol.~33, pp. 201--210. Wiley Online
   Library, 2014.
-
-\bibitem{oliver2023scalable}
-P.~Oliver, E.~Zhang, and Y.~Zhang.
-\newblock Scalable hypergraph visualization.
-\newblock 2023.
 
 \bibitem{ouvrard2017hypergraph}
 X.~Ouvrard, J.~L. Goff, and S.~Marchand{-}Maillet.
@@ -306,30 +285,11 @@ R.~Qiu, Y.~Tu, Y.-S. Wang, P.-Y. Yen, and H.-W. Shen.
   retrieval and categorization.
 \newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 2022.
 
-\bibitem{qu2017interactive}
-B.~Qu, P.~Kumar, E.~Zhang, P.~Jaiswal, L.~Cooper, J.~Elser, and Y.~Zhang.
-\newblock Interactive design and visualization of n-ary relationships.
-\newblock In {\em SIGGRAPH Asia 2017 Symposium on Visualization}, pp. 1--8,
-  2017.
-
-\bibitem{qu2021automatic}
-B.~Qu, E.~Zhang, and Y.~Zhang.
-\newblock Automatic polygon layout for primal-dual visualization of
-  hypergraphs.
-\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
-  28(1):633--642, 2021.
-
-\bibitem{riche2010euler}
-N.~H. Riche and T.~Dwyer.
-\newblock Untangling euler diagrams.
-\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
-  16(6):1090--1099, 2010. doi: {{%
-10\hspace{.1pt}\discretionary{.}{%
-}{.}\hspace{.4pt}1109\discretionary{/}{%
-}{/}TVCG\hspace{.1pt}\discretionary{.}{%
-}{.}\hspace{.4pt}2010\hspace{.1pt}\discretionary{.}{%
-}{.}\hspace{.4pt}210}}
-
+\bibitem{raval2023explainandtrust}
+S.~Raval, C.~Wang, F.~Vi\'egas, and M.~Wattenberg.
+\newblock Explain and trust: An interactive machine learning framework for
+  exploring text embeddings.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 2023.
 
 \bibitem{sherkat2018interactive}
 E.~Sherkat, S.~Nourashrafeddin, E.~E. Milios, and R.~Minghim.
@@ -337,18 +297,6 @@ E.~Sherkat, S.~Nourashrafeddin, E.~E. Milios, and R.~Minghim.
   approach.
 \newblock In {\em 23rd International Conference on Intelligent User
   Interfaces}, pp. 281--292, 2018.
-
-\bibitem{simonetoo2016euler}
-P.~Simonetto, D.~Archambault, and C.~Scheidegger.
-\newblock A simple approach for boundary improvement of euler diagrams.
-\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
-  22(1):678--687, 2016. doi: {{%
-10\hspace{.1pt}\discretionary{.}{%
-}{.}\hspace{.4pt}1109\discretionary{/}{%
-}{/}TVCG\hspace{.1pt}\discretionary{.}{%
-}{.}\hspace{.4pt}2015\hspace{.1pt}\discretionary{.}{%
-}{.}\hspace{.4pt}2467992}}
-
 
 \bibitem{Stasko2007jigasw}
 J.~Stasko, C.~Gorg, Z.~Liu, and K.~Singhal.

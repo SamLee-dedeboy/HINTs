@@ -35,11 +35,11 @@ We chose to put the article hypergraph in the center area because the articles a
 Consequently, the participant hypergraph is put in the peripheral area.
 \begin{figure}%
     \centering
-    \subfloat[\centering One Gilbert curve\label{fig: gilbert_raw}]{{\includegraphics[width=5cm]{gilbert} }}
+    \subfloat[\centering One Gilbert curve\label{fig: gilbert_raw}]{{\includegraphics[width=0.45\columnwidth]{gilbert} }}
     \qquad
-    \subfloat[\centering Four concatenated Gilbert curves\label{fig: gilbert_concat}]{{\includegraphics[width=5cm]{concatenated_gilbert} }}%
+    \subfloat[\centering Four concatenated Gilbert curves\label{fig: gilbert_concat}]{{\includegraphics[width=0.45\columnwidth]{concatenated_gilbert} }}%
     \qquad
-    \subfloat[\centering An order-4 Gosper curve\label{fig: gosper}]{{\includegraphics[width=5cm]{gosper} }}%
+    \subfloat[\centering An order-4 Gosper curve\label{fig: gosper}]{{\includegraphics[width=0.45\columnwidth]{gosper} }}%
     \caption{
         (a), (b): Illustration of concatenating Gilbert curves. 
         The color indicates the traverse direction of Gilbert curves: start with dark blue and end with dark red.
@@ -68,9 +68,20 @@ Given a space-filling curve of a specific order, we first calculate the length o
 $L$ represents the total amount of space available for the nodes and thus,
 $L - N$ represents the amount of space to be redistributed, where $N$ is the size of the hypergraph.
 Our goal is to distribute the space between clusters to ensure the best readability.
-In early prototyping, we found that distributing the space proportional to the cluster size gives the best readability.
-Specifically, we define the space of a cluster as the blank space it has behind it on the curve, which is calculated by $(L-N)\frac{N_c}{N}$, where $N_c$ is the size of the cluster.
-TODO: add a diagram here
+In early prototyping, we found that distributing the space proportional to the cluster size gives the best readability as well as stability.
+Specifically, we define the space of a cluster as the blank space it has behind it on the curve, which is calculated by $(L-N)\frac{N_c}{N}$, where $N_c$ is the size of the cluster (\autoref{fig: spacing}).
+Another consideration when designing our spacing strategy is stability.
+We want to ensure that the layout change is minimized when clusters are expanded.
+Naively, when a cluster is expanded, the whole layout needs to be recalculated because now the cluster sequence is changed.
+To avoid such recalculation, we design our spacing strategy in this way so that the sub-clusters can simply take over the space of their parent cluster, as shown in~\autoref{fig: spacing}.
+Since the total volume of the sub-clusters is the size of the parent cluster and the space is proportional, the sub-clusters can take over exactly the space of the parent cluster without any overflow or underflow.
+This ensures a local change in the layout when a cluster is expanded.
+\begin{figure}
+ \centering % avoid the use of \begin{center}...\end{center} and use \centering instead (more compact)
+ \includegraphics[width=0.95\columnwidth]{spacing}
+ \caption{Spacing strategy of the SFC layouts. The space of each cluster $S_i$ is proportional to the cluster size. When $C_i$ is expanded, its sub-clusters redistribute $S_i$ to ensure the expansion only affects locally. }
+\label{fig: spacing}
+\end{figure}
 
 \subparagraph{Concave hull approximation}
 After applying the SFC layout, we use a concave hull algorithm~\cite{park2012concavehull} to generate an approximation polygon for each cluster.
@@ -97,9 +108,9 @@ Two examples are given in~\autoref{fig: borders}.
 
 \begin{figure}%
     \centering
-    \subfloat[\centering ]{{\includegraphics[width=5cm]{example_gilbert_border} }}%
+    \subfloat[\centering ]{{\includegraphics[width=0.45\columnwidth]{example_gilbert_border} }}%
     \qquad
-    \subfloat[\centering ]{{\includegraphics[width=5cm]{example_gosper_border} }}%
+    \subfloat[\centering ]{{\includegraphics[width=0.45\columnwidth]{example_gosper_border} }}%
     \caption{(a) An example of Gilbert cluster border (b) An example of Gosper cluster borders}%
     \label{fig: borders}%
 \end{figure}

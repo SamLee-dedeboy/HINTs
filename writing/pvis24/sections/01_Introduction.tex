@@ -27,7 +27,7 @@ Problems like \textit{hallucination} and \textit{faithfulness} hinder the accura
 Token limits restrict the length of the input text, limiting the usage of LLMs on large collections of documents (corpus).
 Prompts need to be carefully designed to reflect user intent.
 Finally, the extracted information, the analysis task and the visualization need to be aligned to foster interpretation and trust.
-In this work, we designed a VA system that models a corpus as a hypergraph, where the nodes are articles and salient entities (or concepts) extracted from the articles.
+In this work, we designed a VA system that models a corpus as a hypergraph, where the nodes are documents and characters (salient entities) extracted from the document using LLMs.
 We showcase how LLMs are used flexibly to align the data, analysis task and visualization during our design process.
 The hypergraph is then hierarchically clustered and visualized by extending space-filling curve layouts~\cite{muelder2008sfc}.
 The system supports interactive exploration, reorganization and analysis of the documents.
@@ -40,7 +40,6 @@ The contributions of our work are as follows:
     \item We extend space-filling curve layouts to visualize clusters in large hypergraphs.
     \item We develop a novel VA system that allows users to effectively explore, reorganize and analyze a corpus.
 \end{itemize}
-
 
 
 

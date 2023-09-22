@@ -1,24 +1,40 @@
-\begin{figure*}[t]
- \centering % avoid the use of \begin{center}...\end{center} and use \centering instead (more compact)
- \includegraphics[width=0.95\textwidth]{pipeline}
- \caption{Data processing pipeline of HyperMap. 
- Starting from a corpus of unstructured texts, each document goes through the data preparation stage to extract the main characters.
- Then the documents and characters are both embedded into a vector space.
- The model stage constructs a document hypergraph and a character hypergraph, which are then clustered separately by combining connectivity similarity and semantic similarity.
- The clustered hypergraphs are hosted on the server and visualized in the user interface.
- Users can expand, filter, or search the hypergraphs to explore the corpus and select documents to be analyzed with a chatbot.
-  }
-\label{fig:pipeline}
-\end{figure*}
 \section{Methodology}\label{sec: methodology}
+Starting from a corpus of unstructured texts, we first use LLMs to extract the main characters from each document.
+The characters are disambiguated and linked to a knowledge base if available.
+We also create and store the document embeddings and character embeddings.
+Then, we construct a document hypergraph and a character hypergraph, which are then clustered separately by combining connectivity similarity and semantic similarity.
+The clustering result is hosted on the server and visualized in an interactive user interface.
+Below, we describe each component in detail.
+\subsection{Preprocessing}
+The Methodology can work for any unstructured dataset
+\subsubsection{Datasets}
+% dataset references
+~\cite{allthenews},~\cite{Isenberg:2017:VMC}, 
+% OpenAI API website, used for embeddings and LLM
+\footnote{\url{https://platform.openai.com}}
+
+The scope of this research paper is to visualize diverse and unlabelled data conveying any type of information. Our testing is mainly focused on news articles and research papers to show results for all sorts of data. These news articles and abstracts are not domain specific and can be very abstract. \\
+The following datasets were used:
+\begin{itemize}
+    % \item Roles Across Multiple Sentences (RAMS) - This dataset contains news articles with a wide variety of events. It contains 9,124 annotated events with 135 event types and 65 roles. We have used this dataset because of its abstract and wide ranging information that is not just restricted to a specific domain. 
+    \item All The News - This dataset contains 143,000 articles from 15 American publications.  It typically includes metadata such as headlines, publication dates, and the full text of the articles. The dataset covers a wide range of topics, making it valuable for various natural language processing and text analysis tasks.
+    \item Visualization Publications Dataset - This dataset contains information about IEEE visualization publications from 1990-2022. The purpose of using this dataset was to test our methods on majorly technical and scientific datasets. These research papers cover a wide-variety of research topics with fileds like abstracts, keywords, author names, titles ,number of citations, etc. The abstracts are used for the task of event extraction, where the event is the main research idea of the paper.This dataset is used to explore a new kind of event extraction where the definition of an event and main participants change in technical terms as compared to generic articles.
+\end{itemize}
+\subsubsection{Summarization}
+Chatgpt for summarization
+\subsubsection{Document Embedding}\label{sec: embeddings}
+OpenAI's embedding API
+\subsubsection{Character Extraction}\label{sec: character_extraction}
+Chatgpt for major character extraction and another model for entity linking
+
+\subsubsection{Topic Assignment}\label{sec: tag_assignment}
+Chatgpt to assign topics to each cluster
+~\cite{raval2023explainandtrust}
 \subsection{Models}
 \subsubsection{Hypergraph}
 A hypergraph is a generalization of a graph in which an edge can connect any number of nodes~\cite{fischer2021hypergraphsurvey}.
 A hyperedge thus represents a multi-way relationship between nodes.
 In our work, we model two types of hypergraphs: document hypergraph and character hypergraph, where documents and characters are the nodes, respectively.
-We define \textit{Characters} as the core components a document discusses.
-For example, in a news article, the characters can be named entities such as people, organizations, or locations.
-In a research article, the characters can be the concepts or techniques used in the described work.
 Analyzing the document hypergraph and character hypergraph correspond to topic-based and entity-based analysis, respectively.
 Modeling the corpus as two hypergraphs allows us to support users to conduct both types of analysis simultaneously under a unified framework (\textbf{DC1}).
 
@@ -88,23 +104,3 @@ For the similarity between clusters, we used centroid similarity, i.e.\ the simi
 The algorithm is presented in (TODO: add algorithm pseudocode here)
 
 
-
-\subsection{Preprocessing}
-The Methodology can work for any unstructured dataset
-\subsubsection{Datasets}
-The scope of this research paper is to visualize diverse and unlabelled data conveying any type of information. Our testing is mainly focused on news articles and research papers to show results for all sorts of data. These news articles and abstracts are not domain specific and can be very abstract. \\
-The following datasets were used:
-\begin{itemize}
-    \item Roles Across Multiple Sentences (RAMS) - This dataset contains news articles with a wide variety of events. It contains 9,124 annotated events with 135 event types and 65 roles. We have used this dataset because of its abstract and wide ranging information that is not just restricted to a specific domain. 
-    \item All The News - This dataset contains 143,000 articles from 15 American publications.  It typically includes metadata such as headlines, publication dates, and the full text of the articles. The dataset covers a wide range of topics, making it valuable for various natural language processing and text analysis tasks.
-    \item Visualization Publications Dataset - This dataset contains information about IEEE visualization publications from 1990-2022. The purpose of using this dataset was to test our methods on majorly technical and scientific datasets. These research papers cover a wide-variety of research topics with fileds like abstracts, keywords, author names, titles ,number of citations, etc. The abstracts are used for the task of event extraction, where the event is the main research idea of the paper.This dataset is used to explore a new kind of event extraction where the definition of an event and main participants change in technical terms as compared to generic articles.
-\end{itemize}
-\subsubsection{Summarization}
-Chatgpt for summarization
-\subsubsection{Document Embedding}\label{sec: embeddings}
-OpenAI's embedding API
-\subsubsection{Participant Extraction}\label{sec: participant_extraction}
-Chatgpt for major participant extraction and another model for entity linking
-
-\subsubsection{Topic Assignment}\label{sec: tag_assignment}
-Chatgpt to assign topics to each cluster
