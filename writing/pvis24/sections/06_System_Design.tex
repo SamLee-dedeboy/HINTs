@@ -1,13 +1,66 @@
-\section{System Design}
+\section{HyperMap System Design}
+Below, we describe the HyperMap frontend system, including the views, visualizations and interactions, and how they assist exploration and reorganization of a corpus.
+The HyperMap system consists of three main views: Cluster View, Article View and Analysis View.
+The Cluster View visualizes the corpus as two hypergraphs using the SFC layout described in~\autoref{sec: visualization}.
+The Document View shows the articles along with necessary statistics when the user makes a selection in the Cluster View.
+The Analysis View integrates an LLM-based chatbot to assist the user in analyzing the selected articles. 
+\textbf{TODO: add labels to each view in figure 1}
 \subsection{Cluster View}
-Use SFC hypergraph to show topical structure of the dataset.
-
+Cluster View is the main view of the HyperMap system.
+It visualizes the corpus as two hypergraphs using the SFC layout described in~\autoref{sec: visualization}.
+Using the Cluster View, users can explore the topic structure and entity connections simultaneously (\textbf(DC1)).
+Below, we mainly discuss user interactions and the coordination between the Cluster View and other views.
 \subsubsection{Interactions}
-\subparagraph{Click}
-\subparagraph{Expansion}
-\subparagraph{Filtering}
-\subparagraph{Searching}
+\subparagraph{Hover and click}
+By default, the cluster labels are hidden to reduce clutter.
+Hovering over the clusters will trigger a highlight effect and show the cluster label, indicating to users that it is an interactive object.
+Users can select a cluster by clicking on the cluster label.
+This will also trigger the Article View to show articles within the cluster and the connected entities (\textbf{DC1}).
+Additionally, clicking on the cluster will temporarily expand the cluster to expose its sub-structure (\textbf{DC2}), as shown in~\autoref{fig: sub-cluster}.
+The sub-structure is colored in different colors while maintaining the original cluster's shape.
+The labels of each sub-cluster are also shown radially.
+When the user clicks on any cluster or cluster label, the connected characters are highlighted and others fade out.
+Under such cases, hovering over the character clusters will show not only the cluster label but also the highlighted characters in a list, as shown in~\autoref{fig: character-cluster-label}.
+Users can click on the connected characters to filter the articles in the Article View.
 
-\subsection{Article View}
+\subparagraph{Expansion}
+The expansion operation breaks a cluster into smaller clusters.
+This operation is necessary because the agglomerative clustering result is not always semantically optimal.
+Some clusters may be too vague, while others may be too specific.
+By breaking down a cluster, users can also investigate a level deeper into the topic structure (\textbf{DC2}).
+We use (Cmd + Click) or (Ctrl + Click) to expand a cluster.
+The sub-cluster will redistribute the spacing of their parent cluster proportionally to their size.
+This ensures that other clusters are not moved in the layout.
+\textbf{TODO: figure}
+
+\subparagraph{Filtering}
+At any point in the exploration when users find that they have found the target of interest,
+they can click the filter button to remove irrelevant documents and characters from the view.
+The filtering functionality effectively creates a sub-hypergraph based on node selection, which supports any interactions that are available in the original hypergraph.
+Note that we only support filtering based on document node selection, and character nodes that are not connected to the selected document nodes are filtered accordingly.
+Although filtering based on character nodes is technically possible, we do not find the operation intuitive.
+We decided to remove this feature to prevent users from losing themselves in the exploration process.
+
+\subparagraph{Searching}
+HyperMap supports searching by document embeddings.
+Users can create any query in natural language, and the system will return the most relevant documents.
+The search functionality is implemented by ranking the documents based on their cosine similarity to the query.
+The user query is first embedded into the same vector space as the documents.
+Then the cosine similarity between the query and each document is calculated.
+The server returns the ranked documents to the front end, and the user can control the number of documents to be highlighted by a relevancy threshold. 
+The highlighted documents and connected characters are visually distinguished in the Cluster View.
+\textbf{TODO: figure}
+
+\subsection{Document View}
+The Document View displays a list of articles in a cluster.
+Users can click any cluster or sub-cluster label to inspect the articles within.
+The document view is colored according to the cluster color in the Cluster View.
+Each document is an interactive card, with the title, summary, ID and relevancy score (if available) shown.
+If the user is under search mode, documents above the relevancy threshold are also highlighted.
+Users can click any document card to add or remove it in the Analysis View.
 
 \subsection{Analysis View}
+The Analysis View is a chatbot that assists users in analyzing the selected documents (\textbf{DC4}).
+Users can use the summary or the full content of the selected document to ask any questions in natural language.
+For example, ...
+

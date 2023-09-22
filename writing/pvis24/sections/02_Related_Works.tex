@@ -1,5 +1,5 @@
 \section{Related Works}
-\subsection{Visual Analytics of large collections of text}
+\subsection{Data preparation for large collections of text}
 \subparagraph{Topic-based approaches} 
 Topic-based approaches employ certain variations of topic models to organize the documents in a meaningful way.
 Each topic is often presented as a `bag of words', which can be in the form of a sequence of words~\cite{yang2017vistopic, cho2016vairoma, dou2013hierarchicaltopics,yan2019clfsemi,han2022hisva, alexander2014serendip, lee2012ivisclustering} or word clouds~\cite{oelke2014topiccoin, cho2016vairoma}.
@@ -42,7 +42,7 @@ Although LLMs have proven successful in many NLP tasks, their application to IE 
 First, the \textit{faithfulness} of LLMs needs to be carefully evaluated.
 Faithfulness refers to the ability of a model to adhere to the provided information and not use parametric knowledge learned during training to answer user questions~\cite{zhou2023contextfaithful}.
 When conducting information extraction, it is necessary to ensure that the extracted information is actually from the provided text and not from the model's parametric knowledge.
-Second is the \textit{hallucination} problem of LLMs, where LLMs provide answers factually contradicting to input text (intrinsic) or even factually false (extrinsic). 
+Second, the \textit{hallucination} problem of LLMs, where LLMs provide answers factually contradicting to input text (intrinsic) or even factually false (extrinsic). 
 In the context of IE, we mainly focus on the intrinsic hallucination problem.
 A recent evaluation conducted by Bang et al.~\cite{bang2023multitask} found that ChatGPT rarely exhibits intrinsic hallucinations, including the abstractive summarization task from which neural models usually suffer.
 

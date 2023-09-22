@@ -1,33 +1,44 @@
 \section{Introduction}
-Text data is ubiquitous in the modern world. 
-From news articles and social media posts to scientific publications, the tremendous amount of text data that is produced poses a great challenge to anyone who needs to analyze them.
-Visual analytics (VA) mitigates this challenge by combining mathematical models and visualizations to automate the process and reduce the cognitive load.
-\textit{Model Alignment}, proposed by Chuang et al.~\cite{chuang2012interpretation}, refers to the alignment of analysis tasks, visual encodings and model decisions. 
-Failure to align them impairs users' interpretation and trust in visual analytic systems.
+Text data is ubiquitous.
+From news articles and social media posts to scientific publications, the tremendous amount of text data that is produced poses not only opportunities but also a great challenge to anyone who needs to analyze them.
+Visual analytics (VA) mitigates this challenge by combining mathematical models and visualizations to automate the sensemaking process and reduce the cognitive load.
+Chuang et al.~\cite{chuang2012interpretation} proposed that \textit{Model alignment}, the alignment of analysis tasks, visual encodings and model decisions,
+greatly affects users' interpretation and trust in visual analytic systems.
 However, in text analysis, the available models often align poorly with analysis tasks.
-For example, topic models are commonly used to model the topical structure of text documents,
-where a \textit{topic} is characterized as a probabilistic distribution spanning a given vocabulary~\cite{vayansky2020review}.
+For example, topic models are commonly used to model the topical structure of text documents.
+Most topic models characterize \textit{topic} as a probabilistic distribution spanning a given vocabulary~\cite{vayansky2020review}.
 This transformation from \textit{topics}, a high-level concept that the user seeks to understand, to a \textit{probabilistic distribution}, a low-level concept that mathematical models can operate on, prevents proper model alignment.
 The misalignment between analysis tasks and models limits the usage of visual analytics systems for users who are not familiar with the underlying models.
 
 Recent advances in large language models (LLM) present a promising solution to this problem.
-LLMs have proven successful in various natural language processing (NLP) tasks, including Information Extraction (IE).
-Li et al.~\cite{li2023evaluateChatgpt} evaluated ChatGpt's capabilities on IE tasks comprehensively, and found that it excels under an OpenIE setting, where the model relies solely on user input to extract information from documents.
-The capability of LLMs to extract information from documents according to user intent eliminates the need to carefully align the analysis tasks and models in VA systems.
+LLMs have proven successful in various natural language processing (NLP) tasks, especially in question-answering tasks due to their strong capability to understand user intent.
+Researchers in visualization have adopted LLMs to assist data transformation~\cite{wang2023dataformulator} or directly generate visualization~\cite{maddigan2023chat2vis}.
+However, they all assumed a clean data format, where the data to be visualized is already in a table format. 
+For unstructured text analysis though, this is rarely the case.
+Topics~\cite{atzberger2023evaluatetopicmodel}, sentiments~\cite{beasley2021through}, concepts and entities~\cite{park2018conceptvector,cao2010facetatlas} are common analysis targets in text analysis, which require a data preparation stage to extract them from unstructured text.
+Recently, Li et al.~\cite{li2023evaluateChatgpt} evaluated ChatGPT's capabilities on Information Extraction (IE) tasks comprehensively, and found that it excels under an OpenIE setting, where the model relies solely on user input to extract information from documents.
+The capability of LLMs to extract information from documents according to user intent eliminates the need to carefully align the analysis tasks and models in VA systems,
+because a specific model is no longer needed to prepare the data for the analysis task.
 In the previous example, instead of relying on abstruse and unfathomable probabilistic models, LLMs can directly process the text data and summarize the topics of the documents.
-A user can directly ask a LLM:\@ \textit{`What are the topics of these articles?'}, and the LLM would give a human-like response, such as \textit{`The articles are about \ldots'}.
+A user can ask a LLM:\@ \textit{`What are the topics of these articles?'}, and the LLM would give a human-like response, such as \textit{`The articles are about \ldots'}.
 
-Following the above discussion, we propose a novel VA system that allows users to explore, reorganize and analyze large collections of unstructured text data.
-The system is built upon an LLM-based information extraction pipeline, which is capable of extracting topics and salient entities (or concepts) from a given corpus.
-We demonstrate how we carefully design the pipeline to address certain limitations of LLMs.
-The result is then modeled as a hypergraph, hierarchically clustered, and visualized as an interactive bipartite graph using space-filling curve layouts with rich interaction supporting expansion, deletion, and searching.
-Finally, users can directly use the reorganized corpus to query LLM for detailed document analysis.
+However, using LLMs in the data preparation stage is not trivial. 
+Problems like \textit{hallucination} and \textit{faithfulness} hinder the accuracy of the extracted information.
+Token limits restrict the length of the input text, limiting the usage of LLMs on large collections of documents (corpus).
+Prompts need to be carefully designed to reflect user intent.
+Finally, the extracted information, the analysis task and the visualization need to be aligned to foster interpretation and trust.
+In this work, we designed a VA system that models a corpus as a hypergraph, where the nodes are articles and salient entities (or concepts) extracted from the articles.
+We showcase how LLMs are used flexibly to align the data, analysis task and visualization during our design process.
+The hypergraph is then hierarchically clustered and visualized by extending space-filling curve layouts~\cite{muelder2008sfc}.
+The system supports interactive exploration, reorganization and analysis of the documents.
+To the best of our knowledge, no visual analytics system has adopted LLMs to assist the data preparation stage in text analysis.
+Using the system, we demonstrate how proper model alignment can be achieved using LLMs.
 
-The contributions of this paper are as follows:
+The contributions of our work are as follows:
 \begin{itemize}
-    \item We propose an LLM-based information extraction pipeline that is capable of extracting topics and salient entities from a given corpus.
-    \item We propose a novel bipartite space-filling curve layout that is capable of visualizing clusters in large hypergraphs.
-    \item We propose a novel VA system that allows users to explore, reorganize and analyze large collections of unstructured text data.
+    \item We introduce an LLM-based information extraction pipeline that is capable of extracting topics and salient entities from a given corpus in a way that fosters interpretation.
+    \item We extend space-filling curve layouts to visualize clusters in large hypergraphs.
+    \item We develop a novel VA system that allows users to effectively explore, reorganize and analyze a corpus.
 \end{itemize}
 
 

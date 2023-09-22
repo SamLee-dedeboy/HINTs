@@ -1,4 +1,4 @@
-\section{Visualization}
+\section{Visualization}~\label{sec: visualization}
 \subsection{SFC for HyperGraph}
 
 In the design guidelines proposed by Abdelaal et al.~\cite{abdelaal2022network} in a recent network visualization evaluation study, node-link-based approaches are recommended when:
@@ -13,6 +13,7 @@ After that, any node-link-based graph visualization method can be applied.
 In our system, we use the space-filling curve (SFC) layout method to layout the extra-node representation of the hypergraph.
 The SFC layout method uses pre-computed clustering to order nodes in a sequence and then applies a space-filling curve on the node sequence to map it to a two-dimensional screen space~\cite{muelder2008sfc}.
 SFC approaches are known for their efficiency and aesthetics in visualizing large graphs~\cite{ma2013largegraph}.
+Moreover, SFC layouts support progressive disclosure (\textbf{DC2}) organically, as the layout is generated based on the clustering result (\textbf{DC3}).
 After the preprocessing and modeling stage described in~\autoref{sec: methodology}, we have two hypergraphs: the article hypergraph $H_A$ and the participant hypergraph $H_P$, each having its hierarchical cluster.
 Combining the extra-node representation and SFC layout, we visualize the article hypergraph $H_A$ and the participant hypergraph $H_P$ as two separate SFCs, as shown in~\autoref{fig: sfc}.
 
@@ -48,8 +49,28 @@ Consequently, the participant hypergraph is put in the peripheral area.
 \end{figure}
 
 \subsection{Improving the readability}
+\subparagraph{Automatic Cluster Expansion}
+In most cases, the default clustering result is not optimal for the user's targeted analysis tasks.
+We identify two common problems in early prototyping: 
+(1) clusters may be too big, weakening the semantic meaning that the clusters can convey.
+(2) clusters may have only one sub-cluster, which makes the parent cluster redundant. 
+Both problems can be mitigated by automatically expanding a cluster.
+We employ rule-based detection to identify clusters that need to be expanded.
+For a cluster $C$, we expand it if the following conditions are met:
+(1) $C$ has only one sub-cluster $C_s$;
+(2) $C$ has more than $n = k N$ nodes, where $k \in [0, 1]$ and $N$ is the size of the hypergraph.
+Through trial and error, we find that $k=0.3$ gives the most balanced results.
+
 \subparagraph{Spacing Strategy}
-We employ a simple spacing strategy.
+Spacing between each node is important for the readability and aesthetics of SFC layouts.
+To highlight different clusters, we employ our spacing strategy on clusters instead of nodes.
+Given a space-filling curve of a specific order, we first calculate the length of the curve $L$.
+$L$ represents the total amount of space available for the nodes and thus,
+$L - N$ represents the amount of space to be redistributed, where $N$ is the size of the hypergraph.
+Our goal is to distribute the space between clusters to ensure the best readability.
+In early prototyping, we found that distributing the space proportional to the cluster size gives the best readability.
+Specifically, we define the space of a cluster as the blank space it has behind it on the curve, which is calculated by $(L-N)\frac{N_c}{N}$, where $N_c$ is the size of the cluster.
+TODO: add a diagram here
 
 \subparagraph{Concave hull approximation}
 After applying the SFC layout, we use a concave hull algorithm~\cite{park2012concavehull} to generate an approximation polygon for each cluster.
@@ -95,15 +116,14 @@ This results in a radial layout for the sub-cluster labels, as shown in~\autoref
 The generalizability of the concave hull algorithm makes our labeling position calculation applicable to any curve we use for the SFC layout.
 \begin{figure}%
     \centering
-    \subfloat[\centering Label position of the cluster is the centroid of each cluster.]{{\includegraphics[width=5cm]{cluster_label} }}%
+    \subfloat[\centering Label position of the cluster is the centroid of each cluster.]{{\includegraphics[width=0.5\columnwidth]{cluster_label} }}%
+    \subfloat[\centering Labels of the sub-clusters of a cluster. The color indicates different sub-clusters. \label{fig: sub-cluster}]{{\includegraphics[width=0.5\columnwidth]{sub_cluster_label} }}%
     \qquad
-    \subfloat[\centering Labels of the sub-clusters of a cluster. The color indicates different sub-clusters. ]{{\includegraphics[width=5cm]{sub_cluster_label} }}%
-    \caption{(a) Labels (topics) of the article clusters (b) An example of expanded cluster labels}%
+    \subfloat[\centering Labels of the character cluster. The left part shows the categories of the characters as the cluster label. When documents are selected, the right part appears and shows the connected characters.\label{fig: character-cluster-label}]{{\includegraphics[width=5cm]{character_cluster_label} }}%
+    \caption{(a) Labels (topics) of the document clusters (b) An example of expanded cluster labels (c) An example of character labels (categories) and highlighted characters}%
     \label{fig: labels}%
 \end{figure}
 
-\subsection{Design Choices}
-\subparagraph{Why show all the nodes as circles}
-\subparagraph{Why hide the links}
-
-
+% \subsection{Design Choices}
+% \subparagraph{Why show all the nodes as circles}
+% \subparagraph{Why hide the links}

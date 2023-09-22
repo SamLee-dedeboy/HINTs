@@ -20,6 +20,13 @@ E.~Alexander, J.~Kohlmann, R.~Valenza, M.~Witmore, and M.~Gleicher.
 }{.}\hspace{.4pt}7042493}}
 
 
+\bibitem{atzberger2023evaluatetopicmodel}
+D.~Atzberger, T.~Cech, W.~Scheibel, M.~Trapp, R.~Richter, J.~D{\"o}llner, and
+  T.~Schreck.
+\newblock Large-scale evaluation of topic models and dimensionality reduction
+  methods for 2d text spatialization.
+\newblock {\em arXiv preprint arXiv:2307.11770}, 2023.
+
 \bibitem{auber2013gospermap}
 D.~Auber, C.~Huet, A.~Lambert, B.~Renoust, A.~Sallaberry, and A.~Saulnier.
 \newblock Gospermap: Using a gosper curve for laying out hierarchical data.
@@ -32,6 +39,12 @@ Y.~Bang, S.~Cahyawijaya, N.~Lee, W.~Dai, D.~Su, B.~Wilie, H.~Lovenia, Z.~Ji,
 \newblock A multitask, multilingual, multimodal evaluation of chatgpt on
   reasoning, hallucination, and interactivity.
 \newblock {\em arXiv preprint arXiv:2302.04023}, 2023.
+
+\bibitem{beasley2021through}
+Z.~J. Beasley, A.~Friedman, and P.~Rosen.
+\newblock Through the looking glass: insights into visualization pedagogy
+  through sentiment analysis of peer review text.
+\newblock {\em IEEE Computer Graphics and Applications}, 41(6):59--70, 2021.
 
 \bibitem{kaminski2021hgraphcommunity}
 P.~P. . F.~T. Bogumił~Kamiński.
@@ -222,6 +235,12 @@ K.-L. Ma and C.~W. Muelder.
 }{.}\hspace{.4pt}242}}
 
 
+\bibitem{maddigan2023chat2vis}
+P.~Maddigan and T.~Susnjak.
+\newblock Chat2vis: Generating data visualisations via natural language using
+  chatgpt, codex and gpt-3 large language models.
+\newblock {\em IEEE Access}, 2023.
+
 \bibitem{meulemans2013kelpfusion}
 W.~Meulemans, N.~H. Riche, B.~Speckmann, B.~Alper, and T.~Dwyer.
 \newblock Kelpfusion: A hybrid set visualization technique.
@@ -366,6 +385,11 @@ M.~Vijaymeena and K.~Kavitha.
 \newblock A survey on similarity measures in text mining.
 \newblock {\em Machine Learning and Applications: An International Journal},
   3(2):19--28, 2016.
+
+\bibitem{wang2023dataformulator}
+C.~Wang, J.~Thompson, and B.~Lee.
+\newblock Data formulator: Ai-powered concept-driven visualization authoring.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics}, 2023.
 
 \bibitem{xiang2019surveyee}
 W.~Xiang and B.~Wang.

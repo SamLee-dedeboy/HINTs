@@ -81,7 +81,7 @@
 
 %% Paper title.
 
-\title{HyperMap: a visual analytics approach for analyzing large collections of unstructured text}
+\title{HyperMap: a visual analytics approach to analyzing large collections of unstructured text}
 
 
 %% This is how authors are specified in the conference style
@@ -98,13 +98,12 @@
 
 %% Author and Affiliation (multiple authors with multiple affiliations)
 
-\author{Sam Yu-Te Lee\thanks{e-mail: ytlee@ucdavis.edu}\\ %
-\scriptsize University of California, Davis %
-\and Aryaman Bahukhandi\thanks{e-mail: abahukhandi@ucdavis.edu}\\
-\scriptsize University of California, Davis
-\and Kwan-Liu Ma\thanks{e-mail: klma@ucdavis.edu}\\ %
- \scriptsize University of California, Davis %
-}
+% \author{
+%   Sam Yu-Te Lee\thanks{e-mail: ytlee@ucdavis.edu}\\ %
+% \and Aryaman Bahukhandi\thanks{e-mail: abahukhandi@ucdavis.edu}\\
+% \and Kwan-Liu Ma\thanks{e-mail: klma@ucdavis.edu}\\ %
+% }
+% \affiliation{\scriptsize University of California, Davis}
 
 %% A teaser figure can be included as follows
 \teaser{
@@ -116,13 +115,13 @@
 
 %% Abstract section.
 \abstract{
-Sensemaking on large collections of unstructured text (corpus) is a challenging task that analysts have to perform.
+Sensemaking on large collections of unstructured text (corpus) is a challenging task that analysts often have to perform.
 Previous works approach this problem either from a topic- or entity-based perspective, but they lack interpretability and trust.
 In this paper, we propose a visual analytics approach that combines topic- and entity-based techniques seamlessly by modeling the corpus as a hypergraph.
 The hypergraph is then hierarchically clustered with an agglomerative clustering algorithm by combining semantic and connectivity similarity.
-We visualize the clustering result to allow analysts to explore and reorganize a corpus for their analysis.
-The system is designed to foster interpretability and trust by providing rich semantic context for the visualization and by supporting curating interactions.
-Case studies and a task-based evaluation are used to demonstrate the effectiveness and trustworthiness of the system.
+Analysts visualize the clustering result to explore and reorganize a corpus for their analysis.
+The system is designed to foster interpretability and trust by providing a rich semantic context for the visualization and by supporting curating interactions.
+Case studies and a task-based evaluation are used to demonstrate the effectiveness and trustworthiness of the HyperMap system.
 }
 
 
@@ -135,8 +134,10 @@ Case studies and a task-based evaluation are used to demonstrate the effectivene
 %% In both cases the last two arguments (1998) or last three (2012) can be empty.
 
 \CCScatlist{
-  \CCScatTwelve{Human-centered computing}{Visu\-al\-iza\-tion}{Visu\-al\-iza\-tion techniques}{Treemaps};
-  \CCScatTwelve{Human-centered computing}{Visu\-al\-iza\-tion}{Visualization design and evaluation methods}{}
+  \CCScatTwelve{Human-centered computing}{Visualization}{Visualization application domains}{Visual Analytics};
+  \CCScatTwelve{Information systems}{Information retrieval}{Retrieval tasks and goals}{Clustering and classification};
+  \CCScatTwelve{Human-centered computing}{Human computer interaction (HCI)}{Interaction paradigms}{Graphical user interfaces};
+  \CCScatTwelve{Applied computing}{Document management and text processing}{}{}
 }
 
 %\CCScatlist{

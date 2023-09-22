@@ -1,9 +1,43 @@
-\section{Design Rationale}~\label{sec: design_rationale}
-What DRs are needed for analysts to explore and reorganize a corpus for their analytical tasks and why?
-\subsection{Design Considerations}
+\subsection{Design Rationale}~\label{sec: design_rationale}
+HyperMap is designed for analysts to explore and reorganize a corpus for their analysis.
+Our design rationale to foster interpretation is based on the design guidelines proposed by Chuang et al.~\cite{chuang2012interpretation}.
+We reuse their definitions of \textit{Model Alignment}, \textit{Progressive Disclosure}, and \textit{Unit of Analysis} when describing our design rationale.
+We first identify common analysis tasks from previous works.
+Then, we derive our design considerations (DC) from the analysis tasks.
+We take the DCs into account when making our model decisions and visualization design in~\autoref{sec: methodology}.
+Finally, we explain how we achieve model alignment by applying the design considerations to our system.
+
+\subsubsection{Analysis Tasks}
+We derive our target analysis tasks from topic- and entity-based approaches.
+Topic-based approaches aim to support document understanding by visualizing the topic structure of the documents.
+Investigation of the topic structure seeks to answer the question: \textit{What topics are discussed in the corpus, and how are they related?}
+Entity-based approaches support investigative analysis by visualizing entities and their relations.
+Similarly, the investigation of the entities seeks to answer the question: \textit{What entities are involved in the corpus, and how are they related?}: 
+We aim to support both tasks simultaneously as they are fundamental to subsequent tasks and intertwined in a real-world scenario.
+
+\subsubsection{Design Considerations}
+To support the aforementioned analysis tasks, we derive the following design considerations (DCs):
 \begin{itemize}
-    \setlength\itemsep{0em}
-      \item \textbf{DC1: An overview of the topic structure} 
-      \item \textbf{DC2: Support for curation through user interaction } 
-      \item \textbf{DC3: Detailed analysis of the curated result } 
-  \end{itemize}
+  \item \textbf{DC1: Overview of topic structures and entity connections}
+  Given a corpus, the topic structures and entity connections can be complex and cover a wide range of articles and entities. 
+  The overview seeks to cover all the articles and entities by hiding the details.
+  This sets the ground for the user to discover their targets of interest.
+  \item \textbf{DC2: Progressive Disclosure}
+  To facilitate investigation, it is important to support users to drill down from a high-level overview to intermediate abstractions.
+  This includes disclosure of a specific topic's sub-structure, the containing articles, and the connections to entities.
+  \item \textbf{DC3: Model Alignment}
+  Our choice of model should align well with the analyst's mental model when conducting the analysis tasks.
+  This means our model should directly operate on the units of analysis, which are topics (groups of similar articles) and entities.
+  Then by properly visualizing the abstractions of the model, we are safe to produce a good model alignment.
+  \item \textbf{DC4: Detailed analysis of the target of interest}
+  The investigation of topic structures and entity connections often leads to a target of interest, which can be a topic or an entity.
+  After such investigation, previous works usually only provide the user with a list of documents that are relevant to the target of interest.
+  This is perhaps due to the lack of a unified way to analyze the target of interest under different contexts.
+  The advance of LLMs presents a promising solution to this problem by transforming almost any analysis task into a question-answering task.
+  We thus include this task to fill the gap in previous works.
+\end{itemize}
+
+
+
+
+
