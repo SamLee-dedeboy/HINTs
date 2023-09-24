@@ -5,6 +5,8 @@ export type tDocument = {
     entity_spans: tSpan[],
     relevance? : number
     highlight? : boolean
+    color : string
+    cluster_label: string
 }
 // export type tMention = {
 //     entity_id: string,

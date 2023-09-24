@@ -3,12 +3,17 @@ import type { tDocument, tSpan } from '../../types/Doc'
 type DocCardProps = {
   doc: tDocument 
   index: number 
-  theme: string
+  // theme: string
   handleCardClicked: (doc_id: string, clicked: boolean) => void
 }
-function DocCard({doc, index, theme, handleCardClicked}: DocCardProps) {
+function DocCard({doc, index, handleCardClicked}: DocCardProps) {
   const setOpacity = (hex, alpha) => `${hex}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
-  const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
+  // const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
+  function getThemeColor(theme) {
+    const res = setOpacity(theme, 0.5)
+    console.log(theme, res)
+    return res
+  }
   const highlight = doc?.highlight ? 'opacity-100' : 'opacity-50'
   // const clicked: MutableRefObject<boolean> = useRef(false)
   const [clicked, setClicked] = useState(false)
@@ -90,19 +95,22 @@ function highlight_element(text) {
       hover:border-solid 
       hover:shadow-2xl 
       `} 
-      style={{borderColor: themeColor}}
+      // style={{borderColor: themeColor}}
+      style={{borderColor: getThemeColor(doc.color)}}
       onClick={() => { handleCardClicked(doc.id || "", !clicked); setClicked(!clicked); }}
       >
-        <div className='doc-card-header flex items-center font-semibold text-lg' style={{borderColor: themeColor}}>
-            <div className="doc-card-title px-1 mr-2 " style={{borderColor: themeColor}}> {doc?.title || ""} </div>
+        {/* <div className='doc-card-header flex items-center font-semibold text-lg' style={{borderColor: themeColor}}> */}
+        <div className='doc-card-header flex items-center font-semibold text-lg' >
+            <div className="doc-card-title px-1 mr-2 " > {doc?.title || ""} </div>
             {/* { doc.relevance && <div className="doc-card-relevance mr-2"> Relevance: {doc.relevance.toFixed(2) }  </div>}
             <div className="doc-card-index ml-auto mr-2"> #{index} </div> */}
         </div>
-        <div className='doc-card-content flex flex-col' style={{borderColor: themeColor}}>
+        <div className='doc-card-content flex flex-col' >
           {/* <span className="w-fit px-1 font-bold italic"> Summary: </span> */}
           <p className="doc-card-content text-left px-1" dangerouslySetInnerHTML={{__html: highlightedSummary || ""}}/>
           <p className="text-left px-1 text-sm"> 
             <span className="text-left px-1"> Article ID: #{doc.id} </span>
+            <span className="text-left px-1"> Topic: {doc.cluster_label} </span>
             <span className="text-left px-1"> Relevance: {doc.relevance?.toFixed(2)} </span>
           </p>
         </div>

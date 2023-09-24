@@ -55,6 +55,15 @@ function App() {
   const clickedCluster: MutableRefObject<string> = useRef("")
   const [queryDocs, setQueryDocs] = useState<string[]>([])
   // const queryDocs: MutableRefObject<string[]> = useRef([])
+  const article_clusters = useMemo(() => {
+    if(!article_graph) return []
+    const res = {}
+    Object.keys(article_graph.clusters).forEach(cluster_label => {
+      const cluster_articles = article_graph.clusters[cluster_label]
+      cluster_articles.forEach(article_id => res[article_id] = cluster_label)
+    })
+    return res
+  }, [article_graph])
 
   useEffect(() => {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()]
@@ -275,8 +284,14 @@ function App() {
     })
   }
 
-  async function handleEntityLabelClicked(entity_titles: string[] | undefined, doc_ids: string[]) {
-    DocListTitle.current = clickedClusterLabel.current + (entity_titles? " and " + entity_titles!.join(", "): "")
+  async function handleEntityLabelClicked(entity_titles: string[] | undefined, doc_ids: string[], clicked_cluster_label: string | undefined) {
+    if(clicked_cluster_label) {
+      DocListTitle.current = article_graph?.hierarchical_topics[clicked_cluster_label] + (entity_titles? " and " + entity_titles!.join(", "): "")
+    } else {
+      DocListTitle.current = "Articles featuring " + entity_titles!.join(", ")
+    }
+    clickedClusterLabel.current = clicked_cluster_label || ""
+    setSelectedDocCluster(clickedClusterLabel.current)
     console.log(DocListTitle.current)
     await fetchArticles(doc_ids)
   }
@@ -465,8 +480,12 @@ function App() {
       })
         .then(res => res.json())
         .then(articles => {
+          articles.forEach(article => {
+            const article_cluster_label = article_clusters[article.id]
+            article.cluster_label = article_graph?.hierarchical_topics[article_cluster_label]
+            article.color = articleClusterColorDict[article_cluster_label]
+          })
           if(docsRanked.current) {
-            console.log("adding relevance")
             const doc_relevance_dict = {}
             docsRanked.current.forEach(doc => {
               doc_relevance_dict[doc.id] = doc.relevance

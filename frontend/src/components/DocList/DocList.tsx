@@ -10,7 +10,7 @@ type DocListProps = {
 }
 function DocList({docs, cluster_label, theme, highlightDocs, onQueryDocChanged}: DocListProps) {
   const setOpacity = (hex, alpha) => `${hex}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
-  const themeColor = useMemo(() => setOpacity(theme, 0.5), [theme])
+  const themeColor = useMemo(() =>  theme? setOpacity(theme, 0.5): "unset", [theme])
   const highlightDocIds = useMemo(() => highlightDocs?.map(doc => doc.id), [highlightDocs])
   const highlightedDocs = useMemo(() => {
     if(!docs) return [{ id: "1", title: "", summary: ""}, { id: "2", title: "", summary: ""}]
@@ -55,7 +55,7 @@ function DocList({docs, cluster_label, theme, highlightDocs, onQueryDocChanged}:
         </div>
         <div className="doc-list-content">
           {
-            highlightedDocs.map((doc, index) => ( <DocCard doc={doc} index={index} theme={theme} key={doc.id} handleCardClicked={handleCardClicked}></DocCard> ))
+            highlightedDocs.map((doc, index) => ( <DocCard doc={doc} index={index} key={doc.id} handleCardClicked={handleCardClicked}></DocCard> ))
           }
         </div>
       </div>

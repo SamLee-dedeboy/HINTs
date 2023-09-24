@@ -2,7 +2,7 @@ import * as d3 from "d3"
 import borders from "./BorderUtils";
 import { d_ArticleGraph } from "../../types";
 
-let clickedEntityLabels: any[] = []
+let clickedEntityLabels: any = {}
 const tags: any = {
     svgId: undefined,
     centerAreaOffset: undefined,
@@ -539,27 +539,36 @@ const tags: any = {
       highlighted_entity_text.call(tags.wrap_tspan, 600)
       highlighted_entity_text.selectAll("tspan")
         .attr("cursor", "pointer")
-        .attr("stroke", (d: any) => clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])? "blue" : "unset")
-        .attr("stroke-width", (d: any) => clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])? "1.5" : "unset")
+        // .attr("stroke", (d: any) => clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])? "blue" : "unset")
+        .attr("stroke", (d: any) => clickedEntityLabels[d[0]]? "blue" : "unset")
+        // .attr("stroke-width", (d: any) => clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])? "1.5" : "unset")
+        .attr("stroke-width", (d: any) => clickedEntityLabels[d[0]]? "1.5" : "unset")
         .on("mouseover", function() {
           d3.select(this)
             .attr("stroke", "blue")
             .attr("stroke-width", "1.5")
         })
         .on("mouseout", function(_, d: any) {
-          if(clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])) return
+          // if(clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])) return
+          if(clickedEntityLabels[d[0]]) return
           d3.select(this)
             .attr("stroke", "unset")
             .attr("stroke-width", "unset")
         })
         .on("click", (e, d: any) => {
           e.stopPropagation()
-          if(clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])) {
-            clickedEntityLabels.splice(clickedEntityLabels.indexOf(d), 1)
+          // if(clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])) {
+          if(clickedEntityLabels[d[0]]) {
+            console.log("remove entity", d, clickedEntityLabels)
+            delete clickedEntityLabels[d[0]]
+            // clickedEntityLabels.splice(clickedEntityLabels.indexOf(d), 1)
           } else {
-            clickedEntityLabels.push(d)
+            console.log("add entity", d)
+            // clickedEntityLabels.push(d)
+            clickedEntityLabels[d[0]] = d
           }
-          onEntityLabelClicked(clickedEntityLabels)
+          const values = Object.values(clickedEntityLabels)
+          onEntityLabelClicked(values)
         })
       highlighted_entity_text.append("tspan")
         .attr("class", "entity-label-group-title")

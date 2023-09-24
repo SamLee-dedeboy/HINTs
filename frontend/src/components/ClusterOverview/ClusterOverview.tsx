@@ -20,7 +20,7 @@ interface ClusterOverviewProps {
   onArticleClusterClicked: (e: any, cluster_label: string) => void
   onEntityClusterClicked: (e: any, cluster_label: string) => void
   onArticleLabelClicked: (cluster_label: string) => void
-  onEntityLabelClicked: (entity_labels: string[] | undefined, doc_ids: string[]) => void
+  onEntityLabelClicked: (entity_labels: string[] | undefined, doc_ids: string[], clicked_cluster_label: string | undefined) => void
   onArticleClusterRemoved: (cluster_label: string) => void
   onEntityClusterRemoved: (cluster_label: string) => void
   // setTooltipData: (content: tooltipContent) => void
@@ -150,13 +150,15 @@ function ClusterOverview({
     if(highlightArticleIds === undefined) {
       console.log(filtered)
       if(!filtered) setHighlightEntities(undefined)
-      else setHighlightEntities(entity_graph.entity_nodes.map(entity => entity.id))
+      // else setHighlightEntities(entity_graph.entity_nodes.map(entity => entity.id))
+      // setHighlightEntities(entity_graph.entity_nodes.map(entity => entity.id))
       return
     }
     const res = entity_graph.entity_nodes.filter(entity_node => (
       entity_node.mentions.map(mention => mention.doc_id).some(doc_id => highlightArticleIds.includes(doc_id)))).map(entity => entity.id)
     console.log("highlight_entities: ", res)
     setHighlightEntities(res)
+  // }, [highlightArticleIds, filtered])
   }, [highlightArticleIds, filtered])
 
   // useEffect hooks
@@ -237,6 +239,8 @@ function ClusterOverview({
     if(highlightArticleIds) {
       const intersectedArticleIds = searchedArticleIds.filter(id => highlightArticleIds.includes(id))
       setHighlightArticleIds(intersectedArticleIds)
+    } else {
+      setHighlightArticleIds(searchedArticleIds)
     }
   }, [searchedArticleIds])
 
@@ -567,8 +571,8 @@ function ClusterOverview({
             d.lifted = true
             setClickedCluster(d.cluster_label)
             showSubClusterStructure(d)
-            if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label])
-            else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label]))
+            if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label] )
+            else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label] ))
             clickedClusterLabel.current = d.cluster_label
           }
         }
@@ -577,9 +581,9 @@ function ClusterOverview({
     tags: {
       click: function(e, d) {
         e.stopPropagation()
-        console.log("tag clicked")
-        if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label])
-        else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label]))
+        console.log("tag clicked", article_graph.hierarchical_topics[d.cluster_label])
+        if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label])
+        else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label]))
         // highlightCluster(d.cluster_label)
         clickedClusterLabel.current = d.cluster_label; 
         onArticleLabelClicked(d.cluster_label)
@@ -763,7 +767,7 @@ function ClusterOverview({
             .attr("opacity", 0)
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
-            .attr("opacity", (d: any) => { if(d.title === "Elon Musk") return 0.5; return d.opacity=0.5 })
+            .attr("opacity", (d: any) => {  return d.opacity=0.5 })
             .selection(),
         update => update.transition()
             .delay((d) => {
@@ -921,6 +925,7 @@ function ClusterOverview({
   }
 
   function addHighlightedEntityLabel(d) {
+     console.log({highlight_entities})
       if(highlight_entities === undefined) {
         // remove highlight
         const canvas = d3.select('#' + tags.svgId).select("g.margin")
@@ -950,15 +955,15 @@ function ClusterOverview({
         cluster_highlighted_entity_id_titles, 
         entityClusterColorDict, 
         (clickedEntityLabels) => {
-          const cluster_articles = article_graph.clusters[clickedClusterLabel.current!] || article_graph.sub_clusters[clickedClusterLabel.current!]
+          const cluster_articles = article_graph.clusters[clickedClusterLabel.current!] || article_graph.sub_clusters[clickedClusterLabel.current!] || highlightArticleIds
           if(clickedEntityLabels.length === 0) {
-            onEntityLabelClicked(undefined, cluster_articles)
+            onEntityLabelClicked(undefined, cluster_articles, clickedClusterLabel.current)
           } else {
             const clicked_entity_ids = clickedEntityLabels.map(entity_label => entity_label[0])
             const clicked_entity_titles = clickedEntityLabels.map(entity_label => entity_label[1])
             const clicked_entity_mention_doc_ids = clicked_entity_ids.map(entity_id => entity_data_dict[entity_id].mentions).map(mentions => mentions.map(mention => mention.doc_id)).flat()
             const mentions_in_cluster = clicked_entity_mention_doc_ids.filter(doc_id => cluster_articles.includes(doc_id))
-            onEntityLabelClicked(clicked_entity_titles, mentions_in_cluster)
+            onEntityLabelClicked(clicked_entity_titles, mentions_in_cluster, clickedClusterLabel.current)
           }
         }
       )
