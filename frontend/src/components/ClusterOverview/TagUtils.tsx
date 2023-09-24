@@ -17,7 +17,7 @@ const tags: any = {
       article_graph: any, 
       cluster_colors: any, 
       showArticleClusterLabelDefault: boolean, 
-      onArticleLabelClicked: (cluster_data: any) => void
+      onArticleLabelClicked: (e, cluster_data: any) => void
     ) {
       const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       const zoom = d3.zoomTransform(centerArea.node() as Element)
@@ -76,10 +76,7 @@ const tags: any = {
                 .attr("stroke-width", 3)
                 .attr("opacity", 0.5)
             })
-            .on("click", function(e, d: any) {
-              e.stopPropagation()
-              onArticleLabelClicked(d)
-            })
+            .on("click", onArticleLabelClicked)
             .lower()
           // const centroid = group.append("circle")
           //   .datum(d)
@@ -98,7 +95,7 @@ const tags: any = {
         })
     },
 
-    liftArticleClusterLabel(cluster_data, article_graph, onArticleLabelClicked: (cluster_data: any) => void) {
+    liftArticleClusterLabel(cluster_data, article_graph, onArticleLabelClicked: (e, cluster_data: any) => void) {
       cluster_data.lifted = true
       const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       // move cluster label to top
@@ -132,12 +129,7 @@ const tags: any = {
             .attr("stroke-width", 3)
             .attr("opacity", 0.5)
         })
-        .on("click", function(e, d: any) {
-          e.stopPropagation()
-          tags.remove_connected_entities()
-          tags.show_connected_entities(article_graph, d.cluster_label)
-          onArticleLabelClicked(d)
-        })
+        .on("click", onArticleLabelClicked)
       
 
       const rect_transform_y = +prev_translate_str.split(",")[1].replace(")", "") - tag_offset_y*zoom_scale
@@ -157,13 +149,11 @@ const tags: any = {
       target_border_group.raise()
     },
 
-    restoreLiftedArticleClusterLabel(cluster_data) {
-      cluster_data.lifted = false
+    restoreLiftedArticleClusterLabel() {
+      console.log("restore lifted article cluster label")
       const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
-
       const target_border_group = centerArea.selectAll("g.article-border-tag-group")
         .select("g.cluster-label-group")
-        .filter((filter_data: any) => cluster_data.cluster_label === filter_data.cluster_label)
         .attr("transform", (d: any) => { return d.center_zoom_translate || "translate(0,0)"})
       target_border_group.select("rect.cluster-label-border")
         .attr("opacity", 0.5)
@@ -177,7 +167,7 @@ const tags: any = {
         sub_cluster_labels: string[], 
         sub_cluster_colors: any,
         concavity: number,
-        onArticleLabelClicked: (cluster_data: any) => void
+        onArticleLabelClicked: (e, cluster_data: any) => void
     ) {
         const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
@@ -218,6 +208,7 @@ const tags: any = {
 
             tag_data.push({
                 "label": sub_cluster_label,
+                "cluster_label": sub_cluster_label,
                 "centroid": centroid,
                 "position": [Math.max(0, tag_position[0]), Math.max(0, tag_position[1])], // prevent negative position
                 "closest_point": intersection_point,
@@ -314,11 +305,7 @@ const tags: any = {
               d3.select(this)
                 .attr("stroke-width", 3)
             })
-            .on("click", function(e, d) {
-              e.stopPropagation()
-              d.cluster_label = d.label
-              onArticleLabelClicked(d)
-            })
+            .on("click", onArticleLabelClicked)
 
           // text: account for zoom 
           sub_cluster_label.attr("transform", `translate(${translateX}, ${translateY})`)
@@ -360,7 +347,6 @@ const tags: any = {
             tx = -(tag_width/2)
             ty = -tag_height/2
           }
-          console.log(article_graph.hierarchical_topics[d.label], direction)
           group.selectAll("line.sub-cluster-label-border-connector")
             .attr("transform", `translate(${-tx}, ${-ty})`)
 
@@ -381,7 +367,8 @@ const tags: any = {
 
     addEntityClusterLabel(cluster_borders, hierarchical_topics, cluster_colors, showEntityClusterLabelDefault) {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
-      const zoom = d3.zoomTransform(canvas.node() as Element)
+      // const zoom = d3.zoomTransform(canvas.node() as Element)
+      const zoom = d3.zoomIdentity
       console.log({cluster_borders})
       // cluster label
       canvas.select("g.entity-tag-group-parent")
@@ -522,6 +509,7 @@ const tags: any = {
     },
 
     addHighlightedEntityLabel(cluster_label: string, entity_id_titles: string[], cluster_colors: any, onEntityLabelClicked: any) {
+      console.log(cluster_label, entity_id_titles)
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       const hovered_entity_tag = canvas.selectAll("g.entity-tag-group")
         .filter((rect_data: any) => cluster_label === rect_data.cluster_label)
@@ -549,7 +537,6 @@ const tags: any = {
         .attr("dominant-baseline", "central")
         .text((d, i) => i === entity_id_titles.length - 1? d[1] : d[1] + ", ")
       highlighted_entity_text.call(tags.wrap_tspan, 600)
-      console.log({clickedEntityLabels})
       highlighted_entity_text.selectAll("tspan")
         .attr("cursor", "pointer")
         .attr("stroke", (d: any) => clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])? "blue" : "unset")
@@ -618,75 +605,6 @@ const tags: any = {
       hovered_entity_tag.select("rect.highlighted-entity-label-border").attr("opacity", 0)
       hovered_entity_tag.select("text.highlighted-entity-label").attr("opacity", 0)
 
-    },
-
-    show_connected_entities(article_graph: d_ArticleGraph, article_cluster_label, mentioned_entities: string[] | undefined) {
-      // groups
-      const canvas = d3.select('#' + tags.svgId).select("g.margin")
-      const entity_node_group = canvas.select("g.entity-node-group")
-      // sub cluster centroids
-      // centerArea.selectAll(".cluster-label-group .sub-cluster-label-group")
-      //     .filter((filter_data: any) => article_cluster_label === filter_data.cluster_label || filter_data.label)
-      // const sub_cluster_centroids = (cluster_group.datum() as any).sub_cluster_centroids
-
-      // cluster link ids
-      let cluster_link_entity_ids: string[] = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[1])
-      if(mentioned_entities) {
-        cluster_link_entity_ids = cluster_link_entity_ids.filter(id => mentioned_entities.includes(id))
-      }
-      // const cluster_link_article_ids = article_graph.cluster_entity_inner_links[article_cluster_label].map(link => link[0])
-      // put normal nodes to back
-      entity_node_group.selectAll("circle.entity-node")
-          .attr("opacity", (d: any) => 0.2)
-          .filter((d: any) => cluster_link_entity_ids.includes(d.id))
-          .attr("opacity", (d: any) => 1)
-          // .attr("stroke-width", 2)
-
-      return
-      // links    
-      // let link_data: any[] = []
-      // article_graph.cluster_entity_inner_links[article_cluster_label].forEach((link: string[]) => {
-      //   const source = entity_data_dict[link[0]]
-      //   const target = entity_data_dict[link[1]]
-      //   link_data.push({ source, target })
-      // })
-      // // const zoom = (centerArea.datum() as any).zoom || d3.zoomIdentity
-      // canvas.select("g.link-group").selectAll("path.link")
-      //   .data(link_data)
-      //   .join("path")
-      //     .attr("class", "link")
-      //     .attr("stroke", (d: any) => d.color || "grey")
-      //     .attr("stroke-width", 1)
-      //     .attr("opacity", 0.7)
-      //     .attr("fill", "none")
-      //     .attr("d", (d) => {
-      //       const path = d3.path()
-      //       // let source, target;
-      //       // if(d.type === "inner") {
-      //       //   source = [d.source.x*zoom.k + zoom.x + d.offset[0], d.source.y*zoom.k + zoom.y + d.offset[1]]
-      //       //   target = [d.target.x*zoom.k + zoom.x + d.offset[0], d.target.y*zoom.k + zoom.y + d.offset[1]]
-      //       // } else {
-      //       //   source = [d.source.x*zoom.k + zoom.x + d.offset[0], d.source.y*zoom.k + zoom.y + d.offset[1]]
-      //       //   target = [d.target.x, d.target.y]
-      //       // }
-      //       path.moveTo(d.source.x, d.source.y)
-      //       path.lineTo(d.target.x, d.target.y)
-      //       // path.quadraticCurveTo(source[0], target[1], target[0], target[1])
-            
-      //       return path.toString()
-      //     })
-      //     // .attr("x1", (d: any) => d.source.x*zoom.k + zoom.x + d.offset[0])
-      //     // .attr("y1", (d: any) => d.source.y*zoom.k + zoom.y + d.offset[1])
-      //     // .attr("x2", (d: any) => d.target.x)
-      //     // .attr("y2", (d: any) => d.target.y)
-      //     .attr("pointer-events", "none")
-    },
-
-    remove_connected_entities() {
-      const canvas = d3.select('#' + tags.svgId).select("g.margin")
-      canvas.select("g.entity-node-group").selectAll("circle.entity-node")
-        .attr("opacity", (d: any) => d.opacity)
-        // .attr("fill", (d: any) => d.color)
     },
 
     wrap(text, width) {

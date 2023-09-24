@@ -30,6 +30,7 @@ function App() {
 
   // searching related
   const [searchMode, setSearchMode] = useState<boolean>(false)
+  const [filtered, setFiltered] = useState<boolean>(false)
   const [query, setQuery] = useState<string>("")
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
   // const [docsRanked, setDocsRanked] = useState<any[] | undefined>(undefined) 
@@ -51,6 +52,7 @@ function App() {
   const [tooltipData, setTooltipData] = useState<tooltipContent>()
   const DocListTitle: MutableRefObject<string> = useRef("Document List")
   const clickedClusterLabel: MutableRefObject<string> = useRef("")
+  const clickedCluster: MutableRefObject<string> = useRef("")
   const [queryDocs, setQueryDocs] = useState<string[]>([])
   // const queryDocs: MutableRefObject<string[]> = useRef([])
 
@@ -209,27 +211,27 @@ function App() {
     })
   }
 
-  function fetchTopic(article_ids) {
-    console.log("fetching topic", article_ids)
-    if(article_ids.length === 0) {
-      setTopic("No article selected")
-      return
-    }
-    fetch(`${server_address}/static/topic`, {
-      method: "POST",
-      headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify(article_ids)
-    })
-    .then(res => res.json())
-    .then(topic => {
-      console.log({topic})
-      setTopic(topic)
-      // setEnabledCommunities(event_hgraph.communities)
-    })
-  }
+  // function fetchTopic(article_ids) {
+  //   console.log("fetching topic", article_ids)
+  //   if(article_ids.length === 0) {
+  //     setTopic("No article selected")
+  //     return
+  //   }
+  //   fetch(`${server_address}/static/topic`, {
+  //     method: "POST",
+  //     headers: {
+  //         "Accept": "application/json",
+  //         "Content-Type": "application/json"
+  //     },
+  //     body: JSON.stringify(article_ids)
+  //   })
+  //   .then(res => res.json())
+  //   .then(topic => {
+  //     console.log({topic})
+  //     setTopic(topic)
+  //     // setEnabledCommunities(event_hgraph.communities)
+  //   })
+  // }
 
   async function handleArticleClusterClicked(e, cluster_id) {
     await fetchExpandArticleCluster(cluster_id)
@@ -344,20 +346,24 @@ function App() {
       // setClusterDataFetched(true)
     })
   }
-  async function applyMerge() {
-    if(article_graph === undefined) return
-    console.log("merging: ", selectedClusters)
-    setMergedClusters(prev => [...prev, selectedClusters])
-    setSelectedClusters([])
-  }
+  // async function applyMerge() {
+  //   if(article_graph === undefined) return
+  //   console.log("merging: ", selectedClusters)
+  //   setMergedClusters(prev => [...prev, selectedClusters])
+  //   setSelectedClusters([])
+  // }
 
 
   function applyFilter() {
     if(article_graph === undefined) return
     if(entity_graph === undefined) return
-    if(searchResultDocs === undefined) return
     return new Promise((resolve, reject) => {
-      const article_ids = article_graph.article_nodes.filter(article => searchResultDocIds?.includes(article.id)).map(article => article.id)
+      let article_ids;
+      if(searchResultDocIds === undefined) {
+        if(clickedCluster.current === "") return
+        article_ids = article_graph.clusters[clickedCluster.current]
+      } else 
+        article_ids = article_graph.article_nodes.filter(article => searchResultDocIds?.includes(article.id)).map(article => article.id)
       const clusters = article_graph.clusters
       const entity_clusters = entity_graph.entity_clusters
       console.log("filtering: ", article_ids, clusters)
@@ -378,6 +384,7 @@ function App() {
           setArticleGraph(filtered_hgraph.article_graph)
           setEntityGraph(filtered_hgraph.entity_graph)
           user_hgraph_ref.current = filtered_hgraph.user_hgraph
+          setFiltered(user_hgraph_ref.current.filtered)
           // setEventHGraphLoaded(true)
           resolve("success")
         })
@@ -429,23 +436,19 @@ function App() {
     })
   }
 
-  function handleTooltipItemClicked(cluster_label) {
+  function handleClusterSelected(cluster_label) {
     console.log("clicked: ", {cluster_label})
     if(article_graph === undefined) return
     let article_doc_ids = article_graph.clusters[cluster_label]
     if(article_doc_ids) {
       setFetchingSubCluster(false)
-      const color = articleClusterColorDict[cluster_label]
-      console.log(color)
     } else {
       article_doc_ids = article_graph.article_nodes.filter(article => article.sub_cluster_label === cluster_label).map(article => article.id)
       setFetchingSubCluster(true)
-      const color = articleSubClusterColorDict[cluster_label]
-      console.log(color)
     }
     setSelectedDocCluster(cluster_label)
-    console.log({docsRanked})
     clickedClusterLabel.current = article_graph.hierarchical_topics[cluster_label]
+    clickedCluster.current = cluster_label
     DocListTitle.current = clickedClusterLabel.current
     fetchArticles(article_doc_ids)
   }
@@ -472,7 +475,6 @@ function App() {
               article.relevance = doc_relevance_dict[article.id]
             })
           }
-          console.log({articles})
           setSelectedDocs(articles)
           resolve("success")
         })
@@ -504,13 +506,14 @@ function App() {
             <ClusterOverview svgId={"article-cluster-overview-svg"} 
               article_graph={article_graph!} 
               entity_graph={entity_graph!}
+              filtered={filtered}
               peripheral={hilbert}
-              highlightNodeIds={searchResultDocIds} 
-              onNodesSelected={fetchTopic} 
+              searchedArticleIds={searchResultDocIds} 
+              // onNodesSelected={fetchTopic} 
               onArticleClusterClicked={handleArticleClusterClicked} 
               onEntityClusterClicked={handleEntityClusterClicked} 
               onEntityLabelClicked={handleEntityLabelClicked}
-              onArticleLabelClicked={(cluster_label) => handleTooltipItemClicked(cluster_label)}
+              onArticleLabelClicked={(cluster_label) => handleClusterSelected(cluster_label)}
               onArticleClusterRemoved={handleArticleClusterRemoved}
               onEntityClusterRemoved={handleEntityClusterRemoved}
               // setTooltipData={setTooltipData}
@@ -519,10 +522,8 @@ function App() {
               entityClusterColorDict={entityClusterColorDict}
               entitySubClusterColorDict={entitySubClusterColorDict}
               searchMode={searchMode}
-              brushMode={brushMode} 
               showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
               showArticleClusterLabelDefault={defaultShowArticleClusterLabel}
-              mergedClusters={mergedClusters}
               gosper={gosper}
               />
           }
