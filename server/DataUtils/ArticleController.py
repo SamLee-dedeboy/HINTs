@@ -7,8 +7,8 @@ from scipy import spatial
 class ArticleController:
     def __init__(self, data_path, api_key) -> None:
         openai.api_key = api_key
-        self.embeddings_db = json.load(open(data_path + 'AllTheNews/network/server/embeddings.json'))
-        self.article_entity_dict = json.load(open(data_path + 'AllTheNews/network/server/article_participant_spans.json'))
+        self.embeddings_db = json.load(open(data_path + 'network/server/article_embeddings.json'))
+        self.article_entity_dict = json.load(open(data_path + 'network/server/article_participant_spans.json'))
     # search function
     def search(
         self,
@@ -39,7 +39,7 @@ class ArticleController:
                 'title': doc['title'],
                 'summary': doc['summary'],
                 'content': doc['content'] if includeContent else None,
-                'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
+                # 'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
             }
             for doc in self.embeddings_db if doc['doc_id'] in query_ids
         ]

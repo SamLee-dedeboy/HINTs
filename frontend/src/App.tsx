@@ -199,14 +199,14 @@ function App() {
   // fetches
   function fetchPartitionArticle() {
     return new Promise((resolve, reject) => {
-      console.log("fetching article with partition", level, 3)
+      console.log("fetching article with partition")
       fetch(`${server_address}/user/hgraph/`, {
         method: "POST",
         headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ article_level: level, entity_level: 5})
+        body: JSON.stringify({ article_level: 5, entity_level: 4})
       })
         .then(res => res.json())
         .then(async (hgraph: t_EventHGraph) => {
@@ -292,8 +292,7 @@ function App() {
     }
     clickedClusterLabel.current = clicked_cluster_label || ""
     setSelectedDocCluster(clickedClusterLabel.current)
-    console.log(DocListTitle.current)
-    await fetchArticles(doc_ids)
+    await fetchArticles(doc_ids, clicked_cluster_label)
   }
 
   async function fetchExpandArticleCluster(cluster_id) {
@@ -465,10 +464,10 @@ function App() {
     clickedClusterLabel.current = article_graph.hierarchical_topics[cluster_label]
     clickedCluster.current = cluster_label
     DocListTitle.current = clickedClusterLabel.current
-    fetchArticles(article_doc_ids)
+    fetchArticles(article_doc_ids, cluster_label)
   }
 
-  async function fetchArticles(doc_ids) {
+  async function fetchArticles(doc_ids, cluster_label: string | undefined=undefined) {
     return new Promise((resolve, reject) => {
       fetch(`${server_address}/static/articles/`, {
         method: "POST",
@@ -481,9 +480,14 @@ function App() {
         .then(res => res.json())
         .then(articles => {
           articles.forEach(article => {
-            const article_cluster_label = article_clusters[article.id]
-            article.cluster_label = article_graph?.hierarchical_topics[article_cluster_label]
-            article.color = articleClusterColorDict[article_cluster_label]
+            if(cluster_label === undefined) {
+              const article_cluster_label = article_clusters[article.id]
+              article.cluster_label = article_graph?.hierarchical_topics[article_cluster_label]
+              article.color = articleClusterColorDict[article_cluster_label]
+            } else {
+              article.cluster_label = article_graph?.hierarchical_topics[cluster_label]
+              article.color = articleClusterColorDict[cluster_label] || articleSubClusterColorDict[cluster_label]
+            }
           })
           if(docsRanked.current) {
             const doc_relevance_dict = {}

@@ -10,11 +10,13 @@ app = Flask(__name__)
 CORS(app)
 openai_api_key = open("openai_api_key").read()
 
-graph_controller = GraphController(r'../preprocess/data/result/')
+# dataset = 'AllTheNews'
+dataset = 'VisPub'
+graph_controller = GraphController(r'../preprocess/data/result/{}/'.format(dataset))
 event_hgraph = graph_controller.static_event_hgraph
-article_controller = ArticleController(r'../preprocess/data/result/', openai_api_key)
+article_controller = ArticleController(r'../preprocess/data/result/{}/'.format(dataset), openai_api_key)
 data_transformer = DataTransformer()
-example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example_article.json'))
+# example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example_article.json'))
 
 # global vars
 users = [0]
@@ -73,7 +75,7 @@ def get_article_partition():
             "cluster_entity_inner_links": cluster_entity_inner_links,
         },
         "entity_graph": {
-            "entity_nodes": data_transformer.transform_entity_data(user_hgraph.entity_nodes),
+            "entity_nodes": data_transformer.transform_entity_data(entity_node_dict.values()),
             "entity_clusters":  entity_clusters,
             "entity_cluster_children": entity_cluster_children_dict,
             "entity_sub_clusters": entity_sub_clusters,
@@ -97,6 +99,7 @@ def filter_hgraph():
     # article
     # filter clusters
     clusters = Utils.filterClusters(clusters, article_node_ids)
+    clusters = user_hgraph.adjustClusterLevel(clusters, cluster_type='article')
     # filter sub clusters
     sub_clusters, cluster_children_dict = user_hgraph.getSubClusters(clusters.keys(), cluster_type='article', isList=True)
     sub_clusters = Utils.filterClusters(sub_clusters, article_node_ids)
@@ -111,6 +114,7 @@ def filter_hgraph():
     entity_node_ids = [node['id'] for node in user_hgraph.entity_nodes]
     # filter clusters
     entity_clusters = Utils.filterClusters(entity_clusters, entity_node_ids)
+    # entity_clusters = user_hgraph.adjustClusterLevel(entity_clusters, cluster_type='entity')
     # filter sub clusters
     entity_sub_clusters, entity_cluster_children_dict = user_hgraph.getSubClusters(entity_clusters.keys(), cluster_type='entity', isList=True)
     entity_sub_clusters = Utils.filterClusters(entity_sub_clusters, entity_node_ids)
@@ -136,7 +140,7 @@ def filter_hgraph():
             "filtered": True,
         },
         "entity_graph": {
-            "entity_nodes": data_transformer.transform_entity_data(user_hgraph.entity_nodes),
+            "entity_nodes": data_transformer.transform_entity_data(entity_node_dict.values()),
             "entity_clusters":  entity_clusters,
             "entity_cluster_children": entity_cluster_children_dict,
             "entity_sub_clusters": entity_sub_clusters,
@@ -291,7 +295,7 @@ def expand_entity_cluster():
     # return result
     hgraph = {
         # entities
-        "entity_nodes": data_transformer.transform_entity_data(user_hgraph.entity_nodes),
+        "entity_nodes": data_transformer.transform_entity_data(entity_node_dict.values()),
         "entity_clusters":  entity_clusters,
         "entity_cluster_children": entity_cluster_children_dict,
         "entity_sub_clusters": entity_sub_clusters,
@@ -419,14 +423,15 @@ def get_articles():
 def get_hierarcy():
     return json.dumps(event_hgraph.hierarchy_article)
 
-@app.route("/static/topic", methods=["POST"])
-def generate_topic():
-    article_ids = request.json
-    # messages = GptUtils.generate_summary_message(article_ids, event_hgraph.article_dict)
-    example_summaries = example['summaries']
-    example_topic = example['topic']
-    topic = GptUtils.explain_articles(article_ids, event_hgraph.article_dict, example_summaries, example_topic)
-    return json.dumps(topic, default=vars)
+# @app.route("/static/topic", methods=["POST"])
+# def generate_topic():
+#     article_ids = request.json
+#     # messages = GptUtils.generate_summary_message(article_ids, event_hgraph.article_dict)
+#     example_summaries = example['summaries']
+#     example_topic = example['topic']
+#     topic = GptUtils.explain_articles(article_ids, event_hgraph.article_dict, example_summaries, example_topic)
+#     return json.dumps(topic, default=vars)
+
 @app.route("/static/chat", methods=["POST"])
 def chat():
     messages = request.json['queryMessages']

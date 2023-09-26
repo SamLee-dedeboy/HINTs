@@ -513,7 +513,7 @@ function ClusterOverview({
       d3.selectAll("g.article-border-tag-group")
         .attr("opacity", showArticleClusterLabelDefault? 1 : 0)
         .attr("pointer-events", showArticleClusterLabelDefault? "auto" : "none")
-        .filter((tag_data: any) => clickedCluster === tag_data.cluster_label || true)
+        .filter((tag_data: any) => clickedCluster === tag_data.cluster_label || false)
         .attr("opacity", 1)
         .attr("pointer-events", "auto")
       d3.select("line.cluster-label-border-connector").attr("opacity", showArticleClusterLabelDefault? 1 : 0)
@@ -552,6 +552,7 @@ function ClusterOverview({
           d3.selectAll("circle.article-node")
             .filter((node: any) => node.cluster_label === d.cluster_label)
             .remove()
+          d3.select("line.cluster-label-border-connector").remove()
           onArticleClusterRemoved(d.cluster_label)
         } else {
           console.log("normal click cluster")
@@ -582,11 +583,35 @@ function ClusterOverview({
       click: function(e, d) {
         e.stopPropagation()
         console.log("tag clicked", article_graph.hierarchical_topics[d.cluster_label])
-        if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label])
-        else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label]))
-        // highlightCluster(d.cluster_label)
-        clickedClusterLabel.current = d.cluster_label; 
-        onArticleLabelClicked(d.cluster_label)
+        if(pressedKey.current === "68") {
+          if(article_graph.clusters[d.cluster_label]) {  // remove cluster
+            const svg = d3.select('#' + svgId)
+            const centerArea = svg.select("g.margin").select("g.center-area")
+            // remove border
+            centerArea.selectAll("path.concave-hull")
+            .filter((border_data: any) => border_data.cluster_label === d.cluster_label)
+            .remove()
+            // remove tag
+            d3.selectAll("g.article-border-tag-group")
+              .filter((tag_data: any) => d.cluster_label === tag_data.cluster_label)
+              .remove()
+            // remove nodes
+            d3.selectAll("circle.article-node")
+              .filter((node: any) => node.cluster_label === d.cluster_label)
+              .remove()
+            d3.select("line.cluster-label-border-connector").remove()
+            onArticleClusterRemoved(d.cluster_label)
+          } else {  // remove sub cluster 
+            console.log("remove sub cluster: ", d.cluster_label)
+            // onArticleClusterRemoved(d.cluster_label)
+          }
+        } else {
+          if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label])
+          else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label]))
+          // highlightCluster(d.cluster_label)
+          clickedClusterLabel.current = d.cluster_label; 
+          onArticleLabelClicked(d.cluster_label)
+        }
       }
     },
     // sub_cluster: {

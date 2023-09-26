@@ -386,6 +386,7 @@ const tags: any = {
           group.select("rect.entity-cluster-label-border").remove()
 
           const labels = hierarchical_topics[d.cluster_label]
+          console.log(hierarchical_topics)
           const spans = labels.split(", ")
           const maxLabelLength = Math.max(...spans.map((label: string) => label.length)) 
           // label
