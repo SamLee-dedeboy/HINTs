@@ -10,8 +10,8 @@ app = Flask(__name__)
 CORS(app)
 openai_api_key = open("openai_api_key").read()
 
-# dataset = 'AllTheNews'
-dataset = 'VisPub'
+dataset = 'AllTheNews'
+# dataset = 'VisPub'
 graph_controller = GraphController(r'../preprocess/data/result/{}/'.format(dataset))
 event_hgraph = graph_controller.static_event_hgraph
 article_controller = ArticleController(r'../preprocess/data/result/{}/'.format(dataset), openai_api_key)
@@ -155,6 +155,11 @@ def filter_hgraph():
 
 @app.route("/user/expand_cluster/article/", methods=["POST"])
 def expand_article_cluster():
+    def check_clusters(clusters, correct_volume):
+        check = 0
+        for nodes in clusters.values():
+            check += len(nodes)
+        print(check == correct_volume)
     # uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
@@ -162,12 +167,16 @@ def expand_article_cluster():
     print("loading user hgraph")
     user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
     print("loading done")
+    article_node_ids = list(map(lambda node: node['id'], user_hgraph.article_nodes)) 
+    check_clusters(clusters, len(article_node_ids))
     # user_hgraph = graph_controller.getUserHGraph(uid)
     sub_clusters, cluster_children_dict = user_hgraph.getSubClusters(clusters.keys(), cluster_type='article', isList=True)
+    sub_clusters = Utils.filterClusters(sub_clusters, article_node_ids)
+    cluster_children_dict = Utils.filterClusterChildren(cluster_children_dict, sub_clusters)
+    check_clusters(sub_clusters, len(article_node_ids))
     ###############
     # expand cluster
     # generate sub clusters of targeted cluster
-    article_node_ids = list(map(lambda node: node['id'], user_hgraph.article_nodes)) 
     targeted_sub_clusters, _ = user_hgraph.getSubClusters(cluster_label, cluster_type='article')
     targeted_sub_clusters = Utils.filterClusters(targeted_sub_clusters, article_node_ids)
     # replace the targeted cluster with targeted_sub_clusters
@@ -175,10 +184,12 @@ def expand_article_cluster():
     del cluster_children_dict[cluster_label]
     for targeted_sub_cluster_label, targeted_sub_cluster_node_ids in targeted_sub_clusters.items():
         clusters[targeted_sub_cluster_label] = targeted_sub_cluster_node_ids
+    check_clusters(clusters, len(article_node_ids))
     # generate sub-clusters of sub_clusters
     # filter out targeted sub-sub-clusters
     targeted_sub_sub_clusters, targeted_sub_cluster_children_dict = user_hgraph.getSubClusters(targeted_sub_clusters.keys(), cluster_type='article', isList=True)
     targeted_sub_sub_clusters = Utils.filterClusters(targeted_sub_sub_clusters, article_node_ids)
+    targeted_sub_cluster_children_dict = Utils.filterClusterChildren(targeted_sub_cluster_children_dict, targeted_sub_sub_clusters)
     for sub_cluster_label, children_labels in targeted_sub_cluster_children_dict.items():
         cluster_children_dict[sub_cluster_label] = children_labels
     # replace the sub-clusters of targeted cluster with its sub-sub-clusters
@@ -187,6 +198,7 @@ def expand_article_cluster():
     for sub_sub_cluster_label, sub_sub_cluster_node_ids in targeted_sub_sub_clusters.items():
         sub_clusters[sub_sub_cluster_label] = sub_sub_cluster_node_ids
     print("--------- expansion done. ----------")
+    check_clusters(sub_clusters, len(article_node_ids))
     ###############
     ###############
     # post-process
@@ -243,12 +255,13 @@ def expand_entity_cluster():
     cluster_label = request.json['cluster_label']
     entity_clusters = request.json['clusters']
     user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
+    entity_node_ids = list(map(lambda node: node['id'], user_hgraph.entity_nodes)) 
     # user_hgraph = graph_controller.getUserHGraph(uid)
     entity_sub_clusters, entity_cluster_children_dict = user_hgraph.getSubClusters(entity_clusters.keys(), isList=True, cluster_type='entity')
+    entity_sub_clusters = Utils.filterClusters(entity_sub_clusters, entity_node_ids)
     ###############
     # expand cluster
     # generate sub clusters of targeted cluster
-    entity_node_ids = list(map(lambda node: node['id'], user_hgraph.entity_nodes)) 
     targeted_sub_clusters, _ = user_hgraph.getSubClusters(cluster_label, cluster_type='entity')
     targeted_sub_clusters = Utils.filterClusters(targeted_sub_clusters, entity_node_ids)
     # replace the targeted cluster with targeted_sub_clusters

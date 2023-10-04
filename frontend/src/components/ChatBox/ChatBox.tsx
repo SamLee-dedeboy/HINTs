@@ -121,9 +121,9 @@ function ChatBox({queryDocs}) {
             }
           </div>
         </div>
-        <div className="lower-section basis-[30%] shrink-0 flex flex-col">
+        <div className="lower-section basis-[30%] shrink-0 flex flex-col shadow-inner border-solid rounded ">
           <div className={`text-left mx-2 ${usePrefix? "":"line-through"}`}>Given the selected documents, <Checkbox checked={usePrefix} onChange={(e) => setUsePrefix(e.target.checked)}></Checkbox></div>
-          <div className="input-container grow shrink-0 border-[1px] border-solid rounded overflow-y-auto mx-2 p-2 outline-none">
+          <div className="input-container grow shrink-0 border-[1px] border-solid rounded overflow-y-auto mx-2 p-2 outline-none ">
             <div className="
               text-region 
               break-all

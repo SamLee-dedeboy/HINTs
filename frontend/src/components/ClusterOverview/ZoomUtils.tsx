@@ -105,8 +105,8 @@ function handleZoom(event) {
             if(tag_rect.empty()) return 
             const translateX = +tag_rect.attr("x") * event.transform.k + event.transform.x + +tag_rect.attr("width")/2 * (event.transform.k-1)  - +tag_rect.attr("x")
             const translateY = +tag_rect.attr("y") * event.transform.k + event.transform.y + +tag_rect.attr("height")/2 * (event.transform.k-1) - +tag_rect.attr("y")
-            tag_rect.attr("transform", `translate(${translateX}, ${translateY})`)
-            group.selectAll("text.sub-cluster-label").attr("transform", `translate(${translateX}, ${translateY})`)
+            tag_rect.attr("transform", (d: any) => d.original_transform = `translate(${translateX}, ${translateY})`)
+            group.selectAll("text.sub-cluster-label").attr("transform", (d: any) => d.original_transform=`translate(${translateX}, ${translateY})`)
 
             // update connectors accordingly
             group.selectAll("line.sub-cluster-label-border-connector")

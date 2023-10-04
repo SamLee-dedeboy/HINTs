@@ -150,7 +150,6 @@ const tags: any = {
     },
 
     restoreLiftedArticleClusterLabel() {
-      console.log("restore lifted article cluster label")
       const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       const target_border_group = centerArea.selectAll("g.article-border-tag-group")
         .select("g.cluster-label-group")
@@ -167,13 +166,15 @@ const tags: any = {
         sub_cluster_labels: string[], 
         sub_cluster_colors: any,
         concavity: number,
-        onArticleLabelClicked: (e, cluster_data: any) => void
+        onArticleLabelClicked: (e, cluster_data: any) => void,
+        bindDrag,
     ) {
         const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
         const cluster_nodes = article_graph.article_nodes.filter(node => node.cluster_label === cluster_label)
         const tag_data: any[] = []
         const parent_cluster_group = centerArea.selectAll("g.article-border-tag-group")
           .filter((filter_data: any) => cluster_label === filter_data.cluster_label)
+        const zoom = (parent_cluster_group?.datum() as any).zoom || d3.zoomIdentity
         sub_cluster_labels.forEach(sub_cluster_label => {
             const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
             // if(sub_cluster_node_data.length <= 5) return
@@ -184,8 +185,8 @@ const tags: any = {
             const dy = intersection_point[1] - centroid[1] 
             const dx = intersection_point[0] - centroid[0]
             const slope = Math.abs(dy / dx)
-            const offset_x = Math.sqrt(offset**2 / (1 + slope**2))
-            const offset_y = slope * offset_x
+            const offset_x = Math.sqrt(offset**2 / (1 + slope**2)) * zoom.k
+            const offset_y = slope * offset_x * zoom.k
             const tag_position = [intersection_point[0] + offset_x * Math.sign(dx), intersection_point[1] + offset_y * Math.sign(dy)]
             let direction;
             if(dx > 0 && dy > 0 && Math.abs(dx) > Math.abs(dy)) {
@@ -306,6 +307,7 @@ const tags: any = {
                 .attr("stroke-width", 3)
             })
             .on("click", onArticleLabelClicked)
+            .call(bindDrag)
 
           // text: account for zoom 
           sub_cluster_label.attr("transform", `translate(${translateX}, ${translateY})`)
@@ -369,7 +371,6 @@ const tags: any = {
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       // const zoom = d3.zoomTransform(canvas.node() as Element)
       const zoom = d3.zoomIdentity
-      console.log({cluster_borders})
       // cluster label
       canvas.select("g.entity-tag-group-parent")
         .selectAll("g.entity-tag-group")
@@ -386,7 +387,6 @@ const tags: any = {
           group.select("rect.entity-cluster-label-border").remove()
 
           const labels = hierarchical_topics[d.cluster_label]
-          console.log(hierarchical_topics)
           const spans = labels.split(", ")
           const maxLabelLength = Math.max(...spans.map((label: string) => label.length)) 
           // label
@@ -510,7 +510,6 @@ const tags: any = {
     },
 
     addHighlightedEntityLabel(cluster_label: string, entity_id_titles: string[], cluster_colors: any, onEntityLabelClicked: any) {
-      console.log(cluster_label, entity_id_titles)
       const canvas = d3.select('#' + tags.svgId).select("g.margin")
       const hovered_entity_tag = canvas.selectAll("g.entity-tag-group")
         .filter((rect_data: any) => cluster_label === rect_data.cluster_label)
@@ -560,11 +559,9 @@ const tags: any = {
           e.stopPropagation()
           // if(clickedEntityLabels.map(id_title => id_title[0]).includes(d[0])) {
           if(clickedEntityLabels[d[0]]) {
-            console.log("remove entity", d, clickedEntityLabels)
             delete clickedEntityLabels[d[0]]
             // clickedEntityLabels.splice(clickedEntityLabels.indexOf(d), 1)
           } else {
-            console.log("add entity", d)
             // clickedEntityLabels.push(d)
             clickedEntityLabels[d[0]] = d
           }

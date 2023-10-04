@@ -6,7 +6,7 @@ import borders from "./BorderUtils";
 import zoom from "./ZoomUtils";
 import sfc from "./SFCUtils"
 import tags from "./TagUtils"
-// import * as DragUtils from "./DragUtils"
+import * as DragUtils from "./DragUtils"
 import * as d3 from 'd3'
 
 interface ClusterOverviewProps {
@@ -145,10 +145,8 @@ function ClusterOverview({
   // const highlight_entities: MutableRefObject<string[] | undefined> = useRef(undefined)
   const [highlight_entities, setHighlightEntities] = useState<string[] | undefined>(undefined)
   useEffect(() => {
-    console.log("calculating highlight_entities")
     // highlighted entities are the entities mentioned by  highlighted Nodes
     if(highlightArticleIds === undefined) {
-      console.log(filtered)
       if(!filtered) setHighlightEntities(undefined)
       // else setHighlightEntities(entity_graph.entity_nodes.map(entity => entity.id))
       // setHighlightEntities(entity_graph.entity_nodes.map(entity => entity.id))
@@ -156,7 +154,6 @@ function ClusterOverview({
     }
     const res = entity_graph.entity_nodes.filter(entity_node => (
       entity_node.mentions.map(mention => mention.doc_id).some(doc_id => highlightArticleIds.includes(doc_id)))).map(entity => entity.id)
-    console.log("highlight_entities: ", res)
     setHighlightEntities(res)
   // }, [highlightArticleIds, filtered])
   }, [highlightArticleIds, filtered])
@@ -197,7 +194,6 @@ function ClusterOverview({
   }, [showArticleClusterLabelDefault, searchMode, articleClusterBorderPoints, clickedCluster, highlight_entities])
 
   useEffect(() => {
-    console.log("highlight entities changed", highlight_entities)
     const entity_border_group = d3.select('#' + svgId).select("g.margin").select("g.entity-border-group")
     entity_border_group.selectAll("path.concave-hull")
     .on("mouseover", entity_border_handlers.mouseover)
@@ -217,7 +213,6 @@ function ClusterOverview({
 
   useEffect(() => {
     if(searchedArticleIds === undefined) return
-    console.log("searched article ids changed", searchedArticleIds)
     const svg = d3.select('#' + svgId)
     const centerArea = svg.select("g.margin").select("g.center-area")
     centerArea.select("g.article-node-group")
@@ -263,7 +258,6 @@ function ClusterOverview({
   }, [entity_graph.entity_nodes]);
 
   useEffect(() => {
-    console.log("update article clustering")
     update_article_cluster()
     // if(searchMode) update_highlight(highlightNodeIds)
   }, [article_graph.article_nodes])
@@ -332,7 +326,6 @@ function ClusterOverview({
         if(!clickedCluster && clickedClusterLabel.current) {
           // removeHighlightCluster()
           clickedClusterLabel.current = undefined
-          console.log("resetting highlight entities")
           if(!searchMode) setHighlightArticleIds(undefined)
           else setHighlightArticleIds(findIntersection(searchedArticleIds, undefined))
         }
@@ -361,7 +354,6 @@ function ClusterOverview({
   }
 
   function update_article_cluster() {
-    console.log("update_article_cluster()")
     const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
     // coords
     sfc.generate_gosper_coord(article_graph.article_nodes, centerAreaSize)
@@ -475,14 +467,14 @@ function ClusterOverview({
       )
   }
 
-  // function bindDrag(elements) {
-  //   const drag: any = d3.drag()
-  //       .clickDistance(100)
-  //       .on("start", DragUtils.dragStarted)
-  //       .on("drag", DragUtils.dragged)
-  //       .on("end", DragUtils.dragEnded);
-  //   d3.selectAll(elements).call(drag)
-  // }
+  function bindDrag(elements) {
+    const drag: any = d3.drag()
+        .clickDistance(100)
+        .on("start", DragUtils.dragStarted)
+        .on("drag", DragUtils.dragged)
+        .on("end", DragUtils.dragEnded);
+    d3.selectAll(elements).call(drag)
+  }
 
   // border event handlers
   const article_event_handlers = {
@@ -516,11 +508,11 @@ function ClusterOverview({
         .filter((tag_data: any) => clickedCluster === tag_data.cluster_label || false)
         .attr("opacity", 1)
         .attr("pointer-events", "auto")
+
       d3.select("line.cluster-label-border-connector").attr("opacity", showArticleClusterLabelDefault? 1 : 0)
     },
 
     click: function(e, d) {
-      console.log("border clicked")
       e.stopPropagation();
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
       if(!e.defaultPrevented) {
@@ -555,18 +547,15 @@ function ClusterOverview({
           d3.select("line.cluster-label-border-connector").remove()
           onArticleClusterRemoved(d.cluster_label)
         } else {
-          console.log("normal click cluster")
           hideSubClusterStructure()
           // if clicking on a highlighted cluster, un-highlight it
           if(clickedCluster && clickedCluster === d.cluster_label) {
-            console.log("unhighlighting cluster")
             d.lifted = false
             setClickedCluster(undefined)
             if(!searchMode) setHighlightArticleIds(undefined)
             else setHighlightArticleIds(findIntersection(searchedArticleIds, undefined))
             clickedClusterLabel.current = undefined
           } else { // highlight clicked cluster
-            console.log("highlighting cluster", d.cluster_label)
             d3.select(this.parentNode).selectAll("path.concave-hull")
               .each((d: any) => d.lifted = false)
             d.lifted = true
@@ -582,7 +571,6 @@ function ClusterOverview({
     tags: {
       click: function(e, d) {
         e.stopPropagation()
-        console.log("tag clicked", article_graph.hierarchical_topics[d.cluster_label])
         if(pressedKey.current === "68") {
           if(article_graph.clusters[d.cluster_label]) {  // remove cluster
             const svg = d3.select('#' + svgId)
@@ -602,7 +590,6 @@ function ClusterOverview({
             d3.select("line.cluster-label-border-connector").remove()
             onArticleClusterRemoved(d.cluster_label)
           } else {  // remove sub cluster 
-            console.log("remove sub cluster: ", d.cluster_label)
             // onArticleClusterRemoved(d.cluster_label)
           }
         } else {
@@ -654,7 +641,6 @@ function ClusterOverview({
 
   const entity_border_handlers = {
     mouseover: function(_, d) {
-      console.log(d.cluster_label)
       // const canvas = d3.select('#' + svgId).select("g.margin")
       // add highlighted entities
       // highlight border
@@ -769,7 +755,6 @@ function ClusterOverview({
   }
 
   function update_entity_cluster() {
-    console.log("update entity cluster()")
     const canvas = d3.select('#' + svgId).select("g.margin")
     sfc.generate_entity_hilbert_coord(entity_graph.entity_nodes, canvasSize)
     const t_delay = 100
@@ -867,12 +852,10 @@ function ClusterOverview({
 
 
   function update_highlight_articles() {
-    console.log("update highlight: ", highlightArticleIds, clickedClusterLabel.current)
     const svg = d3.select('#' + svgId)
     const centerArea = svg.select("g.margin").select("g.center-area")
     const article_node_group = centerArea.select("g.article-node-group")
     if(highlightArticleIds === undefined) {
-      console.log("resetting article nodes")
       article_node_group.selectAll("circle.article-node")
         .attr("opacity", (d: any) => d.opacity)
     } else {
@@ -886,9 +869,7 @@ function ClusterOverview({
     const svg = d3.select('#' + svgId)
     const entity_node_group = svg.select("g.entity-node-group")
     // entity
-    console.log(highlight_entities?.map((entity) => entity_data_dict[entity].title))
     if(highlightArticleIds === undefined) {
-      console.log("resetting entity nodes")
       entity_node_group.selectAll("circle.entity-node")
         .attr("opacity", (d: any) => d.opacity )
     } else {
@@ -910,7 +891,8 @@ function ClusterOverview({
       article_graph.cluster_children[d.cluster_label],
       articleSubClusterColorDict,
       1.5,
-      article_event_handlers.tags.click
+      article_event_handlers.tags.click,
+      bindDrag
     )
     tags.liftArticleClusterLabel(d, article_graph, article_event_handlers.tags.click)
 
@@ -923,7 +905,6 @@ function ClusterOverview({
     // show connected entities
     // show_connected_entities(d.cluster_label)
     // highlight nodes
-    console.log("show subcluster structure()")
     centerArea.selectAll("circle.article-node")
       .attr("opacity", 0.5)
       .filter((node: any) => node.cluster_label === d.cluster_label)
@@ -936,7 +917,6 @@ function ClusterOverview({
 
 
   function hideSubClusterStructure() {
-      console.log("hide sub cluster structure()")
       const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
 
       // remove sub-cluster labels
@@ -950,7 +930,6 @@ function ClusterOverview({
   }
 
   function addHighlightedEntityLabel(d) {
-     console.log({highlight_entities})
       if(highlight_entities === undefined) {
         // remove highlight
         const canvas = d3.select('#' + tags.svgId).select("g.margin")
@@ -973,7 +952,6 @@ function ClusterOverview({
           group.select("rect.highlighted-entity-label-border").remove()
         return
       }
-      console.log(hovered_cluster_entity_ids, cluster_highlighted_entity_ids, highlight_entities)
       const cluster_highlighted_entity_id_titles = cluster_highlighted_entity_ids.map(id => [id, entity_data_dict[id].title])
       tags.addHighlightedEntityLabel(
         d.cluster_label, 

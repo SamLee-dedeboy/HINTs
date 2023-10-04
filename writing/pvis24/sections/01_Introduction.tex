@@ -7,45 +7,39 @@ greatly affects users' interpretation and trust in visual analytic systems.
 However, in text analysis, the available models often align poorly with analysis tasks.
 For example, topic models are commonly used to model the topical structure of text documents.
 Most topic models characterize \textit{topic} as a probabilistic distribution spanning a given vocabulary~\cite{vayansky2020review}.
-This transformation from \textit{topics}, a high-level concept that the user seeks to understand, to a \textit{probabilistic distribution}, a low-level concept that mathematical models can operate on, prevents proper model alignment.
+This transformation from a \textit{topic}, a high-level concept that the user seeks to understand, to a \textit{probabilistic distribution}, a low-level concept that mathematical models can operate on, prevents proper model alignment.
 The misalignment between analysis tasks and models limits the usage of visual analytics systems for users who are not familiar with the underlying models.
+Previous works that support users to analyze large collections of documents adopt separate models for analyzing topics and entities, but they are often intertwined in the user's mental model.
+Model alignment requires the model to operate on documents and entities simultaneously, a capability that existing text analysis models lack.
 
 Recent advances in large language models (LLM) present a promising solution to this problem.
 LLMs have proven successful in various natural language processing (NLP) tasks, especially in question-answering tasks due to their strong capability to understand user intent.
 Researchers in visualization have adopted LLMs to assist data transformation~\cite{wang2023dataformulator} or directly generate visualization~\cite{maddigan2023chat2vis}.
 However, they all assumed a clean data format, where the data to be visualized is already in a table format. 
 For unstructured text analysis though, this is rarely the case.
-Topics~\cite{atzberger2023evaluatetopicmodel}, sentiments~\cite{beasley2021through}, concepts and entities~\cite{park2018conceptvector,cao2010facetatlas} are common analysis targets in text analysis, which require a data preparation stage to extract them from unstructured text.
-Recently, Li et al.~\cite{li2023evaluateChatgpt} evaluated ChatGPT's capabilities on Information Extraction (IE) tasks comprehensively, and found that it excels under an OpenIE setting, where the model relies solely on user input to extract information from documents.
+Topics~\cite{atzberger2023evaluatetopicmodel}, sentiments~\cite{beasley2021through}, concepts and entities~\cite{park2018conceptvector,cao2010facetatlas} are common analysis targets in text analysis that require a data preparation stage to extract them from unstructured text.
+% Recently, Li et al.~\cite{li2023evaluateChatgpt} evaluated ChatGPT's capabilities on Information Extraction (IE) tasks comprehensively, and found that it excels under an OpenIE setting, where the model relies solely on user input to extract information from documents.
 The capability of LLMs to extract information from documents according to user intent eliminates the need to carefully align the analysis tasks and models in VA systems,
 because a specific model is no longer needed to prepare the data for the analysis task.
 In the previous example, instead of relying on abstruse and unfathomable probabilistic models, LLMs can directly process the text data and summarize the topics of the documents.
-A user can ask a LLM:\@ \textit{`What are the topics of these articles?'}, and the LLM would give a human-like response, such as \textit{`The articles are about \ldots'}.
+A user can ask a LLM:\@ \textit{`What are the topics of these articles?'}, and the LLM would give a human-like response, such as \textit{`The articles are about Covid-19'}.
 
-However, using LLMs in the data preparation stage is not trivial. 
-Problems like \textit{hallucination} and \textit{faithfulness} hinder the accuracy of the extracted information.
-Token limits restrict the length of the input text, limiting the usage of LLMs on large collections of documents (corpus).
-Prompts need to be carefully designed to reflect user intent.
-Finally, the extracted information, the analysis task and the visualization need to be aligned to foster interpretation and trust.
+% However, using LLMs in the data preparation stage is not trivial. 
+% Problems like \textit{hallucination} and \textit{faithfulness} hinder the accuracy of the extracted information.
+% Token limits restrict the length of the input text, limiting the usage of LLMs on large collections of documents (corpus).
+% Prompts need to be carefully designed to reflect user intent.
+% Finally, the extracted information, the analysis task and the visualization need to be aligned to foster interpretation and trust.
 In this work, we designed a VA system that models a corpus as a hypergraph, where the nodes are documents and characters (salient entities) extracted from the document using LLMs.
 We showcase how LLMs are used flexibly to align the data, analysis task and visualization during our design process.
-The hypergraph is then hierarchically clustered and visualized by extending space-filling curve layouts~\cite{muelder2008sfc}.
+The hypergraph is then hierarchically clustered and visualized with enhanced space-filling curve layouts~\cite{muelder2008sfc}.
 The system supports interactive exploration, reorganization and analysis of the documents.
-To the best of our knowledge, no visual analytics system has adopted LLMs to assist the data preparation stage in text analysis.
+To the best of our knowledge, no published visual analytics system has adopted LLMs to align the data, analysis task and visualization.
 Using the system, we demonstrate how proper model alignment can be achieved using LLMs.
 
 The contributions of our work are as follows:
-\begin{itemize}
+\setlist{nolistsep}
+\begin{itemize}[noitemsep]
     \item We introduce an LLM-based information extraction pipeline that is capable of extracting topics and salient entities from a given corpus in a way that fosters interpretation.
     \item We extend space-filling curve layouts to visualize clusters in large hypergraphs.
     \item We develop a novel VA system that allows users to effectively explore, reorganize and analyze a corpus.
 \end{itemize}
-
-
-
-
-
-
-
-
-

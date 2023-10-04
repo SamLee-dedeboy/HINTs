@@ -82,4 +82,91 @@ paper writing
 2. future work: record change logs
 
 TODO:
-1. Improve tooltip layout
+1. turn-off show article-label: should sub cluster labels be kept or hidden?
+
+
+vispub notes:
+- 979 papers do not have keywords available. A prompt is used to extract keywords from the title.
+
+0: "Q289923"
+​​​​​
+1: "Q6834757"
+​​​​​
+2: "Q6848276"
+​​​​​
+3: "Q28591"
+​​​​​
+4: "Q2578906"
+​​​​​
+5: "Q2698927"
+​​​​​
+6: "Q27925035"
+​​​​​
+7: "Q5170405" ----
+​​​​​
+8: "Q6846863"
+
+Given the selected documents, what should I consider when designing text visualization?
+When designing text visualization, here are some key considerations based on the selected articles: 1. Amount of Text: Determine the right amount of text to show within the visualization. Experiment with different levels of textual annotations and evaluate their impact on user preferences and comprehension. 2. Semantic Content: Consider the semantic content of the text. Text that describes statistical or relational components may lead to different takeaways compared to text describing elemental or encoded components. Align the semantic content with the goals of the visualization. 3. Placement of Text: Explore the placement of text on the chart. Some kinds of information may be best placed in the title, while others should be placed closer to the data. Experiment with different placements and evaluate their effectiveness in conveying information. 4. Integration of Text and Charts: Aim for tight coupling and seamless interaction between text and charts. Design tools and interfaces that enable users to construct interactive references between text and charts, leveraging natural language processing and manual construction. 5. Support for Content Navigation: Consider the need for content navigation and overview, especially in tasks such as clinical chart review. Provide interactive tools that support the review of text notes, enabling efficient content navigation and exploration. 6. Real-time Analysis: If dealing with real-time data, design visualization systems that can handle large-scale streaming social media data. Incorporate efficient and explainable clustering algorithms, visual summaries of specific topics, and familiar visual metaphors for exploratory and focused monitoring tasks. 7. Argument Structure Analysis: For analyzing argument structures in essay corpora, use visual analytics systems that provide an overview of the corpus using glyphs to represent argument units. Employ hierarchical views to reveal patterns, estimate statistics, and facilitate deep analysis. Link different views and enable interactive filtering. 8. Incorporation of Semantics and Domain Knowledge: Consider the incorporation of semantics and domain knowledge in the visual analytics process, especially in tasks like argumentation mining. Augment manual annotation processes with automatic suggestion based on linguistic knowledge and language modeling. 9. Contextual Visualization: In complex documents consisting of text, figures, and data tables, use contextual visualization techniques that couple text content with data tables. Cross-link components and generate on-demand visualizations based on the reader's focus. Evaluate the impact on comprehension and understanding of the document content. 10. User Evaluation and Feedback: Continuously evaluate the effectiveness of your text visualization design through user studies and gather feedback from domain experts. Iterate on the design based on the findings to improve user experience and achieve the desired goals.
+When designing text visualization, you should consider the following aspects based on the selected articles: 1. Amount of text: Determine the appropriate amount of text to include in the visualization. The articles suggest that adding text annotations to visualizations can enhance understanding and should not be penalized. Participants preferred charts with more textual annotations over charts with fewer annotations or text alone. 2. Semantic content: Consider the type of information conveyed by the text. Text that describes statistical or relational components of a chart leads to more takeaways referring to statistics or relational comparisons. 3. Placement of text: Text should be placed strategically within the visualization. Different kinds of information are best placed in the title or closer to the data, depending on the semantic level. 4. Integration of text and charts: Aim for a tight coupling between text and charts to support the synthesis of information. Investigate ways to establish interactive references between text and charts, allowing users to construct connections effortlessly. 5. Real-time analysis: If dealing with real-time data, consider the scalability and adaptiveness of the visualization. Develop interactive systems that enable visual analysis of streaming social media data or dynamically cluster posts related to relevant topics. 6. Support for specific tasks: Tailor the visualization to specific tasks such as clinical chart review, argument structure analysis, or anomaly detection in social media. Incorporate insights from domain experts and conduct iterative design processes to ensure usability. 7. Enhancement of comprehension: Explore techniques that facilitate enhanced comprehension of complex documents by coupling text content with data visualizations. Generate on-demand visualizations based on the reader's focus within the document and evaluate their effectiveness against traditional reading experiences. 8. Customizability and integration with existing workflows: Provide tools that are customizable to the needs of users, such as healthcare providers and physicians, while preserving and extensively linking to the original text. Avoid obscuring or substituting the original clinical text that contains qualitative and rhetorical flavors. 9. Facilitating analysis of complex textual differences: Develop visual analytics environments that support the alignment of complex textual differences, prevailing in medieval text traditions or other literature domains. Provide interactive visualizations for investigating repetition, variance, and other textual hierarchies. 10. Evaluation and validation: Perform user studies, expert reviews, and evaluations to validate the effectiveness and utility of the visualization techniques. Collect feedback from users and iterate designs based on their needs and preferences. Consider these guidelines when designing text visualizations to ensure effective communication and comprehension of information.
+
+Given the selected documents, what is considered a balanced ratio of text and charts?
+Based on the selected article, it is suggested that a balanced ratio of text and charts can vary depending on the context and purpose of the visualization. The article mentions that heavily annotated charts were not penalized and participants preferred charts with more textual annotations. However, it also emphasizes the importance of considering the qualitative properties and placement of the text within the chart. Overall, it is recommended to use a combination of text and charts that provides additional context, guidance, and relevant information to the readers without overwhelming or distracting them from the visualizations.
+
+
+script for video:
+Hi, we introduce HyperMap, a visual analytic system for making sense of large collections of documents.
+Analysts from all disciplines, from journalists to researchers, need to deal with large collections of documents every day.
+They explore and filter the documents to find a target of interest, and analyze the target to generate insights.
+HyperMap facilitates this process by supporting the manipulation of topics and characters, two main analysis units in text documents.
+During the analysis, users can reorganize the corpus by adjusting the topics and characters to focus on their target of interest.
+% The system also integrates a chatbot to answer questions about a selection of documents in real-time.
+
+HyperMap is developed by combining Large Language Models (LLMs) and hypergraphs.
+In data preparation stage, Large Language Models are used to extract topics and characters from the corpus.
+Then the corpus is organized into a hypergraph and hierarchically clustered.
+We use a scalable space-filling curve-based layout to visualize the hierarchy.
+This way, user interactions can be transformed into efficient hypergraph operations to support reorganization on a large corpus.
+
+Next, we present an example of how a journalist can use the HyperMap system to investigate a dataset of news articles.
+Alice is a journalist working on a story about US presidential election. 
+She wants to collect materials about the election in 2016.
+She collects a large dataset of news articles published in 2016 and uses HyperMap to investigate the dataset.
+The system starts by displaying the topics in the middle and the characters on the outer layer.
+Each chunk of topics and characters have different colors and labels.
+Alice starts by browsing through some of the topics to get a sense of what the dataset contains.
+She uses the character labels to help her understand the topics.
+After much exploration, Alice has a sense of what the dataset might cover,
+but she is only interested in the topics related to the election.
+She uses the search bar and enters "United States presidential election".
+The system highlights the relevant topics and characters.
+She checks if the highlighted topics are truly relevant to her story by inspecting the characters and scanning through the articles.
+After some investigation, she decides to remove `Security Threats in the Middle East' and `Ride Hailing Technology'.
+
+She clicks `Filter Search', and the system removes irrelevant articles and reorganizes the layout.
+Without irrelevant articles, Alice can start to explore the topics in more detail.
+% She expands the topic `Controversies and Challanges' to see what it contains.
+% She finds two small topics: `Criminal Justice' and `Political Protests against Trump'.
+% Quickly browsing through the articles, they are indeed interesting events happened during the election so she marks them down.
+She expands the large light green topic `Concerns and Controversies in the United States' for more detail.
+From there, the labels are quite specific and self-explanatory.
+She finds the topic `2016 US Presidential Election and Contorversies', which is exactly what she is looking for.
+She clicks the character to see specific articles mentioning the character, such as `Vladimir Putin', `Donald Trump', `The Republican Party', and `The Democratic Party'.
+She also finds many undirectly related topics, such as `Marijuana legalization', `Legacy of Obama Presidency' and `Gun Controls and Controversies'.
+For undirectly related topics, she can use the chatbot to help her find connections.
+For example, she asks the chatbot to summarize Donald Trump's and Hilaries Clinton's gun control policy based on the selected articles.
+The chatbot responds accordingly instead of relying on common sense knowledge.
+
+This is an example of how the HyperMap system can assist in sensemaking on large collections of documents.
+With highly interpretable visualization results, users can easily explore and reorganize the corpus for their purposes.
+This is the introduction video of HyperMap, thank you for listening.
+
+
+
+
+
+
+
+
+
+

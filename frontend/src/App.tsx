@@ -206,7 +206,8 @@ function App() {
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ article_level: 5, entity_level: 4})
+        // body: JSON.stringify({ article_level: 4, entity_level: 4})
+        body: JSON.stringify({ article_level: 5, entity_level: 5})
       })
         .then(res => res.json())
         .then(async (hgraph: t_EventHGraph) => {

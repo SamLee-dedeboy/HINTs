@@ -1,2 +1,4 @@
 {"rule":"NOUN_VERB_CONFUSION","sentence":"^\\QIn our system, we use the space-filling curve (SFC) layout method to layout the extra-node representation of the hypergraph.\\E$"}
 {"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QEntity-based approaches exhibit better model alignments than topic-based approaches \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q, but the polysemy of natural language\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWe designed the interface by mimicking a typical chatbot interface like ChatGPT.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWe designed the interface by mimicking a typical chatbot interface like ChatGPT.\\E$"}
