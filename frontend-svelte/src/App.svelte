@@ -1,6 +1,8 @@
 <script lang="ts">
   import * as d3 from "d3"
   import HyperMap from './lib/HyperMap.svelte'
+  import ChatBox from './lib/ChatBox.svelte'
+  import DocList from './lib/DocList.svelte'
   import Search from './lib/Search.svelte';
   import Switch from './lib/Switch.svelte'
   import { onMount } from 'svelte'
@@ -16,9 +18,11 @@
 
   // flags
   let searchMode = false
+  let searchLoading = false
   let filtered = false
   let defaultShowArticleClusterLabel = true
   let defaultShowEntityClusterLabel = false
+  $: console.log({defaultShowEntityClusterLabel})
 
   // data
   let docsRanked: any[] | undefined = undefined
@@ -228,8 +232,8 @@
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        // body: JSON.stringify({ article_level: 4, entity_level: 4})
-        body: JSON.stringify({ article_level: 5, entity_level: 5})
+        body: JSON.stringify({ article_level: 4, entity_level: 4})
+        // body: JSON.stringify({ article_level: 5, entity_level: 5})
       })
         .then(res => res.json())
         .then(async (hgraph: any) => {
@@ -377,6 +381,68 @@
     })
   }
 
+  async function search(event) {
+    const query = event.detail
+    console.log(query)
+    searchLoading = true
+    searchMode = true
+    const base = article_graph?.article_nodes.map(node => node.id)
+    console.log("searching: ", query, base)
+    fetch(`${server_address}/static/search/`, {
+      method: "POST",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ query, base })
+    })
+    .then(res => res.json())
+    .then(search_response => {
+      console.log({search_response})
+      const docs_ranked = search_response.docs
+      const suggested_threshold = search_response.suggested_threshold
+      console.log({docs_ranked})
+      searchLoading = false
+      docsRanked = search_response.docs
+    })
+  }
+
+  function applyFilter() {
+    if(article_graph === undefined) return
+    if(entity_graph === undefined) return
+    return new Promise((resolve) => {
+      let article_ids;
+      if(searchResultDocIds === undefined) {
+        if(clickedCluster === "") return
+        article_ids = article_graph.clusters[clickedCluster]
+      } else 
+        article_ids = article_graph.article_nodes.filter(article => searchResultDocIds?.includes(article.id)).map(article => article.id)
+      const clusters = article_graph.clusters
+      const entity_clusters = entity_graph.entity_clusters
+      console.log("filtering: ", article_ids, clusters)
+      fetch(`${server_address}/user/filter/`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ article_ids, clusters, entity_clusters, user_hgraph })
+      })
+        .then(res => res.json())
+        .then(filtered_hgraph => {
+          searchMode = false
+          docsRanked = undefined
+          console.log({filtered_hgraph})
+          article_graph = filtered_hgraph.article_graph
+          entity_graph = filtered_hgraph.entity_graph
+          user_hgraph = filtered_hgraph.user_hgraph
+          filtered = user_hgraph.filtered
+          resolve("success")
+        })
+    })
+  }
+
+
   function handleArticleClusterRemoved(event) {
     const cluster_label = event.detail
     const cluster_article_node_ids = article_graph!.clusters[cluster_label]
@@ -392,91 +458,83 @@
 
 </script>
 
-<main>
-  <div class="App flex w-full h-full font-serif">
-    <div class='left-panel flex basis-[50%] h-full justify-between'>
-        <div class="article-hgraph-container flex flex-1 h-full">
-          {#if !HGraphLoaded}
-            <div class="loading-hint"> Loading... </div>
-          {/if}
-          <HyperMap svgId={"article-cluster-overview-svg"} 
-            article_graph={article_graph} 
-            entity_graph={entity_graph}
-            filtered={filtered}
-            peripheral={hilbert}
-            searchedArticleIds={searchResultDocIds} 
-            on:article-cluster-clicked={handleArticleClusterClicked}
-            on:entity-cluster-clicked={handleEntityClusterClicked}
-            on:entity-label-clicked={handleEntityLabelClicked}
-            on:article-label-clicked={handleArticleLabelClicked}
-            on:article-cluster-removed={handleArticleClusterRemoved}
-            on:entity-cluster-removed={handleEntityClusterRemoved}
-            articleClusterColorDict={articleClusterColorDict}
-            articleSubClusterColorDict={articleSubClusterColorDict}
-            entityClusterColorDict={entityClusterColorDict}
-            entitySubClusterColorDict={entitySubClusterColorDict}
-            searchMode={searchMode}
-            showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
-            showArticleClusterLabelDefault={defaultShowArticleClusterLabel}
-            gosper={gosper}
-            />
-        </div>
-    </div>
-    <div class='middle-panel flex flex-col basis-[35%] w-1/12'>
-      <div class='utility-container flex  w-full h-fit pl-1 border rounded '>
-        <div class='toggler-container flex flex-col py-2 border-r-2 '>
-          <div>
-            <div class='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
-              <span class='switch-label mr-2'>Show Entity Label</span>
-              <Switch></Switch>
-              <!-- <Switch class={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch> -->
-            </div>
-            <div class='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
-              <span class='switch-label mr-2'>Show Article Label</span>
-              <Switch></Switch>
-              <!-- <Switch class={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch> -->
-            </div>
-            <div class='switch-container flex justify-center mr-2 w-fit'>
-              <span class='switch-label mr-2'>Search</span>
-              <Switch></Switch>
-              <!-- <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch> -->
-            </div>
+<div class="App flex w-full h-full font-serif">
+  <div class='left-panel flex basis-[50%] shrink-0 h-full justify-between'>
+      <div class="article-hgraph-container flex flex-1 h-full">
+        {#if !HGraphLoaded}
+          <div class="loading-hint absolute"> Loading... </div>
+        {/if}
+        <HyperMap svgId={"article-cluster-overview-svg"} 
+          article_graph={article_graph} 
+          entity_graph={entity_graph}
+          filtered={filtered}
+          peripheral={hilbert}
+          searchedArticleIds={searchResultDocIds} 
+          on:article-cluster-clicked={handleArticleClusterClicked}
+          on:entity-cluster-clicked={handleEntityClusterClicked}
+          on:entity-label-clicked={handleEntityLabelClicked}
+          on:article-label-clicked={handleArticleLabelClicked}
+          on:article-cluster-removed={handleArticleClusterRemoved}
+          on:entity-cluster-removed={handleEntityClusterRemoved}
+          articleClusterColorDict={articleClusterColorDict}
+          articleSubClusterColorDict={articleSubClusterColorDict}
+          entityClusterColorDict={entityClusterColorDict}
+          entitySubClusterColorDict={entitySubClusterColorDict}
+          searchMode={searchMode}
+          showEntityClusterLabelDefault={defaultShowEntityClusterLabel}
+          showArticleClusterLabelDefault={defaultShowArticleClusterLabel}
+          gosper={gosper}
+          />
+      </div>
+  </div>
+  <div class='middle-panel flex flex-col basis-[26%] shrink-0 w-1/12'>
+    <div class='utility-container flex  w-full h-fit pl-1 border rounded '>
+      <div class='toggler-container flex flex-col py-2 border-r-2 basis-[40%] '>
+        <div>
+          <div class='show-entity-cluster-label-container flex justify-center mr-2 w-fit'>
+            <span class='switch-label mr-2'>Show Entity Label</span>
+            <Switch bind:checked={defaultShowEntityClusterLabel}></Switch>
+            <!-- <Switch class={"toggle-entity-label-mode bg-black/25"} checked={defaultShowEntityClusterLabel} onChange={setDefaultShowEntityClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch> -->
           </div>
-        </div>
-        <div class='flex flex-col px-1 py-2'>
-          <div class='search-container w-full flex items-center'>
-            <Search>  </Search>
-            <!-- <Search class={"search-bar w-full"}
-              placeholder="input search text" 
-              size="large" 
-              onChange={(e) => setQuery(e.target.value)}
-              onSearch={search} 
-              loading={searchLoading} /> -->
+          <div class='show-article-cluster-label-container flex justify-center mr-2 w-fit'>
+            <span class='switch-label mr-2'>Show Article Label</span>
+            <Switch bind:checked={defaultShowArticleClusterLabel}></Switch>
+            <!-- <Switch class={"toggle-article-label-mode bg-black/25"} checked={defaultShowArticleClusterLabel} onChange={setDefaultShowArticleClusterLabel} checkedChildren="On" unCheckedChildren="Off"></Switch> -->
           </div>
-          <div class='relevance-threshold-container w-fit px-0.5 mt-1'>
-            <span class='relevance-label'> Relevance &gt;= </span>
-            <input type="number" id="visitors" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required>
-            <!-- <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} /> -->
-            <!-- <button class={"apply-filter btn p-1 ml-1"} onClick={applyFilter}>Filter Search</button> -->
+          <div class='switch-container flex justify-center mr-2 w-fit'>
+            <span class='switch-label mr-2'>Search</span>
+            <Switch bind:checked={searchMode}></Switch>
+            <!-- <Switch className={"toggle-searchMode bg-black/25"} checked={searchMode} onChange={setSearchMode} checkedChildren="On" unCheckedChildren="Off"></Switch> -->
           </div>
         </div>
       </div>
-        <div class="doc-list-container flex flex-col flex-1 overflow-y-auto mt-2">
-          <!-- <DocList docs={selectedDocs} 
-            cluster_label={DocListTitle.current} 
-            theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster!] : articleClusterColorDict[selectedDocCluster!]) || undefined}
-            highlightDocs={searchResultDocs}
-            onQueryDocChanged={(docs) => { console.log(docs); setQueryDocs(docs);}}
-            /> -->
+      <div class='flex flex-col w-full px-1 py-2 flex-1'>
+        <div class='search-container w-full flex items-center'>
+          <Search on:search={search}>  </Search>
         </div>
-    </div>
-    <div class='right-panel basis-[30%] flex flex-col'>
-      <div class='statistics-container w-full h-full border rounded '>
-        <!-- <ChatBox queryDocs={queryDocs}></ChatBox> -->
+        <div class='relevance-threshold-container w-full flex items-center px-0.5 mt-1'>
+          <span class='relevance-label'> Relevance &gt;= </span>
+          <input type="number" id="visitors" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-[70px] p-0.5 ml-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required>
+          <!-- <InputNumber className="relevance-threshold" min={0} max={1} step={0.01} defaultValue={0.8} value={relevanceThreshold} onChange={(value) => setRelevanceThreshold(Number(value))} /> -->
+          <button class={"apply-filter btn p-1 ml-1 ml-auto right-0"} on:click={applyFilter}>Filter Search</button>
+        </div>
       </div>
+    </div>
+      <div class="doc-list-container flex flex-col flex-1 overflow-y-auto mt-2">
+        <DocList docs={selectedDocs} 
+          cluster_label={DocListTitle} 
+          theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster || ""] : articleClusterColorDict[selectedDocCluster || ""]) || undefined}
+          highlightDocs={searchResultDocs}
+          bind:clickedDocs={queryDocs}
+          />
+      </div>
+  </div>
+  <div class='right-panel basis-[30%] flex flex-col'>
+    <div class='statistics-container w-full h-full border rounded '>
+      <ChatBox queryDocs={queryDocs}></ChatBox>
     </div>
   </div>
-</main>
+</div>
 
 <style>
 </style>

@@ -212,6 +212,19 @@
     }
   }
 
+  // article cluster label toggler
+  $: {
+    const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
+    if(showArticleClusterLabelDefault) centerArea.selectAll("g.article-border-tag-group").attr("opacity", 1).attr("pointer-events", "auto")
+    if(!showArticleClusterLabelDefault)centerArea.selectAll("g.article-border-tag-group").attr("opacity", 0).attr("pointer-events", "none")
+  }
+  // entity cluster label toggler
+  $: {
+    const canvas = d3.select('#' + svgId).select("g.margin")
+    if(showEntityClusterLabelDefault) canvas.selectAll("g.entity-tag-group").attr("opacity", 1).attr("pointer-events", "auto")
+    if(!showEntityClusterLabelDefault) canvas.selectAll("g.entity-tag-group").attr("opacity", 0).attr("pointer-events", "none")
+  }
+
   $: entity_data_dict = ((nodes) => {
     if(!nodes) return undefined;
     let dict = {};
@@ -429,10 +442,10 @@
             .selection(),
         (update) =>
           update
-            .on("mouseover", article_event_handlers.mouseover)
-            .on("mouseout", article_event_handlers.mouseout)
-            // .call(bindDrag)
-            .on("click", article_event_handlers.click)
+            // .on("mouseover", article_event_handlers.mouseover)
+            // .on("mouseout", article_event_handlers.mouseout)
+            // // .call(bindDrag)
+            // .on("click", article_event_handlers.click)
             .transition()
             .delay(t_delay + (article_graph.filtered ? t_duration : 0))
             .duration(t_duration)
@@ -697,6 +710,7 @@
               );
             // clickedClusterLabel.current = d.cluster_label
             clickedClusterLabel = d.cluster_label;
+            clickedCluster = d.cluster_label;
           }
         }
       }
@@ -755,6 +769,7 @@
       },
     },
   };
+
   const entity_border_handlers = {
     mouseover: function (_, d) {
       // const canvas = d3.select('#' + svgId).select("g.margin")
@@ -1100,6 +1115,7 @@
       if (!clickedCluster && clickedClusterLabel) {
         // removeHighlightCluster()
         clickedClusterLabel = undefined;
+        clickedCluster = undefined;
         if (!searchMode) highlightArticleIds = undefined;
         else
           highlightArticleIds = findIntersection(searchedArticleIds, undefined);

@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+#app {
   margin: 0 auto;
   padding: 0.5%;
   text-align: center;
   width: 100vw;
-  height: 98vh;
+  height: 100vh;
   overflow: visible;
 
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -17,4 +17,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+}
+
+.btn {
+  @apply bg-white border rounded w-fit transition-colors hover:bg-sky-500/70;
 }
