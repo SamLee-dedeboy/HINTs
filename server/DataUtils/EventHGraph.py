@@ -16,19 +16,16 @@ class EventHGraph:
         gpt_hierarchy_entity = json.load(open(data_path + 'network/server/ravasz_hierarchies_entity.json'))
         article_hierarchical_topics = json.load(open(data_path + 'network/server/hierarchical_topics_articles.json'))
         entity_hierarchical_topics = json.load(open(data_path + 'network/server/hierarchical_topics_entities.json'))
-        # def fake_topics(partitions):
-        #     res = {}
-        #     for level, partition in enumerate(partitions):
-        #         cluster_labels = list(set(partition.values()))
-        #         for cluster_label in cluster_labels:
-        #             cluster_label = "L-{level}-{cluster_label}".format(level=level, cluster_label=cluster_label)
-        #             res[cluster_label] = cluster_label + ", " + cluster_label + ", " + cluster_label
-        #     return res
+        def fake_topics(partitions):
+            res = {}
+            for level, partition in enumerate(partitions):
+                cluster_labels = list(set(partition.values()))
+                for cluster_label in cluster_labels:
+                    cluster_label = "L-{level}-{cluster_label}".format(level=level, cluster_label=cluster_label)
+                    res[cluster_label] = cluster_label + ", " + cluster_label + ", " + cluster_label
+            return res
         # article_hierarchical_topics = fake_topics(atn_gpt_partitions_article)
-        # entity_hierarchical_topics = fake_topics(atn_gpt_partitions_entity)
-
-        # article_hierarchical_topics = json.load(open(data_path + 'AllTheNews/network/server/hierarchical_topics_articles.json'))
-        # entity_hierarchical_topics = json.load(open(data_path + 'AllTheNews/network/server/hierarchical_topics_entities.json'))
+        # entity_hierarchical_topics = fake_topics(gpt_partitions_entity)
 
         self.hierarchy_article = gpt_hierarchy_article
         self.hierarchy_entity = gpt_hierarchy_entity

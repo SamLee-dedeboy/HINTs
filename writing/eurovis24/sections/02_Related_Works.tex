@@ -1,0 +1,54 @@
+\section{Related Works}
+\subsection{Data preparation for large collections of text}
+\textbf{TODO: shorten}
+\subparagraph*{Topic-based approaches} 
+Topic-based approaches employ certain variations of topic models to organize the documents in a meaningful way.
+Each topic is often presented as a `bag of words', which can be in the form of a sequence of words~\cite{yang2017vistopic, cho2016vairoma, dou2013hierarchicaltopics,yan2019clfsemi,han2022hisva, alexander2014serendip, lee2012ivisclustering} or word clouds~\cite{oelke2014topiccoin, cho2016vairoma}.
+The modeling result provides an overview of the dataset for subsequent analysis tasks. 
+Despite their popularity, the use of topic models as an overview, as well as its `bag-of-word' visualization, is reported by Lee et al.~\cite{lee2017humantopicmodel} to be problematic, especially for non-expert users, in a comprehensive user study.
+Chuang et al.~\cite{chuang2012interpretation} concluded that these problems arise from a misalignment between the analysis task, visual encoding and model.
+The sensemaking process becomes challenging without a basic understanding of the model because the `bag-of-words' representation is too far away from the user's mental model of a topic.
+This misalignment limits the usage of topic models for non-expert users and makes the system prone to produce false positives.
+
+\vspace*{-0.2cm}
+\subparagraph*{Entity-based approaches}
+A line of work that makes successful model alignments is the entity-based approach.
+`Entities' usually include named entities (people, organizations, locations), or meaningful concepts known to an existing knowledge base.
+The earliest of such approaches is Jigsaw~\cite{Stasko2007jigasw}, where entities are linked if they appear in the same document.
+FacetAtlas~\cite{cao2010facetatlas} generalizes the idea of entity to `facets' which can be entities or any keywords or user's interest.
+ConceptVector~\cite{park2018conceptvector} uses `concept' to represent a similar idea. 
+Generally, entity-based approaches exhibit better model alignments than topic-based approaches~\cite{chuang2012interpretation}, 
+but the polysemy of natural language makes them prone to produce false positives~\cite{park2018conceptvector}.
+In our work, we use \textit{keywords} to represent entities or concepts that appear in the documents.
+We ensure that the keywords are salient by exploiting LLM's ability to understand semantic contexts.
+
+
+\vspace*{-0.2cm}
+\subparagraph*{Embedding-based approaches}
+Finally, an important line of work organizes documents by directly modeling their semantic similarity~\cite{steinbach2000doccluster}.
+Documents are first projected into a high-dimensional vector space where similarity can be measured, and then a dimensionality reduction technique (e.g.t-SNE) is used to project the dataset onto a two-dimensional space for visualization.
+Earlier works construct a sparse vector using term-frequency based scores such as \textit{TF-IDF} or BM25~\cite{choo2013utopian,sherkat2018interactive}.
+More recently, the success of pre-trained language models like BERT~\cite{devlin2018bert} popularizes the idea of embedding documents in a dense vector space~\cite{narechania2022vitality,tu2023sdrquerier,qiu2022docflow}.
+The embedding can then be used for document retrieval~\cite{karpukhin-etal-2020-dense, izacard2022unsupervised} or visualization.
+Embedding-based approaches also exhibit healthy model alignment, as the vector space directly models the analysis task (finding similar documents). 
+However, the result often lacks explainability and prevents users from trusting the result.
+Recently, Raval et al.\cite{raval2023explainandtrust} proposed to use LLMs to provide explainability to embeddings-mappings visualizations.
+We adopt a similar approach in our system to provide interpretability to the clustering result.
+
+\subsection{Visual Interfaces for Document Corpus}
+\subsection{LLMs for Information Extraction}
+Information Extraction aims to identify structured information of interest from unstructured text data.
+Some of its subtasks include Named Entity Recognition (NER), Relation Extraction (RE) and Event Extraction (EE)~\cite{nasar2021named, xiang2019surveyee}.
+Although LLMs have proven successful in many NLP tasks, their application to IE is non-trivial.
+First, the \textit{faithfulness} of LLMs needs to be carefully evaluated.
+Faithfulness refers to the ability of a model to adhere to the provided information and not use parametric knowledge learned during training to answer user questions~\cite{zhou2023contextfaithful}.
+When conducting information extraction, it is necessary to ensure that the extracted information is actually from the provided text and not from the model's parametric knowledge.
+Second, LLMs are known to produce \textit{hallucination}, where LLMs provide answers factually contradicting to input text (intrinsic) or even factually false (extrinsic). 
+In the context of IE, we mainly focus on the intrinsic hallucination problem.
+A recent evaluation conducted by Bang et al.~\cite{bang2023multitask} found that ChatGPT rarely exhibits intrinsic hallucinations, including the abstractive summarization task from which neural models usually suffer.
+
+More specifically, Li et al.~\cite{li2023evaluateChatgpt} comprehensively evaluated the capabilities of ChatGPT for common IE tasks.
+They found that ChatGPT excels under the Open-IE setting, where the model relies solely on user input to extract information from documents, but performs poorly under the Standard-IE setting, where ChatGPT is instructed to choose a correct label.
+Their findings agree with Zhang et al.~\cite{zhang2023extractive} where ChatGPT is reported to perform poorly on extractive summarization.
+A common reason for the poor performance of ChatGPT in these tasks is that they are essentially supervised learning tasks, and ChatGPT is not trained to perform them.
+To make the best use of ChatGPT (or more generally, LLMs) for IE tasks, we need to carefully design the extraction tasks as question-answering tasks instead of supervised learning tasks.

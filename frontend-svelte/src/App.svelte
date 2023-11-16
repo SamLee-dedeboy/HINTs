@@ -50,10 +50,13 @@
   const articleSubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
   let previousClusterColorDict: any = {}
   let previousSubClusterColorDict: any = {}
-  $: articleClusterColorDict = ((article_graph) => {
+  let articleColorDict = { cluster_color_dict: {}, sub_cluster_color_dict: {} }
+  $: articleColorDict = updateArticleColorDict(article_graph)
+  function updateArticleColorDict(article_graph) {
     let cluster_color_dict = {}
-    if(!article_graph) return cluster_color_dict
+    if(!article_graph) return { cluster_color_dict: {}, sub_cluster_color_dict: {} }
     Object.keys(article_graph.clusters).forEach(cluster_label => {
+      console.log(cluster_label, previousSubClusterColorDict)
       if(previousClusterColorDict && previousClusterColorDict[cluster_label]) {
         cluster_color_dict[cluster_label] = previousClusterColorDict[cluster_label]
       } else if(previousSubClusterColorDict && previousSubClusterColorDict[cluster_label]) {
@@ -64,12 +67,8 @@
     })
     // setPreviousClusterColorDict(cluster_color_dict)
     previousClusterColorDict = cluster_color_dict
-    return cluster_color_dict
-  })(article_graph)
-
-  $: articleSubClusterColorDict = ((article_graph) => {
+  
     let sub_cluster_color_dict = {}
-    if(!article_graph) return sub_cluster_color_dict
     Object.keys(article_graph.clusters).forEach(cluster_label => {
       // retain cluster color
       // const cluster_color = d3.hsl(articleClusterColorDict[cluster_label])
@@ -106,8 +105,9 @@
     // setPreviousSubClusterColorDict(sub_cluster_color_dict)
     previousSubClusterColorDict = sub_cluster_color_dict
     console.log({sub_cluster_color_dict})
-    return sub_cluster_color_dict
-  })(article_graph)
+    // return {articleClusterColorDict: cluster_color_dict, articleSubClusterColorDict: sub_cluster_color_dict}
+    return { cluster_color_dict, sub_cluster_color_dict } as any
+  }
 
   const entityClusterColorScale = d3.scaleOrdinal(d3.schemeSet2)
   const entitySubClusterColorScale = d3.scaleOrdinal(d3.schemeSet3)
@@ -232,8 +232,8 @@
             "Accept": "application/json",
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ article_level: 4, entity_level: 4})
-        // body: JSON.stringify({ article_level: 5, entity_level: 5})
+        // body: JSON.stringify({ article_level: 4, entity_level: 4})
+        body: JSON.stringify({ article_level: 5, entity_level: 5})
       })
         .then(res => res.json())
         .then(async (hgraph: any) => {
@@ -252,7 +252,7 @@
   }
 
   // event  handlers
-  async function handleArticleClusterClicked(event) {
+  async function handleArticleClusterExpanded(event) {
     const cluster_id = event.detail
     return new Promise((resolve) => {
       // setClusterSelected(true)
@@ -310,7 +310,8 @@
   }
 
   async function handleEntityLabelClicked(event) {
-    const { entity_titles, doc_ids, clicked_cluster_label } = event.detail
+    console.log(event.detail)
+    const [ entity_titles, doc_ids, clicked_cluster_label ] = event.detail
     if(clicked_cluster_label) {
       DocListTitle = article_graph?.hierarchical_topics[clicked_cluster_label] + (entity_titles? " and " + entity_titles!.join(", "): "")
     } else {
@@ -359,10 +360,10 @@
             if(cluster_label === undefined) {
               const article_cluster_label = article_clusters[article.id]
               article.cluster_label = article_graph?.hierarchical_topics[article_cluster_label]
-              article.color = articleClusterColorDict[article_cluster_label]
+              article.color = articleColorDict.cluster_color_dict[article_cluster_label]
             } else {
               article.cluster_label = article_graph?.hierarchical_topics[cluster_label]
-              article.color = articleClusterColorDict[cluster_label] || articleSubClusterColorDict[cluster_label]
+              article.color = articleColorDict.sub_cluster_color_dict[cluster_label] || articleColorDict.sub_cluster_color_dict[cluster_label]
             }
           })
           if(docsRanked) {
@@ -470,14 +471,14 @@
           filtered={filtered}
           peripheral={hilbert}
           searchedArticleIds={searchResultDocIds} 
-          on:article-cluster-clicked={handleArticleClusterClicked}
+          on:article-cluster-expanded={handleArticleClusterExpanded}
           on:entity-cluster-clicked={handleEntityClusterClicked}
           on:entity-label-clicked={handleEntityLabelClicked}
           on:article-label-clicked={handleArticleLabelClicked}
           on:article-cluster-removed={handleArticleClusterRemoved}
           on:entity-cluster-removed={handleEntityClusterRemoved}
-          articleClusterColorDict={articleClusterColorDict}
-          articleSubClusterColorDict={articleSubClusterColorDict}
+          articleClusterColorDict={articleColorDict.cluster_color_dict}
+          articleSubClusterColorDict={articleColorDict.sub_cluster_color_dict}
           entityClusterColorDict={entityClusterColorDict}
           entitySubClusterColorDict={entitySubClusterColorDict}
           searchMode={searchMode}
@@ -523,7 +524,7 @@
       <div class="doc-list-container flex flex-col flex-1 overflow-y-auto mt-2">
         <DocList docs={selectedDocs} 
           cluster_label={DocListTitle} 
-          theme={(fetchingSubCluster? articleSubClusterColorDict[selectedDocCluster || ""] : articleClusterColorDict[selectedDocCluster || ""]) || undefined}
+          theme={(fetchingSubCluster? articleColorDict?.sub_cluster_color_dict[selectedDocCluster || ""] : articleColorDict?.cluster_color_dict[selectedDocCluster || ""]) || undefined}
           highlightDocs={searchResultDocs}
           bind:clickedDocs={queryDocs}
           />

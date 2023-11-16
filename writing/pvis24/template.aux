@@ -1,0 +1,216 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{chuang2012interpretation}
+\citation{vayansky2020review}
+\citation{wang2023dataformulator}
+\citation{maddigan2023chat2vis}
+\citation{atzberger2023evaluatetopicmodel}
+\citation{beasley2021through}
+\citation{park2018conceptvector,cao2010facetatlas}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The HyperMap system. (a) The peripheral area of Cluster View shows the mentioned characters of highlighted documents using Gilbert curves. (b) The center area of Cluster View shows the topic structure of the corpus using Gosper curves. (c) The Document View shows a list of selected documents. (d) The Chatbot View provides a chatbot interface to answer user questions with the option to insert selected documents in the prompt.\relax }}{1}{figure.1}\protected@file@percent }
+\newlabel{fig: sfc}{{1}{1}{The HyperMap system. (a) The peripheral area of Cluster View shows the mentioned characters of highlighted documents using Gilbert curves. (b) The center area of Cluster View shows the topic structure of the corpus using Gosper curves. (c) The Document View shows a list of selected documents. (d) The Chatbot View provides a chatbot interface to answer user questions with the option to insert selected documents in the prompt.\relax }{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.3}\protected@file@percent }
+\citation{muelder2008sfc}
+\citation{yang2017vistopic,cho2016vairoma,dou2013hierarchicaltopics,yan2019clfsemi,han2022hisva,alexander2014serendip,lee2012ivisclustering}
+\citation{oelke2014topiccoin,cho2016vairoma}
+\citation{lee2017humantopicmodel}
+\citation{chuang2012interpretation}
+\citation{Stasko2007jigasw}
+\citation{cao2010facetatlas}
+\citation{park2018conceptvector}
+\citation{chuang2012interpretation}
+\citation{park2018conceptvector}
+\citation{steinbach2000doccluster}
+\citation{choo2013utopian,sherkat2018interactive}
+\citation{devlin2018bert}
+\citation{narechania2022vitality,tu2023sdrquerier,qiu2022docflow}
+\citation{karpukhin-etal-2020-dense,izacard2022unsupervised}
+\citation{raval2023explainandtrust}
+\citation{nasar2021named,xiang2019surveyee}
+\citation{zhou2023contextfaithful}
+\citation{bang2023multitask}
+\citation{li2023evaluateChatgpt}
+\citation{zhang2023extractive}
+\citation{chuang2012interpretation}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Works}{2}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Data preparation for large collections of text}{2}{subsection.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Topic-based approaches}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Entity-based approaches}{2}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Embedding-based approaches}{2}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}LLMs for Information Extraction}{2}{subsection.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Design Rationale}{2}{section.11}\protected@file@percent }
+\newlabel{sec: design_rationale}{{3}{2}{Design Rationale}{section.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Analysis Tasks}{2}{subsection.12}\protected@file@percent }
+\citation{allthenews}
+\citation{vispub}
+\citation{zhang2023extractive}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Data processing pipeline of HyperMap. Starting from a corpus of unstructured texts, each document goes through the data preparation stage to extract the main characters. Then the documents and characters are both embedded into a vector space. The model stage constructs a document hypergraph and a character hypergraph, which are then clustered separately by combining connectivity similarity and semantic similarity. The clustered hypergraphs are hosted on the server and visualized in the user interface. Users can expand, filter, or search the hypergraphs to explore the corpus and select documents to be analyzed with a chatbot. \relax }}{3}{figure.caption.10}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:pipeline}{{2}{3}{Data processing pipeline of HyperMap. Starting from a corpus of unstructured texts, each document goes through the data preparation stage to extract the main characters. Then the documents and characters are both embedded into a vector space. The model stage constructs a document hypergraph and a character hypergraph, which are then clustered separately by combining connectivity similarity and semantic similarity. The clustered hypergraphs are hosted on the server and visualized in the user interface. Users can expand, filter, or search the hypergraphs to explore the corpus and select documents to be analyzed with a chatbot. \relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Design Considerations}{3}{subsection.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Methodology}{3}{section.14}\protected@file@percent }
+\newlabel{sec: methodology}{{4}{3}{Methodology}{section.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Data Preparation}{3}{subsection.16}\protected@file@percent }
+\newlabel{sec: preprocessing}{{4.1}{3}{Data Preparation}{subsection.16}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Datasets}{3}{subsubsection.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Summarization}{3}{subsubsection.18}\protected@file@percent }
+\newlabel{sec: summarization}{{4.1.2}{3}{Summarization}{subsubsection.18}{}}
+\citation{bang2023multitask}
+\citation{shen2014entity}
+\citation{ayoola2022refined}
+\citation{raval2023explainandtrust}
+\citation{fischer2021hypergraphsurvey}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.3}Character Extraction}{4}{subsubsection.19}\protected@file@percent }
+\newlabel{sec: character_extraction}{{4.1.3}{4}{Character Extraction}{subsubsection.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.4}Character Disambiguation}{4}{subsubsection.20}\protected@file@percent }
+\newlabel{sec: character_disambiguation}{{4.1.4}{4}{Character Disambiguation}{subsubsection.20}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.5}Document and Character Embedding}{4}{subsubsection.21}\protected@file@percent }
+\newlabel{sec: embeddings}{{4.1.5}{4}{Document and Character Embedding}{subsubsection.21}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.6}Topic Label Generation}{4}{subsubsection.22}\protected@file@percent }
+\newlabel{sec: tag_assignment}{{4.1.6}{4}{Topic Label Generation}{subsubsection.22}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Models}{4}{subsection.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Hypergraph Construction}{4}{subsubsection.24}\protected@file@percent }
+\citation{citraro2020eva}
+\citation{combe2015louvain}
+\citation{kaminski2021hgraphcommunity}
+\citation{kumar2020new}
+\citation{kumar2020new}
+\citation{steinbach2000doccluster}
+\citation{gysi2018wto}
+\citation{vijaymeena2016survey}
+\citation{abdelaal2022network}
+\citation{fischer2021hypergraphsurvey}
+\citation{ouvrard2017hypergraph}
+\citation{muelder2008sfc}
+\citation{ma2013largegraph}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Illustration of the dual of a hypergraph. Left: a hypergraph with 4 nodes $v_1, v_2, v_3, v_4$ and 3 hyperedges $e_1=(v_1, v_2, v_3), e_2=(v_2, v_3), e_3=(v_3, v_4)$. Right: the dual of the hypergraph, where the nodes and hyperedges interchanged. Nodes in the dual hypergraph are now $e_1, e_2, e_3$ and hyperedges are $v_1=(e_1), v_2=(e_1, e_2), v_3=(e_1, e_3), v_4=(e_2, e_3)$. \relax }}{5}{figure.caption.25}\protected@file@percent }
+\newlabel{fig: duality}{{3}{5}{Illustration of the dual of a hypergraph. Left: a hypergraph with 4 nodes $v_1, v_2, v_3, v_4$ and 3 hyperedges $e_1=(v_1, v_2, v_3), e_2=(v_2, v_3), e_3=(v_3, v_4)$. Right: the dual of the hypergraph, where the nodes and hyperedges interchanged. Nodes in the dual hypergraph are now $e_1, e_2, e_3$ and hyperedges are $v_1=(e_1), v_2=(e_1, e_2), v_3=(e_1, e_3), v_4=(e_2, e_3)$. \relax }{figure.caption.25}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Hierarchical Clustering}{5}{subsubsection.26}\protected@file@percent }
+\newlabel{sec: clustering}{{4.2.2}{5}{Hierarchical Clustering}{subsubsection.26}{}}
+\newlabel{eq: connectivity_semantic_similarity}{{1}{5}{Hierarchical Clustering}{equation.27}{}}
+\newlabel{eq: similarity}{{2}{5}{Hierarchical Clustering}{equation.28}{}}
+\newlabel{alg: clustering}{{\caption@xref {alg: clustering}{ on input line 183}}{5}{Hierarchical Clustering}{equation.28}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Agglomerative Clustering \relax }}{5}{algorithm.29}\protected@file@percent }
+\newlabel{alg:cap}{{1}{5}{Agglomerative Clustering \relax }{algorithm.29}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Visualization of HyperMap}{5}{section.35}\protected@file@percent }
+\newlabel{sec: visualization}{{5}{5}{Visualization of HyperMap}{section.35}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}SFC for HyperGraph}{5}{subsection.36}\protected@file@percent }
+\citation{gilbert}
+\citation{auber2013gospermap}
+\citation{park2012concavehull}
+\newlabel{fig: gilbert_concat}{{4a}{6}{Subfigure 4a}{subfigure.31}{}}
+\newlabel{sub@fig: gilbert_concat}{{(a)}{a}{Subfigure 4a\relax }{subfigure.31}{}}
+\newlabel{fig: gosper}{{4c}{6}{Subfigure 4c}{subfigure.33}{}}
+\newlabel{sub@fig: gosper}{{(c)}{c}{Subfigure 4c\relax }{subfigure.33}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Illustrations of the space-filling curves and example clusters formed by the curves. \relax }}{6}{figure.caption.30}\protected@file@percent }
+\newlabel{fig: gilbert}{{4}{6}{Illustrations of the space-filling curves and example clusters formed by the curves. \relax }{figure.caption.30}{}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {\centering Four concatenated Gilbert curves. Color transitions from dark blue to dark red indicate the traverse direction.}}}{6}{subfigure.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {\centering An example cluster in Gilbert curve filling layout}}}{6}{subfigure.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {\centering An order-4 Gosper curve}}}{6}{subfigure.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(d)}{\ignorespaces {\centering An example cluster in Gosper curve filling layout}}}{6}{subfigure.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Improving the readability}{6}{subsection.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Automatic Cluster Expansion}{6}{section*.38}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Spacing strategy of the SFC layouts. The space of each cluster $S_i$ is proportional to the cluster size. When $C_i$ is expanded, its sub-clusters redistribute $S_i$ to ensure the expansion only affects locally. \relax }}{6}{figure.caption.40}\protected@file@percent }
+\newlabel{fig: spacing}{{5}{6}{Spacing strategy of the SFC layouts. The space of each cluster $S_i$ is proportional to the cluster size. When $C_i$ is expanded, its sub-clusters redistribute $S_i$ to ensure the expansion only affects locally. \relax }{figure.caption.40}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Spacing Strategy}{6}{section*.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Concave hull approximation}{6}{section*.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Borders}{7}{section*.42}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Labeling}{7}{section*.43}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}HyperMap System Design}{7}{section.44}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Cluster View}{7}{subsection.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}Interactions}{7}{subsubsection.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Expansion}{7}{section*.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Filtering}{7}{section*.49}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Searching}{7}{section*.50}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Document View}{7}{subsection.51}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Analysis View}{7}{subsection.52}\protected@file@percent }
+\citation{allthenews}
+\citation{vispub}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Evaluation}{8}{section.53}\protected@file@percent }
+\newlabel{sec: evaluation}{{7}{8}{Evaluation}{section.53}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Scenario 1: Collecting materials for a news story}{8}{subsection.54}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces User interactions in usage scenario (a) The search result of `US presidential election'. Relevant articles are highlighted. (b) The user expands the topic `Controversies and Challenges', showing the sub-topics within and mentioned characters in the peripheral area. (c) After clicking `Filter Search', irrelevant articles are removed, and the layout is regenerated. (d) The user expands a sub-topic `Concerns and Controversies in the United States'. \relax }}{8}{figure.caption.55}\protected@file@percent }
+\newlabel{fig: case_1}{{6}{8}{User interactions in usage scenario (a) The search result of `US presidential election'. Relevant articles are highlighted. (b) The user expands the topic `Controversies and Challenges', showing the sub-topics within and mentioned characters in the peripheral area. (c) After clicking `Filter Search', irrelevant articles are removed, and the layout is regenerated. (d) The user expands a sub-topic `Concerns and Controversies in the United States'. \relax }{figure.caption.55}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Scenario 2: Literature Review}{8}{subsection.56}\protected@file@percent }
+\citation{bach2022systematic}
+\citation{petridis2023promptinfuser,dang2023choice}
+\citation{qiu2022docflow}
+\bibstyle{abbrv-doi}
+\bibdata{template}
+\bibcite{allthenews}{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  The VisPub corpus visualization filtered by the keyword `text analysis' and reorganized by the user in usage scenario 2. After expansion and filtering, the remaining topics are at a reasonable level of granularity. The user is currently selecting the orange cluster `Visualization of Web Data, Textual Data and Social Media Information' to prompt the Analysis View for more detail. \relax }}{9}{figure.caption.57}\protected@file@percent }
+\newlabel{fig: case_2}{{7}{9}{The VisPub corpus visualization filtered by the keyword `text analysis' and reorganized by the user in usage scenario 2. After expansion and filtering, the remaining topics are at a reasonable level of granularity. The user is currently selecting the orange cluster `Visualization of Web Data, Textual Data and Social Media Information' to prompt the Analysis View for more detail. \relax }{figure.caption.57}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Limitations and Future Work}{9}{section.58}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{9}{section.59}\protected@file@percent }
+\bibcite{abdelaal2022network}{2}
+\bibcite{alexander2014serendip}{3}
+\bibcite{atzberger2023evaluatetopicmodel}{4}
+\bibcite{auber2013gospermap}{5}
+\bibcite{ayoola2022refined}{6}
+\bibcite{bach2022systematic}{7}
+\bibcite{bang2023multitask}{8}
+\bibcite{beasley2021through}{9}
+\bibcite{kaminski2021hgraphcommunity}{10}
+\bibcite{cao2010facetatlas}{11}
+\bibcite{cho2016vairoma}{12}
+\bibcite{choo2013utopian}{13}
+\bibcite{chuang2012interpretation}{14}
+\bibcite{citraro2020eva}{15}
+\bibcite{combe2015louvain}{16}
+\bibcite{dang2023choice}{17}
+\bibcite{devlin2018bert}{18}
+\bibcite{dou2013hierarchicaltopics}{19}
+\bibcite{fischer2021hypergraphsurvey}{20}
+\bibcite{gysi2018wto}{21}
+\bibcite{han2022hisva}{22}
+\bibcite{vispub}{23}
+\bibcite{izacard2022unsupervised}{24}
+\bibcite{karpukhin-etal-2020-dense}{25}
+\bibcite{kumar2020new}{26}
+\bibcite{lee2012ivisclustering}{27}
+\bibcite{lee2017humantopicmodel}{28}
+\bibcite{li2023evaluateChatgpt}{29}
+\bibcite{ma2013largegraph}{30}
+\bibcite{maddigan2023chat2vis}{31}
+\bibcite{muelder2008sfc}{32}
+\bibcite{narechania2022vitality}{33}
+\bibcite{nasar2021named}{34}
+\bibcite{oelke2014topiccoin}{35}
+\bibcite{ouvrard2017hypergraph}{36}
+\bibcite{park2018conceptvector}{37}
+\bibcite{park2012concavehull}{38}
+\bibcite{petridis2023promptinfuser}{39}
+\bibcite{qiu2022docflow}{40}
+\bibcite{raval2023explainandtrust}{41}
+\bibcite{shen2014entity}{42}
+\bibcite{sherkat2018interactive}{43}
+\bibcite{Stasko2007jigasw}{44}
+\bibcite{steinbach2000doccluster}{45}
+\bibcite{tu2023sdrquerier}{46}
+\bibcite{vayansky2020review}{47}
+\bibcite{vijaymeena2016survey}{48}
+\bibcite{wang2023dataformulator}{49}
+\bibcite{xiang2019surveyee}{50}
+\bibcite{yan2019clfsemi}{51}
+\bibcite{yang2017vistopic}{52}
+\bibcite{zhang2023extractive}{53}
+\bibcite{zhou2023contextfaithful}{54}
+\bibcite{gilbert}{55}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Chat Responses for usage scenario 2}{16}{appendix.61}\protected@file@percent }
+\gdef \@abspage@last{16}

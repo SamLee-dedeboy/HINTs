@@ -1,0 +1,142 @@
+\begin{figure}%
+    \centering
+    % \subfloat[\centering One Gilbert curve\label{fig: gilbert_raw}]{{\includegraphics[width=0.45\columnwidth]{gilbert} }}
+    % \qquad
+    \subfloat[\centering Four concatenated Gilbert curves. Color transitions from dark blue to dark red indicate the traverse direction.]{{\includegraphics[width=0.43\columnwidth]{concatenated_gilbert} }}%
+    \qquad
+    \subfloat[\centering An example cluster in Gilbert curve filling layout]{{\includegraphics[width=0.43\columnwidth]{example_gilbert_border} }}%
+    \qquad
+    \subfloat[\centering An order-4 Gosper curve]{{\includegraphics[width=0.43\columnwidth]{gosper} }}%
+    \qquad
+    \subfloat[\centering An example cluster in Gosper curve filling layout]{{\includegraphics[width=0.43\columnwidth]{example_gosper_border} }}%
+    \captionsetup{belowskip=-14pt,aboveskip=3pt}
+    \caption{
+        Illustrations of the space-filling curves and example clusters formed by the curves.
+    }%
+    \label{fig: gilbert}%
+\end{figure}
+\vspace*{-0.3cm}
+\section{Visualization of HyperMap}~\label{sec: visualization}
+\vspace*{-0.6cm}
+\subsection{SFC for HyperGraph}
+In the design guidelines derived by Abdelaal et al.~\cite{abdelaal2022network} in a recent network visualization evaluation study, node-link-based approaches are recommended when:
+(1) tasks involve the identification of network clusters, and (2) the network is sparse.
+Condition (1) is fulfilled as explained in~\autoref{sec: design_rationale}, and (2) is guaranteed by the keyword extraction process described in~\autoref{sec: keyword_extraction}. 
+Therefore, we decided to use node-link-based approaches for our system.
+
+\textbf{TODO: Move existing works to supplemental material}
+Although there are a variety of node-link-based approaches for hypergraph visualization~\cite{fischer2021hypergraphsurvey}, we find the extra-node representation introduced by Ouvrard et al.~\cite{ouvrard2017hypergraph} most flexible and intuitive.
+An extra-node representation improves existing clique-expansion of hypergraphs by adding extra nodes to represent hyperedges. 
+The extra-node representation effectively transforms the hypergraph visualization problem into a bipartite graph visualization problem.
+After that, any node-link-based graph visualization method can be applied.
+In our system, we use the space-filling curve (SFC) layout method to lay out the extra-node representation of the hypergraph.
+The SFC layout method uses pre-computed clustering to order nodes in a sequence and then applies a space-filling curve on the node sequence to map it to a two-dimensional screen space~\cite{muelder2008sfc}.
+SFC approaches are known for their efficiency and aesthetics in visualizing large graphs~\cite{ma2013largegraph}.
+Moreover, SFC layouts support progressive disclosure (\textbf{DC2}) organically, as the layout is generated based on the clustering result (\textbf{DC3}).
+After the preprocessing and modeling stage described in~\autoref{sec: methodology}, we have two hypergraphs: the document hypergraph $H_D$ and the keyword hypergraph $H_C$, each having its hierarchical cluster.
+Combining the extra-node representation and SFC layout, we visualize the $H_D$ and  $H_C$ as two separate SFCs, as shown in~\autoref{fig: sfc}.
+
+Specifically, we divide the layout space into two parts: the peripheral and the center area.
+For the peripheral area, we concatenate four Gilbert curves~\cite{gilbert}.
+A Gilbert curve is a generalized version of the Hilbert curve,
+which instead of filling a squared area, can traverse any rectangular region in a way similar to the Hilbert Curve.
+In~\autoref{fig: gilbert}-a, the first Gilbert curve starts from the lower left (dark blue) and ends at the lower right (dark red).
+Through rotation and flipping, the start and end curve points for neighboring Gilbert curves can be concatenated smoothly.
+The use of concatenated Gilbert curves allows us to fill the peripheral space while having the efficiency and aesthetics of SFC layouts.
+
+The curve to be used for the center area is technically unbounded. 
+In early prototyping, we found that using the same curve as the peripheral region was confusing for the user, as it was hard to distinguish between the peripheral and center areas.
+We decided to use a simple Gosper curve (\autoref{fig: gilbert}-c) to lay out the nodes for better aesthetics.
+The resulting visualization looks similar to GosperMap~\cite{auber2013gospermap}, but we did not employ the advanced techniques proposed in GosperMap.
+The interactions to support the exploration and reorganization of the dataset are the main focus of the system, which are also not limited to any specific curve.
+
+After the curves are generated, we can apply the curves on the node sequences to generate the two-dimensional layout.
+We chose to put the document hypergraph in the center area because the documents are the main analysis targets for the user.
+Consequently, the keyword hypergraph is put in the peripheral area.
+
+\subsection{Improving the readability}
+\subparagraph*{Automatic Cluster Expansion}
+In most cases, the default clustering result is not optimal for the user's targeted analysis tasks.
+We identify two common problems in early prototyping: 
+(1) clusters may be too big, weakening the semantic meaning that the clusters can convey.
+(2) clusters may have only one sub-cluster, which makes the parent cluster redundant. 
+Both problems can be mitigated by automatically expanding a cluster, i.e.breaking the cluster into sub-clusters~\autoref{fig: case_1}-d.
+We employ rule-based detection to identify clusters that need to be expanded.
+For a cluster $C$, we expand it if the following conditions are met:
+(1) $C$ has only one sub-cluster $C_s$;
+(2) $C$ has more than $n = k N$ nodes, where $k \in [0, 1]$ and $N$ is the size of the hypergraph.
+Through trial and error, we find that $k=0.3$ gives the most balanced results.
+\vspace*{-0.3cm}
+\subparagraph*{Spacing Strategy}
+Spacing between each node is important for the readability and aesthetics of SFC layouts.
+To highlight different clusters, we employ our spacing strategy on clusters instead of nodes.
+Given a space-filling curve of a specific order, we first calculate the length of the curve $L$.
+$L$ represents the total amount of space available for the nodes and thus,
+$L - N$ represents the amount of space to be redistributed, where $N$ is the size of the hypergraph.
+Our goal is to distribute the space between clusters to ensure the best readability.
+In early prototyping, we found that distributing the space proportional to the cluster size gives the best readability as well as stability.
+Specifically, we define the space of a cluster as the blank space it has behind it on the curve, which is calculated by $(L-N)\frac{N_c}{N}$, where $N_c$ is the size of the cluster (\autoref{fig: spacing}).
+Another consideration when designing our spacing strategy is stability.
+We want to ensure that the layout change is minimized when clusters are expanded.
+Naively, when a cluster is expanded, the whole layout needs to be recalculated because now the cluster sequence is changed.
+To avoid such recalculation, we design our spacing strategy in this way so that the sub-clusters can simply take over the space of their parent cluster, as shown in~\autoref{fig: spacing}.
+Since the total volume of the sub-clusters is the size of the parent cluster and the space is proportional, the sub-clusters can take over exactly the space of the parent cluster without any overflow or underflow.
+This ensures a local change in the layout when a cluster is expanded.
+\begin{figure}
+ \centering % avoid the use of \begin{center}...\end{center} and use \centering instead (more compact)
+ \includegraphics[width=0.95\columnwidth]{spacing}
+ \caption{Spacing strategy of the SFC layouts. The space of each cluster $S_i$ is proportional to the cluster size. When $C_i$ is expanded, its sub-clusters redistribute $S_i$ to ensure the expansion only affects locally. }
+\label{fig: spacing}
+\end{figure}
+\vspace*{-0.3cm}
+\subparagraph*{Concave Hull Approximation}
+After applying the SFC layout, we use a concave hull algorithm~\cite{park2012concavehull} to generate an approximation polygon for each cluster.
+The polygons are used to generate borders and calculate label positions for the clusters.
+The concave hull is generated based on a cluster of points, in our case, the nodes in a cluster.
+This means that the algorithm can be applied to any curve we used for the SFC layout.
+This is a desirable property because we are using two different curves in our system, and the center area curve choice is flexible.
+Using the same algorithm guarantees a unified aesthetic across curves.
+
+The original concave hull algorithm is designed for approximating points, but we need to approximate circles.
+Naively we can use the center of the circles as the points for the algorithm, but this would result in a polygon that is too small and crosses the circles on the boundary.
+To address this issue we use a simple trick: we add extra points to the cluster by extrapolating the original points.
+For example, a Gilbert curve moves perpendicularly, so the resulting polygon would have perpendicular corners. 
+We can therefore add eight extra points around each original point so that the extrapolation forms a three-by-three grid.
+On the boundary of the cluster, these extra points prevent the concave hull from passing across the original points.
+Since the concave hull algorithm has an $O(n\log n)$ time complexity, the performance overhead introduced by the extra points is negligible.
+
+\vspace*{-0.3cm}
+\subparagraph*{Borders} 
+The borders are generated by applying a smoothing algorithm on the polygons.
+For Gosper curves, we use the polygon as control points to generate a cubic basis spline as the border.
+For Gilbert curves, we use a similar approach but with a cubic Bezier curve.
+More specifically, for each pair of consecutive points, we use a smoothing factor to interpolate the control point.
+This results in a sketchy style at the border corners.
+Two examples are given in~\autoref{fig: gilbert}.
+\textbf{TODO: add overlap prevention}
+
+\vspace*{-0.3cm}
+\subparagraph*{Label Position}
+Labeling the clusters is essential for users to explore the dataset.
+We use the topic assignment described in \autoref{sec: tag_assignment} to label the clusters.
+When using SFC layouts, determining the label position automatically is challenging because the shape of the clusters can be irregular.
+For a cluster, the label position is simply the centroid of the polygon.
+When a cluster is expanded through user interaction, the sub-clusters within need to be clearly labeled as well.
+Using the centroid of the sub-cluster as the label position is not a good choice because the label would cause a serious cluttering issue.
+Therefore, for a sub-cluster, we first calculate its centroid, and then we extend the line from the parent cluster centroid to the sub-cluster centroid. 
+Once the intersection point of the extended line and the parent border is found, we extend the line by a fixed amount to avoid any overlapping issues.
+This results in a radial layout for the sub-cluster labels, as shown in~\autoref{fig: case_1}-d.
+The generalizability of the concave hull algorithm makes our labeling position calculation applicable to any curve we use for the SFC layout.
+% \begin{figure}%
+%     \centering
+%     \subfloat[\centering Label position of the cluster is the centroid of each cluster.]{{\includegraphics[width=0.5\columnwidth]{cluster_label} }}%
+%     \subfloat[\centering Labels of the sub-clusters of a cluster. The color indicates different sub-clusters. \label{fig: sub-cluster}]{{\includegraphics[width=0.5\columnwidth]{sub_cluster_label} }}%
+%     \qquad
+%     \subfloat[\centering Labels of the keyword cluster. The left part shows the categories of the keywords as the cluster label. When documents are selected, the right part appears and shows the connected keywords.\label{fig: keyword-cluster-label}]{{\includegraphics[width=5cm]{keyword_cluster_label} }}%
+%     \caption{(a) Labels (topics) of the document clusters (b) An example of expanded cluster labels (c) An example of keyword labels (categories) and highlighted keywords}%
+%     \label{fig: labels}%
+% \end{figure}
+
+% \subsection{Design Choices}
+% \subparagraph{Why show all the nodes as circles}
+% \subparagraph{Why hide the links}

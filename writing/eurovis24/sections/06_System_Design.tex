@@ -1,0 +1,72 @@
+\section{HyperMap System Design}
+Below, we describe the HyperMap frontend system, including the views, visualizations and interactions, and how they assist exploration and reorganization of a corpus.
+The HyperMap system consists of three main views: Cluster View, Article View and Analysis View.
+The Cluster View visualizes the corpus as two hypergraphs using the SFC layout described in~\autoref{sec: visualization}.
+The Document View shows the articles along with necessary statistics when the user makes a selection in the Cluster View.
+The Analysis View integrates an LLM-based chatbot to assist the user in analyzing the selected articles. 
+\subsection{Cluster View}
+Cluster View is the main view of the HyperMap system (\autoref{fig: sfc}-a and -b).
+It visualizes the corpus as two hypergraphs using the SFC layout described in~\autoref{sec: visualization}.
+Using the Cluster View, users can explore the topic structure and keyword connections simultaneously (\textbf{DC1}).
+Below, we mainly discuss user interactions and the coordination with other views.
+\vspace*{-0.1cm}
+\subsubsection{Interactions}
+\subparagraph*{Hover and click}
+By default, the cluster labels are hidden to reduce clutter.
+Hovering over the clusters will trigger a highlight effect and show the cluster label, indicating to users that it is an interactive object.
+Users can select a cluster by clicking on the cluster label.
+This will trigger the Article View to show articles in the cluster and the mentioned keywords (\textbf{DC1}).
+Additionally, clicking on the cluster will temporarily expand the cluster to expose its sub-structure (\textbf{DC2}), as shown in~\autoref{fig: case_1}-b.
+The sub-structure is colored in different colors while maintaining the original cluster's shape.
+The labels of each sub-cluster are also shown radially.
+When the user clicks on any cluster or cluster label, the mentioned keywords are highlighted and others fade out.
+Under such cases, hovering over the keyword clusters will show not only the cluster label but also the highlighted keywords in a list, as shown in~\autoref{fig: sfc}-a.
+Users can also click on the mentioned keywords to filter the articles in the Article View.
+
+\vspace*{-0.3cm}
+\subparagraph*{Expansion}
+The expansion operation breaks a cluster into smaller clusters.
+This operation is necessary because the agglomerative clustering result is not always semantically optimal, and some clusters may be too vague for the user.
+By breaking down a cluster, users can investigate a level deeper into the topic structure (\textbf{DC2}).
+We use (Cmd + Click) or (Ctrl + Click) to expand a cluster.
+When clicked, a smooth animation triggers showing how the parent cluster is broken down into smaller pieces.
+The sub-clusters will redistribute the spacing of their parent cluster proportionally to their size.
+This ensures that only local changes in the layout need to be made when expanding a cluster.
+
+\vspace*{-0.3cm}
+\subparagraph*{Filtering}
+At any point in the exploration when users find that they have found the target of interest,
+they can click the filter button to remove irrelevant documents and keywords from the view.
+The filtering functionality effectively creates a sub-hypergraph based on node selection, supporting any interactions that are available in the original hypergraph.
+Note that we only support filtering based on document node selection, and keyword nodes that are not mentioned in the selected documents are filtered accordingly.
+Although filtering based on keyword nodes is technically possible, we do not find the operation intuitive.
+We decided to remove this feature to prevent users from losing themselves in the exploration process.
+
+\vspace*{-0.3cm}
+\subparagraph*{Searching}
+HyperMap supports searching by document embeddings.
+Users can create any query in natural language, and the system will return the most relevant documents (above \autoref{fig: sfc}-c).
+The search functionality is implemented by ranking the documents based on their relevancy to the query using cosine similarity.
+The user query is first embedded into the same vector space as the documents, then the relevancy score between the query and each document is calculated.
+The server returns the documents sorted by relevancy score to the front end, and the user can control the number of documents to be highlighted by a relevancy threshold. 
+The highlighted documents and mentioned keywords are visually distinguished in the Cluster View (\autoref{fig: case_1}-b).
+
+\subsection{Document View}
+The Document View displays a list of selected articles (\autoref{fig: sfc}-c).
+It can be a list of documents in a cluster or a list of documents that are returned by the search functionality.
+Each document is an interactive card, with the title, summary, ID and relevancy score (if available) shown.
+The main keywords of the document are highlighted in yellow in the summary to assist quick browsing.
+If the user is under search mode, documents are sorted according to relevancy and those above the relevancy threshold are highlighted.
+% Users can click any document card to add or remove it as `query documents'.
+% The query documents can then be used to ask questions in the Analysis View.
+
+% \subsection{Analysis View}
+% The Analysis View (\autoref{fig: sfc}-d) is a chatbot that assists users in analyzing the selected documents (\textbf{DC4}).
+% We designed the interface by mimicking a typical chatbot interface like ChatGPT.
+% We use the OpenAI `gpt-3.5-turbo-16k-0613' to generate responses.
+% All chat history is included in the prompt unless the user clears the chat history.
+% In addition to common chatbot functionalities, we support inserting selected documents into the user prompt.
+% Users can click on any document card in the Document View to add it to the prompt.
+% The chatbot can then give answers to user questions based on the selected documents.
+% They can also select if they want to insert the summary or the full content of the document.
+

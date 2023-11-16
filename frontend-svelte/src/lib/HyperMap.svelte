@@ -89,8 +89,9 @@
   export let gosper: any | undefined = undefined;
 
   let articleClusterBorderPoints: any = {};
-  let clickedCluster: any = {};
-  let clickedClusterLabel: string | undefined = undefined;
+  let clickedCluster: string | undefined = undefined;
+  // let clickedClusterLabel: string | undefined = undefined;
+  let hoveredCluster: any | undefined = undefined;
   let clickedEntityClusters: any[] = [];
   let hoveredEntityCluster: any | undefined = undefined;
   let highlightArticleIds: string[] | undefined = undefined;
@@ -585,17 +586,14 @@
         .attr("stroke", articleClusterColorDict[d.cluster_label])
         .attr("opacity", 1)
         .attr("filter", "url(#drop-shadow-border)");
-      // d3.selectAll("rect.cluster-label-border")
-      //   .filter((rect_data: any) => d.cluster_label === rect_data.cluster_label)
-      //   .attr("stroke-width", 10)
-      //   .attr("opacity", 1)
       d3.selectAll("g.article-border-tag-group")
         .filter((tag_data: any) => d.cluster_label === tag_data.cluster_label)
         .attr("opacity", 1)
         .attr("pointer-events", "auto");
+      hoveredCluster = d;
     },
 
-    mouseout: function () {
+    mouseout: function (e) {
       // if(clickedClusters.includes(d.cluster_label)) return
       d3.select(this)
         .attr("stroke-width", 1)
@@ -621,6 +619,7 @@
         "opacity",
         showArticleClusterLabelDefault ? 1 : 0
       );
+      if(!e.ctrlKey && !e.metaKey) hoveredCluster = undefined
     },
 
     click: function (e, d) {
@@ -634,29 +633,24 @@
         // remove sub cluster labels
         if (e.ctrlKey || e.metaKey) {
           // reset highlight
-          if (clickedCluster !== undefined) {
-            if (clickedCluster === d.cluster_label) {
-              clickedCluster = undefined;
-              //   setClickedCluster(undefined)
-              tags.removeSubClusterLabels();
-              centerArea.select("line.cluster-label-border-connector").remove();
-              centerArea
-                .selectAll("g.article-border-tag-group")
-                .select("g.cluster-label-group")
-                .filter(
-                  (filter_data: any) =>
-                    clickedCluster === filter_data.cluster_label
-                )
-                .remove();
-            }
-          }
-          //   onArticleClusterClicked(e, d.cluster_label)
-          dispatch("article-cluster-clicked", d.cluster_label);
-          //   setClickedCluster(undefined)
+          // if (clickedCluster !== undefined) {
+          //   if (clickedCluster === d.cluster_label) {
+          //     clickedCluster = undefined;
+          //     //   setClickedCluster(undefined)
+          //     tags.removeSubClusterLabels();
+          //     centerArea.select("line.cluster-label-border-connector").remove();
+          //     centerArea
+          //       .selectAll("g.article-border-tag-group")
+          //       .select("g.cluster-label-group")
+          //       .filter(
+          //         (filter_data: any) =>
+          //           clickedCluster === filter_data.cluster_label
+          //       )
+          //       .remove();
+          //   }
+          // }
+          dispatch("article-cluster-expanded", d.cluster_label);
           clickedCluster = undefined;
-          //   if(clickedClusterLabel.current === d.cluster_label) clickedClusterLabel.current = undefined
-          if (clickedClusterLabel === d.cluster_label)
-            clickedClusterLabel = undefined;
         } else if (pressedKey === "68") {
           // remove border
           d3.select(this).remove();
@@ -671,47 +665,54 @@
             .filter((node: any) => node.cluster_label === d.cluster_label)
             .remove();
           d3.select("line.cluster-label-border-connector").remove();
-          //   onArticleClusterRemoved(d.cluster_label)
           dispatch("article-cluster-removed", d.cluster_label);
         } else {
-          hideSubClusterStructure();
-          // if clicking on a highlighted cluster, un-highlight it
           if (clickedCluster && clickedCluster === d.cluster_label) {
-            d.lifted = false;
-            // setClickedCluster(undefined)
             clickedCluster = undefined;
-            // if(!searchMode) setHighlightArticleIds(undefined)
-            // else setHighlightArticleIds(findIntersection(searchedArticleIds, undefined))
-            if (!searchMode) highlightArticleIds = undefined;
-            else
-              highlightArticleIds = findIntersection(
-                searchedArticleIds,
-                undefined
-              );
-            // clickedClusterLabel.current = undefined
-            clickedClusterLabel = undefined;
           } else {
-            // highlight clicked cluster
-            d3.select(this.parentNode)
-              .selectAll("path.concave-hull")
-              .each((d: any) => (d.lifted = false));
-            d.lifted = true;
-            // setClickedCluster(d.cluster_label)
-            clickedClusterLabel = d.cluster_label;
-            showSubClusterStructure(d);
-            // if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label] )
-            // else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label] ))
             if (!searchMode)
-              highlightArticleIds = article_graph.clusters[d.cluster_label];
+              highlightArticleIds =
+                article_graph.clusters[d.cluster_label] ||
+                article_graph.sub_clusters[d.cluster_label];
             else
               highlightArticleIds = findIntersection(
                 searchedArticleIds,
-                article_graph.clusters[d.cluster_label]
+                article_graph.clusters[d.cluster_label] ||
+                  article_graph.sub_clusters[d.cluster_label]
               );
-            // clickedClusterLabel.current = d.cluster_label
-            clickedClusterLabel = d.cluster_label;
             clickedCluster = d.cluster_label;
+            dispatch("article-label-clicked", d.cluster_label);
           }
+          // hideSubClusterStructure();
+          // // if clicking on a highlighted cluster, un-highlight it
+          // if (clickedCluster && clickedCluster === d.cluster_label) {
+          //   d.lifted = false;
+          //   clickedCluster = undefined;
+          //   if (!searchMode) highlightArticleIds = undefined;
+          //   else
+          //     highlightArticleIds = findIntersection(
+          //       searchedArticleIds,
+          //       undefined
+          //     );
+          //   clickedClusterLabel = undefined;
+          // } else {
+          //   // highlight clicked cluster
+          //   d3.select(this.parentNode)
+          //     .selectAll("path.concave-hull")
+          //     .each((d: any) => (d.lifted = false));
+          //   d.lifted = true;
+          //   clickedClusterLabel = d.cluster_label;
+          //   showSubClusterStructure(d);
+          //   if (!searchMode)
+          //     highlightArticleIds = article_graph.clusters[d.cluster_label];
+          //   else
+          //     highlightArticleIds = findIntersection(
+          //       searchedArticleIds,
+          //       article_graph.clusters[d.cluster_label]
+          //     );
+          //   clickedClusterLabel = d.cluster_label;
+          //   clickedCluster = d.cluster_label;
+          // }
         }
       }
     },
@@ -742,15 +743,12 @@
               .filter((node: any) => node.cluster_label === d.cluster_label)
               .remove();
             d3.select("line.cluster-label-border-connector").remove();
-            // onArticleClusterRemoved(d.cluster_label)
             dispatch("article-cluster-removed", d.cluster_label);
           } else {
             // remove sub cluster
             // onArticleClusterRemoved(d.cluster_label)
           }
         } else {
-          //   if(!searchMode) setHighlightArticleIds(article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label])
-          //   else setHighlightArticleIds(findIntersection(searchedArticleIds, article_graph.clusters[d.cluster_label] || article_graph.sub_clusters[d.cluster_label]))
           if (!searchMode)
             highlightArticleIds =
               article_graph.clusters[d.cluster_label] ||
@@ -761,9 +759,7 @@
               article_graph.clusters[d.cluster_label] ||
                 article_graph.sub_clusters[d.cluster_label]
             );
-          //   clickedClusterLabel.current = d.cluster_label;
-          clickedClusterLabel = d.cluster_label;
-          // onArticleLabelClicked(d.cluster_label)
+          clickedCluster = d.cluster_label;
           dispatch("article-label-clicked", d.cluster_label);
         }
       },
@@ -1022,20 +1018,15 @@
       entityClusterColorDict,
       (clickedEntityLabels) => {
         const cluster_articles =
-          article_graph.clusters[clickedClusterLabel!] ||
-          article_graph.sub_clusters[clickedClusterLabel!] ||
+          article_graph.clusters[clickedCluster!] ||
+          article_graph.sub_clusters[clickedCluster!] ||
           highlightArticleIds;
         if (clickedEntityLabels.length === 0) {
-        //   onEntityLabelClicked(
-        //     undefined,
-        //     cluster_articles,
-        //     clickedClusterLabel
-        //   );
-            dispatch('entity-label-clicked', {
-                entity_titles: undefined,
-                doc_ids: cluster_articles,
-                cluster_label: clickedClusterLabel
-            })
+            dispatch('entity-label-clicked', [
+                undefined,
+                cluster_articles,
+                clickedCluster
+            ])
         } else {
           const clicked_entity_ids = clickedEntityLabels.map(
             (entity_label) => entity_label[0]
@@ -1055,11 +1046,11 @@
         //     mentions_in_cluster,
         //     clickedClusterLabel
         //   );
-            dispatch('entity-label-clicked', {
-                entity_titles: clicked_entity_titles,
-                doc_ids: mentions_in_cluster,
-                cluster_label: clickedClusterLabel
-            })
+            dispatch('entity-label-clicked', [
+                clicked_entity_titles,
+                mentions_in_cluster,
+                clickedCluster
+            ])
         }
       }
     );
@@ -1112,9 +1103,7 @@
 
   function listenClick() {
     d3.select("#" + svgId).on("click", function () {
-      if (!clickedCluster && clickedClusterLabel) {
-        // removeHighlightCluster()
-        clickedClusterLabel = undefined;
+      if (clickedCluster) {
         clickedCluster = undefined;
         if (!searchMode) highlightArticleIds = undefined;
         else
@@ -1140,8 +1129,20 @@
   }
 
   function listenKeyBoard() {
-    d3.select("body").on("keydown", (e) => (pressedKey = "" + e.keyCode));
-    d3.select("body").on("keyup", () => (pressedKey = ""));
+    d3.select("body").on("keydown", (e) => {
+      pressedKey = "" + e.keyCode
+      if((e.ctrlKey || e.metaKey) && hoveredCluster) {
+        showSubClusterStructure(hoveredCluster)
+      }
+    });
+    d3.select("body").on("keyup", (e) => {
+      console.log(e.ctrlKey || e.metaKey, e.keyCode)
+      if((e.keyCode == 224 || e.keyCode == 17) && hoveredCluster) {
+        hideSubClusterStructure()
+        hoveredCluster = undefined
+      }
+      pressedKey = ""
+    });
   }
 
   function bindDrag(elements) {
