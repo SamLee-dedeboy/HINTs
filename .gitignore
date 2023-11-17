@@ -147,3 +147,5 @@ dist
 *.mov
 *.mp4
 *.json
+*.key
+remove_key.sh
