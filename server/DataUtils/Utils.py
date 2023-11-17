@@ -64,14 +64,14 @@ def prepareData(user_hgraph, level, type='article'):
         entity_node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, entity_node_dict)
         return clusters, entity_node_dict, cluster_order, update_cluster_order
 
-def addClusterLabelAndOrder(node_dict, clusters, sub_clusters, sfc_points, expanded_cluster=None):
+def addClusterLabelAndOrder(node_dict, clusters, sub_clusters, sfc_points, expanded_cluster=None, curve_type='gosper'):
     node_dict = addClusterLabel(node_dict, clusters, sub_clusters)
     # generate cluster order
     cluster_order = generateClusterOrder(list(node_dict.values()))
     update_cluster_order = generateUpdateClusterOrder(cluster_order, clusters.keys(), top_level=True)
     # add cluster order to article nodes
     node_dict = addClusterOrder(clusters, cluster_order, update_cluster_order, node_dict)
-    node_dict = addSFCOrder(clusters, cluster_order, node_dict, sfc_points, expanded_cluster)
+    node_dict = addSFCOrder(clusters, cluster_order, node_dict, sfc_points, expanded_cluster=expanded_cluster, curve_type=curve_type)
 
     return clusters, node_dict, cluster_order, update_cluster_order
 
@@ -156,15 +156,115 @@ def generateNewClusterLabel(existing_cluster_labels):
         else:
             return "L-{}-{}".format(level, new_cluster_label)
 
-def addSFCOrder(clusters, cluster_order, node_dict, sfc_points, expanded_cluster=None):
+def save_json(data, filepath=r'new_data.json'):
+   with open(filepath, 'w') as fp:
+      json.dump(data, fp, indent=4)
+
+def addSFCOrder(clusters, cluster_order, node_dict, sfc_points, expanded_cluster=None, curve_type='gosper'):
     total_volume = len(node_dict)
     total_spaces = len(sfc_points)
+    # print(total_spaces)
+    # if total_spaces == 16808:
+    #     saved = {
+    #         'clusters': clusters,
+    #         'cluster_order': cluster_order,
+    #         'total_volume': total_volume,
+    #         'total_spaces': total_spaces,
+    #         'sfc_points': sfc_points,
+    #         'expanded_cluster': expanded_cluster
+    #     }
+    #     save_json(saved, "evenGaps_args.json")
+    # gaps = evenGaps(clusters, cluster_order, total_volume, total_spaces, sfc_points, expanded_cluster, curve_type)
     gaps = evenGaps(clusters, cluster_order, total_volume, total_spaces, expanded_cluster)
     sorted_nodes = sorted(list(node_dict.values()), key=lambda x: x['order'])
     for index, node in enumerate(sorted_nodes):
         node_sfc_order = min(index + gaps[node['cluster_order']], total_spaces - 1)
         node['sfc_order'] = node_sfc_order
     return node_dict
+
+def euclid_distance(p1, p2):
+    return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+
+# def evenGaps(clusters, cluster_order, total_volume, total_spaces, distance_to_point, expanded_cluster=None, curve_type='gosper'):
+#     border_gaps = [0 for _ in range(total_spaces)]
+#     border_points = []
+#     cell_width = math.sqrt(1/total_spaces)
+#     gaps = []
+#     accumulative_gap = 0
+#     accumulative_filled = 0 
+#     spaces = {}
+#     if expanded_cluster:
+#         # remove expanded cluster from cluster_order
+#         parent_cluster_label = expanded_cluster['parent']
+#         sub_cluster_labels = expanded_cluster['sub_clusters']
+#         replaced_cluster_order = [parent_cluster_label if cluster_label in sub_cluster_labels else cluster_label for cluster_label in cluster_order]
+#         merged_cluster_order = merge_consecutive_duplicates(replaced_cluster_order)
+#         clusters[parent_cluster_label] = list(itertools.chain(*[clusters[sub_cluster_label] for sub_cluster_label in sub_cluster_labels]))
+#         # calculate spacing for merged cluster order
+#         for cluster_label in merged_cluster_order:
+#             nodes = clusters[cluster_label]
+#             cluster_volume = len(nodes)
+#             ratio = cluster_volume / total_volume
+#             cluster_space = total_spaces * ratio
+#             spaces[cluster_label] = cluster_space
+#         # re-distribute the space of merged cluster evenly to sub clusters
+#         parent_cluster_volume = len(clusters[parent_cluster_label])
+#         parent_clusters_space = spaces[parent_cluster_label]
+#         for sub_cluster_label in sub_cluster_labels:
+#             nodes = clusters[sub_cluster_label]
+#             sub_cluster_volume = len(nodes)
+#             ratio = sub_cluster_volume / parent_cluster_volume
+#             sub_cluster_space = parent_clusters_space * ratio
+#             spaces[sub_cluster_label] = sub_cluster_space
+#         # remove parent cluster spaces from spaces
+#         del spaces[parent_cluster_label]
+#         del clusters[parent_cluster_label]
+#         # calculate gaps
+#         for cluster_label in cluster_order:
+#             cluster_space = spaces[cluster_label]
+#             cluster_volume = len(clusters[cluster_label])
+#             padding = (cluster_space - cluster_volume)/2
+#             gaps.append(math.floor(accumulative_gap + padding))
+#             accumulative_gap += 2*padding
+#         return gaps
+#     else:
+#         # calculate gaps
+#         for cluster_label in cluster_order:
+#             nodes = clusters[cluster_label]
+#             cluster_volume = len(nodes)
+#             ratio = cluster_volume / total_volume
+#             cluster_space = total_spaces * ratio
+#             padding = (cluster_space - cluster_volume) / 2
+#             occupied = [math.floor(accumulative_gap + padding), math.floor(accumulative_gap + padding + cluster_volume)]
+#             # check if the cluster is on the border
+#             padding_movement = 0
+#             min_distance = 100
+#             print("cluster size: ", occupied[1] - occupied[0])
+#             for previous_distance, cluster_point_distance in enumerate(range(occupied[0], occupied[1])):
+#                 cluster_point = distance_to_point[cluster_point_distance]
+#                 for border_point in border_points:
+#                     d = euclid_distance(border_point, cluster_point)
+#                     if d < min_distance:
+#                         min_distance = d
+#                     if d < cell_width/2:
+#                         padding_movement = previous_distance
+#             print("padding movement: ", padding_movement, min_distance, cell_width/2, total_spaces)
+#             padding += padding_movement
+#                 # if border_gaps[cluster_point] == 1:
+#                 #     padding += previous_distance
+#             # recalculate occupied
+#             occupied = [math.floor(accumulative_gap + padding), math.floor(accumulative_gap + padding + cluster_volume)]
+#             print(len(gaps), math.floor(accumulative_gap + padding), occupied)
+#             gaps.append(math.floor(accumulative_gap + padding))
+#             border_points += find_border_points(occupied[0], occupied[1], distance_to_point, curve_type)
+#             # print("border points:", len(border_points))
+#             # border_distances = find_border_points(occupied[0], occupied[1], distance_to_point, point_to_distance)
+#             # for distance in border_distances:
+#             #     border_gaps[distance] = 1
+#             accumulative_gap += 2*padding
+#             accumulative_filled += cluster_volume
+#             print("============================")
+#         return gaps
 
 def evenGaps(clusters, cluster_order, total_volume, total_spaces, expanded_cluster=None):
     gaps = []
@@ -215,6 +315,49 @@ def evenGaps(clusters, cluster_order, total_volume, total_spaces, expanded_clust
             gaps.append(math.floor(accumulative_gap + padding))
             accumulative_gap += 2*padding
         return gaps
+def find_border_points(start, end, distance_to_point, curve_type):
+    # mapping = point_to_distance['mapping']
+    total_points = len(distance_to_point)
+    if curve_type == 'gilbert':
+        return [[0, 0]]
+    elif curve_type == 'gosper':
+        offset_x = 1 / math.sqrt(total_points)
+        offset_y = 1 / math.sqrt(total_points)
+        kx = 0.6873313602390351
+        ky = 9.935177303243627
+        vertical_dx = math.sqrt((offset_y * offset_y) / (1 + ky * ky))
+        vertical_dy = ky * vertical_dx
+        horizontal_dx = math.sqrt((offset_x * offset_x) / (1 + kx * kx))
+        horizontal_dy = kx * horizontal_dx
+        border_offsets = [
+            (-vertical_dx-horizontal_dx, -vertical_dy+horizontal_dy), 
+            (-vertical_dx, -vertical_dy), 
+            (-horizontal_dx, horizontal_dy), 
+            (horizontal_dx, -horizontal_dy), 
+            (vertical_dx, vertical_dy), 
+            (vertical_dx+horizontal_dx, vertical_dy-horizontal_dy)
+        ]
+        border_points = []
+        for distance in range(start, end):
+            point = distance_to_point[distance]
+            border_points += [(point[0]+border_offset[0], point[1]+border_offset[1]) for border_offset in border_offsets]
+            # border_point_distances = [mapping[find_closest_point(border_point, distance_to_point)] for border_point in border_points]
+        return border_points
+    else:
+        print("error!")
+
+def find_closest_point(point, curve_points):
+    min_distance = 100000
+    closest_point = (0, 0)
+    for curve_point in curve_points:
+        distance = (point[0] - curve_point[0]) ** 2 + (point[1] - curve_point[1]) ** 2
+        if distance == 0: return curve_point
+        if distance < min_distance:
+            closest_point = curve_point
+            min_distance = distance
+    return closest_point
+
+
 def merge_consecutive_duplicates(lst):
     merged_list = []
     prev_element = None

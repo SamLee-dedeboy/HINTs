@@ -62,5 +62,49 @@ def plot_level(max_level = 6):
     xr = [xx / max_x for xx in xr]
     yr = [yy / max_y for yy in yr]
 
-    return [(xr[i], yr[i]) for i in range(len(xr))]
+    distance_to_point = [(xr[i], yr[i]) for i in range(len(xr))]
+    point_to_distance = {(xr[i], yr[i]): i for i in range(len(xr))}
+
+    return distance_to_point, { 'curve_type': 'gosper', 'mapping': point_to_distance}
+        
+def find_closest_point(point, curve_points):
+    min_distance = 100000
+    closest_point = (0, 0)
+    for curve_point in curve_points:
+        distance = (point[0] - curve_point[0]) ** 2 + (point[1] - curve_point[1]) ** 2
+        if distance == 0: return curve_point
+        if distance < min_distance:
+            closest_point = curve_point
+            min_distance = distance
+    return closest_point
+
+
+if __name__ == "__main__":
+    import math
+    gosper_curve_points, gosper_point_to_distance = plot_level(5)
+    gosper_point_to_distance = gosper_point_to_distance['mapping']
+    for point, distance in gosper_point_to_distance.items():
+        print(point, distance)
+    total_points = len(gosper_curve_points)
+    point = gosper_curve_points[1000]
+    offset_x = 1 / math.sqrt(total_points)
+    offset_y = 1 / math.sqrt(total_points)
+    kx = 0.6873313602390351
+    ky = 9.935177303243627
+    vertical_dx = math.sqrt((offset_y * offset_y) / (1 + ky * ky))
+    vertical_dy = ky * vertical_dx
+    horizontal_dx = math.sqrt((offset_x * offset_x) / (1 + kx * kx))
+    horizontal_dy = kx * horizontal_dx
+    border_points = [
+        (-vertical_dx-horizontal_dx, -vertical_dy+horizontal_dy), 
+        (-vertical_dx, -vertical_dy), 
+        (-horizontal_dx, horizontal_dy), 
+        (horizontal_dx, -horizontal_dy), 
+        (vertical_dx, vertical_dy), 
+        (vertical_dx+horizontal_dx, vertical_dy-horizontal_dy)
+    ]
+    # print(gosper_point_to_distance[border_points[0]])
+    closest_point = find_closest_point(border_points[0], gosper_curve_points)
+    print(closest_point, gosper_point_to_distance[closest_point])
+
 

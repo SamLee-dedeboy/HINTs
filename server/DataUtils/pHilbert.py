@@ -22,7 +22,8 @@ def peripheral_hilbert(width, s_height):
     left_points = flip_xy(gilbert2d(s_height, l_height), s_height, l_height)
     points += left_points
 
-    return points
+    point_to_distance = {point: i for i, point in enumerate(points)}
+    return points, { 'curve_type': 'gilbert', 'mapping': point_to_distance}
 
 def flip_y(points, height):
     return [(x, height-1-y) for (x, y) in points]

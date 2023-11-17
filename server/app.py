@@ -23,8 +23,8 @@ users = [0]
 for uid in users:
     graph_controller.create_user_hgraph(uid)
 
-gosper_curve_points = gosper.plot_level(5)
-philbert_curve_points = pHilbert.peripheral_hilbert(128, 20)
+gosper_curve_points, gosper_point_to_distance = gosper.plot_level(5)
+philbert_curve_points, philbert_point_to_distance = pHilbert.peripheral_hilbert(128, 20)
 print("init done")
 
 @app.route("/user/hgraph/", methods=["POST"])
@@ -46,7 +46,7 @@ def get_article_partition():
     # sub_clusters = user_hgraph.binPartitions(article_level - 1, cluster_type="article") if int(article_level) > 0 else None
 
     # generate cluster labels and orders
-    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points)    
+    clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points, curve_type='gosper')    
 
     ### entity
     # clusters and sub clusters
@@ -56,7 +56,7 @@ def get_article_partition():
     # entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, cluster_type="entity") if int(entity_level) > 0 else None
 
     # generate cluster labels and orders
-    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
+    entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points, curve_type="gilbert")
 
     # link entities to article clusters
     # article_cluster_links = Utils.getArticleClusterLinks(user_hgraph.entity_links, entity_node_dict, article_node_dict)
@@ -396,13 +396,13 @@ def expand_entity_cluster():
 def peripheral_hilbert():
     width = request.json['width']
     height = request.json['height']
-    p_hilbert = pHilbert.peripheral_hilbert(width, height)
+    p_hilbert, _ = pHilbert.peripheral_hilbert(width, height)
     return json.dumps(p_hilbert)
 
 @app.route("/static/gosper/", methods=["POST"])
 def gosper_curve():
     level = request.json['level']
-    coords = gosper.plot_level(level)
+    coords, _ = gosper.plot_level(level)
     return json.dumps(coords)
 
 
