@@ -13,18 +13,38 @@ class ArticleController:
     def search(
         self,
         query: str,
-        base: list[str],
+        base: list[str] = None,
+        hyde: bool = False,
         relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
     ) -> tuple[list[str], list[float]]:
         """Returns a list of strings and relatednesses, sorted from most related to least."""
+        if hyde:
+            messages = [
+                {
+                    'role': "system",
+                    "content": "You are a research assistant. You help a phd student answer research-related questions."
+                },
+                {
+                    'role': "user",
+                    "content": query
+                }
+            ]
+            hyde_response = request_gpt4(messages)
+            query = hyde_response
+            print(query)
+
         query_embedding_response = openai.Embedding.create(
             model="text-embedding-ada-002",
             input=query,
         )
-        search_base = [doc for doc in self.embeddings_db if doc['doc_id'] in base]
+        if base is None:
+            search_base = self.embeddings_db
+        else:
+            search_base = [doc for doc in self.embeddings_db if doc['doc_id'] in base]
+
         query_embedding = query_embedding_response["data"][0]["embedding"]
         strings_and_relatednesses = [
-            (doc_data["doc_id"], relatedness_fn(query_embedding, doc_data["embedding"]), doc_data['summary'])
+            (doc_data["doc_id"], doc_data["title"], relatedness_fn(query_embedding, doc_data["embedding"]), doc_data['summary'])
             for doc_data in search_base
         ]
         strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
@@ -62,3 +82,10 @@ def cleanSpans(entities):
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
+def request_gpt4(messages):
+    response = openai.ChatCompletion.create(
+        model="gpt-4-1106-preview",
+        messages=messages,
+    )
+    return response.choices[0].message.content

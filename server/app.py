@@ -9,9 +9,9 @@ from collections import defaultdict
 app = Flask(__name__)
 CORS(app)
 openai_api_key = open("openai_api_key").read()
-
-dataset = 'AllTheNews'
-# dataset = 'VisPub'
+# 
+# dataset = 'AllTheNews'
+dataset = 'VisPub'
 graph_controller = GraphController(r'../preprocess/data/result/{}/'.format(dataset))
 event_hgraph = graph_controller.static_event_hgraph
 article_controller = ArticleController(r'../preprocess/data/result/{}/'.format(dataset), openai_api_key)
@@ -416,7 +416,7 @@ def search():
     suggested_threshold = 0.8
 
     doc_data = []
-    for (doc_id, relevance, summary) in doc_id_relevance:
+    for (doc_id, doc_title, relevance, summary) in doc_id_relevance:
         doc_data.append({
             "id": doc_id,
             "relevance": relevance,
@@ -460,17 +460,35 @@ def chat():
             doc_query += doc['summary'] if useSummary else doc['content']
             doc_query += "\n"
         messages[-1]['content'] = user_query + "\n" + doc_query
-        response = request_gpt3_5(messages)
+        response = request_gpt4(messages)
     else:
-        response = request_gpt3_5(messages)
+        response = request_gpt4(messages)
     return json.dumps(response)
 
+@app.route("/static/baseline_chat", methods=["POST"])
+def baseline_chat():
+    messages = request.json['query_messages']
+    response = request_gpt4(messages)
+    return json.dumps(response)
 
-def request_gpt3_5(messages):
+@app.route("/static/rag", methods=["POST"])
+def rag():
+    user_input = request.json['user_input']
+    hyde = request.json['hyde']
+    doc_id_relevance = article_controller.search(user_input, hyde=hyde)
+
+    doc_data = []
+    for (doc_id, doc_title, _, summary) in doc_id_relevance[:100]:
+        doc_data.append({
+            "id": doc_id,
+            "title": doc_title,
+            "summary": summary
+        })
+    return json.dumps(doc_data)
+
+def request_gpt4(messages):
     response = openai.ChatCompletion.create(
-        # model="text-davinci-003",
-        # model="gpt-4",
-        model="gpt-3.5-turbo-16k-0613",
+        model="gpt-4-1106-preview",
         messages=messages,
     )
-    return response['choices'][0]['message']['content']
+    return response.choices[0].message.content
