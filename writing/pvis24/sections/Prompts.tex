@@ -311,5 +311,26 @@ The article mentions that heavily annotated charts were not penalized and partic
 However, it also emphasizes the importance of considering the qualitative properties and placement of the text within the chart. 
 Overall, it is recommended to use a combination of text and charts that provides additional context, guidance, and relevant information to the readers without overwhelming or distracting them from the visualizations.
 
-
+\section{Agglomerative Clustering}
+The algorithm takes a hypergraph $H=(V, E)$ and the embeddings of each node $Vec$ as input, and outputs a sequence of partitions $P=P_1, P_2, \dots P_k$.
+Each partition corresponds to a level in the hierarchy.
+\begin{algorithm}\label{alg: clustering}
+    \caption{Agglomerative Clustering }\label{alg:cap}
+    \hspace*{\algorithmicindent} \textit{Input}: $H=(V, E)$, $Vec=\{vec_i |\, i \in V\}$ \\
+    \hspace*{\algorithmicindent} \textit{Output}: Sequence of partitions $\mathbf{P}=P_1, P_2, \dots P_k$ \\
+    \begin{algorithmic}[1]
+    \While{$|V| > 1$}
+        \State$P_k = init\_partition(V)$ \Comment{Initialize each node as a cluster}
+        \State$\mathbf{S_s} = cosine\_similarity(V\times V, Vec)$ 
+        \State$\mathbf{S_c} = wTO(V\times V, E)$ \
+        \For{$i \in V$}
+            \State$j = most\_similar\_node(i, S_s, S_c)$ 
+            \State$P_k = merge\_clusters(i, j)$ \Comment{Merge the two clusters}
+        \EndFor
+        \State$H^\prime=(V^\prime, E^\prime) = construct\_hypergraph(P_k)$ \Comment{clusters are the new nodes}
+        \State$Vec^\prime = centroid\_similarity(V^\prime)$
+        \State$V=V^\prime, E=E^\prime, Vec=Vec^\prime$ \Comment{Update for next iteration}
+    \EndWhile
+    \end{algorithmic}
+\end{algorithm}
 

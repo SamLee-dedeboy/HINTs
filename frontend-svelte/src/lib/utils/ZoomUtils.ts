@@ -77,7 +77,6 @@ function handleZoom(event) {
             const translateX = +tag_rect.attr("x") * event.transform.k + event.transform.x + +tag_rect.attr("width")/2 * (event.transform.k-1)  - +tag_rect.attr("x")
             let translateY = +tag_rect.attr("y") * event.transform.k + event.transform.y + +tag_rect.attr("height")/2 * (event.transform.k-1) - +tag_rect.attr("y")
             d.center_zoom_translate = `translate(${translateX}, ${translateY})`
-            
             if(d.lifted) translateY += d.lifted_offset*event.transform.k
             d.zoom_translate = `translate(${translateX}, ${translateY})`
             d.zoom = event.transform

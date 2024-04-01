@@ -24,7 +24,7 @@ class EventHGraph:
                     cluster_label = "L-{level}-{cluster_label}".format(level=level, cluster_label=cluster_label)
                     res[cluster_label] = cluster_label + ", " + cluster_label + ", " + cluster_label
             return res
-        # article_hierarchical_topics = fake_topics(atn_gpt_partitions_article)
+        # article_hierarchical_topics = fake_topics(gpt_partitions_article)
         # entity_hierarchical_topics = fake_topics(gpt_partitions_entity)
 
         self.hierarchy_article = gpt_hierarchy_article

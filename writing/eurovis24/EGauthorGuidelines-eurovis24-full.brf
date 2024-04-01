@@ -1,5 +1,5 @@
-\backcite {chuang2012interpretation}{{1}{1}{section.1}}
-\backcite {vayansky2020review}{{1}{1}{section.1}}
+\backcite {chuang2012interpretation}{{2}{1}{section.1}}
+\backcite {vayansky2020review}{{2}{1}{section.1}}
 \backcite {wang2023dataformulator}{{2}{1}{section.1}}
 \backcite {maddigan2023chat2vis}{{2}{1}{section.1}}
 \backcite {atzberger2023evaluatetopicmodel}{{2}{1}{section.1}}
@@ -16,33 +16,33 @@
 \backcite {chuang2012interpretation}{{2}{2.1}{subsection.2.1}}
 \backcite {park2018conceptvector}{{2}{2.1}{subsection.2.1}}
 \backcite {steinbach2000doccluster}{{2}{2.1}{subsection.2.1}}
-\backcite {choo2013utopian,sherkat2018interactive}{{2}{2.1}{subsection.2.1}}
-\backcite {devlin2018bert}{{2}{2.1}{subsection.2.1}}
-\backcite {narechania2022vitality,tu2023sdrquerier,qiu2022docflow}{{2}{2.1}{subsection.2.1}}
-\backcite {karpukhin-etal-2020-dense, izacard2022unsupervised}{{2}{2.1}{subsection.2.1}}
-\backcite {raval2023explainandtrust}{{2}{2.1}{subsection.2.1}}
+\backcite {choo2013utopian,sherkat2018interactive}{{3}{2.1}{subsection.2.1}}
+\backcite {devlin2018bert}{{3}{2.1}{subsection.2.1}}
+\backcite {narechania2022vitality,tu2023sdrquerier,qiu2022docflow}{{3}{2.1}{subsection.2.1}}
+\backcite {karpukhin-etal-2020-dense, izacard2022unsupervised}{{3}{2.1}{subsection.2.1}}
+\backcite {raval2023explainandtrust}{{3}{2.1}{subsection.2.1}}
 \backcite {nasar2021named, xiang2019surveyee}{{3}{2.3}{subsection.2.3}}
 \backcite {zhou2023contextfaithful}{{3}{2.3}{subsection.2.3}}
 \backcite {bang2023multitask}{{3}{2.3}{subsection.2.3}}
 \backcite {li2023evaluateChatgpt}{{3}{2.3}{subsection.2.3}}
 \backcite {zhang2023extractive}{{3}{2.3}{subsection.2.3}}
 \backcite {chuang2012interpretation}{{3}{3}{section.3}}
-\backcite {zhang2023extractive}{{3}{4.1.1}{subsubsection.4.1.1}}
+\backcite {zhang2023extractive}{{4}{4.1.1}{subsubsection.4.1.1}}
 \backcite {bang2023multitask}{{4}{4.1.2}{subsubsection.4.1.2}}
 \backcite {shen2014entity}{{4}{4.1.3}{subsubsection.4.1.3}}
 \backcite {ayoola2022refined}{{4}{4.1.3}{subsubsection.4.1.3}}
 \backcite {raval2023explainandtrust}{{5}{4.1.5}{subsubsection.4.1.5}}
 \backcite {fischer2021hypergraphsurvey}{{5}{4.2.1}{subsubsection.4.2.1}}
-\backcite {citraro2020eva}{{6}{4.2.2}{subsubsection.4.2.2}}
-\backcite {combe2015louvain}{{6}{4.2.2}{subsubsection.4.2.2}}
+\backcite {citraro2020eva}{{5}{4.2.2}{subsubsection.4.2.2}}
+\backcite {combe2015louvain}{{5}{4.2.2}{subsubsection.4.2.2}}
 \backcite {kaminski2021hgraphcommunity}{{6}{4.2.2}{subsubsection.4.2.2}}
 \backcite {kumar2020new}{{6}{4.2.2}{subsubsection.4.2.2}}
 \backcite {kumar2020new}{{6}{4.2.2}{subsubsection.4.2.2}}
 \backcite {steinbach2000doccluster}{{6}{4.2.2}{subsubsection.4.2.2}}
 \backcite {gysi2018wto}{{6}{4.2.2}{subsubsection.4.2.2}}
 \backcite {vijaymeena2016survey}{{6}{4.2.2}{subsubsection.4.2.2}}
-\backcite {abdelaal2022network}{{6}{5.1}{subsection.5.1}}
-\backcite {fischer2021hypergraphsurvey}{{6}{5.1}{subsection.5.1}}
+\backcite {abdelaal2022network}{{7}{5.1}{subsection.5.1}}
+\backcite {fischer2021hypergraphsurvey}{{7}{5.1}{subsection.5.1}}
 \backcite {ouvrard2017hypergraph}{{7}{5.1}{subsection.5.1}}
 \backcite {muelder2008sfc}{{7}{5.1}{subsection.5.1}}
 \backcite {ma2013largegraph}{{7}{5.1}{subsection.5.1}}
@@ -50,6 +50,6 @@
 \backcite {auber2013gospermap}{{7}{5.1}{subsection.5.1}}
 \backcite {park2012concavehull}{{7}{5.2}{figure.caption.4}}
 \backcite {allthenews}{{9}{7}{section.7}}
-\backcite {bach2022systematic}{{9}{9}{section.9}}
+\backcite {bach2022systematic}{{10}{9}{section.9}}
 \backcite {petridis2023promptinfuser, dang2023choice}{{10}{9}{section.9}}
 \backcite {qiu2022docflow}{{10}{9}{section.9}}

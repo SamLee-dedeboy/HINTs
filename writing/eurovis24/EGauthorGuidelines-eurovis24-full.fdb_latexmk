@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex EGauthorGuidelines-eurovis24-full"] 1700118057 "EGauthorGuidelines-eurovis24-full.aux" "EGauthorGuidelines-eurovis24-full.bbl" "EGauthorGuidelines-eurovis24-full" 1700118060
+["bibtex EGauthorGuidelines-eurovis24-full"] 1704412470 "EGauthorGuidelines-eurovis24-full.aux" "EGauthorGuidelines-eurovis24-full.bbl" "EGauthorGuidelines-eurovis24-full" 1704412473
   "./eg-alpha-doi.bst" 1700096616 41656 17a38471806f9ac858ccbf27fd013757 ""
-  "EGauthorGuidelines-eurovis24-full.aux" 1700118060 21729 2c8a2056d21b39c635b65bb79783d64c "pdflatex"
+  "EGauthorGuidelines-eurovis24-full.aux" 1704412472 21730 56348b61bb08fa78a3e4f6b750f6bf3b "pdflatex"
   "egbibsample.bib" 1700099807 29274 ce0d825a2a71c114def078a856c3134e ""
   (generated)
   "EGauthorGuidelines-eurovis24-full.bbl"
   "EGauthorGuidelines-eurovis24-full.blg"
-["pdflatex"] 1700118057 "/Users/samytlee/Documents/projects/EventHyperGraph/writing/eurovis24/EGauthorGuidelines-eurovis24-full.tex" "EGauthorGuidelines-eurovis24-full.pdf" "EGauthorGuidelines-eurovis24-full" 1700118060
-  "/Users/samytlee/Documents/projects/EventHyperGraph/writing/eurovis24/EGauthorGuidelines-eurovis24-full.tex" 1700100145 4674 790af6b89742dd6a5b2bed6695d01b05 ""
+["pdflatex"] 1704412470 "/Users/samytlee/Documents/projects/HyperMap/writing/eurovis24/EGauthorGuidelines-eurovis24-full.tex" "EGauthorGuidelines-eurovis24-full.pdf" "EGauthorGuidelines-eurovis24-full" 1704412473
+  "/Users/samytlee/Documents/projects/HyperMap/writing/eurovis24/EGauthorGuidelines-eurovis24-full.tex" 1700100145 4674 790af6b89742dd6a5b2bed6695d01b05 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm" 1136768653 4712 9ef4d7d106579d4b136e1529e1a4533c ""
@@ -149,11 +149,11 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1649968814 2826452 5e3683d83fafe90848c4dd5e0c179f3c ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "EGauthorGuidelines-body.inc" 1700115215 6968 766d91dbf3ce60ef681637df844e8330 ""
-  "EGauthorGuidelines-eurovis24-full.aux" 1700118060 21729 2c8a2056d21b39c635b65bb79783d64c "pdflatex"
-  "EGauthorGuidelines-eurovis24-full.bbl" 1700118057 16602 1179370186930071f2b92465eb7c8d66 "bibtex EGauthorGuidelines-eurovis24-full"
-  "EGauthorGuidelines-eurovis24-full.brf" 1700118060 3471 97297ffa6f80af76a2a10f4af523b63f "pdflatex"
-  "EGauthorGuidelines-eurovis24-full.lbl" 1700118060 23 24bad9079e57064026b5712f8febc05e "pdflatex"
+  "EGauthorGuidelines-body.inc" 1701973175 7838 79b36999cfde0a409de3001683fad22c ""
+  "EGauthorGuidelines-eurovis24-full.aux" 1704412472 21730 56348b61bb08fa78a3e4f6b750f6bf3b "pdflatex"
+  "EGauthorGuidelines-eurovis24-full.bbl" 1704412470 16602 1179370186930071f2b92465eb7c8d66 "bibtex EGauthorGuidelines-eurovis24-full"
+  "EGauthorGuidelines-eurovis24-full.brf" 1704412472 3472 6a442246bc5ad245aa5075457b6f7a45 "pdflatex"
+  "EGauthorGuidelines-eurovis24-full.lbl" 1704412472 23 24bad9079e57064026b5712f8febc05e "pdflatex"
   "EGauthorGuidelines-eurovis24-full.tex" 1700100145 4674 790af6b89742dd6a5b2bed6695d01b05 ""
   "dfT1pcr.fd" 1700096616 1618 df77d0a8d49b76e400e2cfb6614f3614 ""
   "dfT1phv.fd" 1700096616 1930 c437fc3f2c3b74b390046388285c0940 ""

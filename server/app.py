@@ -1,17 +1,22 @@
+import math
 from flask import Flask, request
 from flask_cors import CORS
 import json
-import openai
+from openai import OpenAI
 from pprint import pprint
 from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, ArticleController, GptUtils, pHilbert, gosper
 from collections import defaultdict
+import tiktoken
+openai_api_key = open("openai_api_key").read()
+client=OpenAI(api_key=openai_api_key, timeout=30)
 
 app = Flask(__name__)
 CORS(app)
-openai_api_key = open("openai_api_key").read()
 # 
 # dataset = 'AllTheNews'
+# article_level, entity_level = 5, 5
 dataset = 'VisPub'
+article_level, entity_level = 4, 4
 graph_controller = GraphController(r'../preprocess/data/result/{}/'.format(dataset))
 event_hgraph = graph_controller.static_event_hgraph
 article_controller = ArticleController(r'../preprocess/data/result/{}/'.format(dataset), openai_api_key)
@@ -31,8 +36,8 @@ print("init done")
 def get_article_partition():
     # uid = int(uid)
     uid = 0
-    article_level = request.json['article_level']
-    entity_level = request.json['entity_level']
+    # article_level = request.json['article_level']
+    # entity_level = request.json['entity_level']
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
     # reset filtering
@@ -410,7 +415,7 @@ def gosper_curve():
 def search():
     query = request.json['query']
     base = request.json['base']
-    doc_id_relevance = article_controller.search(query=query, base=base)
+    doc_id_relevance = article_controller.search(query=query, base=base, hyde=True)
     # binary search to find the most appropriate threshold
     # suggested_threshold = GptUtils.binary_search_threshold(doc_id_relevance, query)
     suggested_threshold = 0.8
@@ -447,22 +452,24 @@ def get_hierarcy():
 
 @app.route("/static/chat", methods=["POST"])
 def chat():
-    messages = request.json['queryMessages']
-    useQueryDocs = request.json['useQueryDocs']
-    if useQueryDocs:
-        queryDocs = request.json['queryDocs']
-        useSummary = request.json['useSummary']
-        docs = article_controller.searchByID(queryDocs, includeContent=True)
-        user_query = messages[-1]['content']
-        doc_query = ""
-        for index, doc in enumerate(docs):
-            doc_query += "Selected Article {}:".format(index)
-            doc_query += doc['summary'] if useSummary else doc['content']
-            doc_query += "\n"
-        messages[-1]['content'] = user_query + "\n" + doc_query
-        response = request_gpt4(messages)
-    else:
-        response = request_gpt4(messages)
+    messages = request.json['query_messages']
+    response = request_gpt4(messages)
+    # useQueryDocs = request.json['useQueryDocs']
+    # if useQueryDocs:
+    #     queryDocs = request.json['queryDocs']
+    #     useSummary = request.json['useSummary']
+    #     if len(queryDocs) > 50: queryDocs = queryDocs[:50]
+    #     docs = article_controller.searchByID(queryDocs, includeContent=True)
+    #     user_query = messages[-1]['content']
+    #     doc_query = ""
+    #     for index, doc in enumerate(docs):
+    #         doc_query += "Selected Article {}:".format(index)
+    #         doc_query += doc['summary'] if useSummary else doc['content']
+    #         doc_query += "\n"
+    #     messages[-1]['content'] = user_query + "\n" + doc_query
+    #     response = request_gpt4(messages)
+    # else:
+    #     response = request_gpt4(messages)
     return json.dumps(response)
 
 @app.route("/static/baseline_chat", methods=["POST"])
@@ -478,7 +485,7 @@ def rag():
     doc_id_relevance = article_controller.search(user_input, hyde=hyde)
 
     doc_data = []
-    for (doc_id, doc_title, _, summary) in doc_id_relevance[:100]:
+    for (doc_id, doc_title, _, summary) in doc_id_relevance[:60]:
         doc_data.append({
             "id": doc_id,
             "title": doc_title,
@@ -487,8 +494,33 @@ def rag():
     return json.dumps(doc_data)
 
 def request_gpt4(messages):
-    response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
-        messages=messages,
-    )
+    # enc = tiktoken.encoding_for_model("gpt-4-1106-preview")
+    enc = tiktoken.encoding_for_model("gpt-3.5-turbo-1106")
+    text = json.dumps(messages)
+    print(len(enc.encode(text)))
+    kept_index = 0
+    while len(enc.encode(text)) > 16385:
+    # while len(enc.encode(text)) > 128000:
+        print("truncating...")
+        # find the first user input
+        for index, message in enumerate(messages):
+            if message['role'] == 'user' and len(message['content']) > 1000:
+                messages[index] = {
+                    "role": "user",
+                    "content": message['content'][:-1000]
+                }
+                break
+        # messages = [messages[0], messages[kept_index]]
+        text = json.dumps(messages)
+        print(len(enc.encode(text)))
+    try:
+        response = client.chat.completions.create(
+            # model="gpt-4-1106-preview",
+            model="gpt-3.5-turbo-1106",
+            messages=messages,
+        )
+    except Exception as e:
+        print(e)
+        print("retrying...")
+        return request_gpt4(messages)
     return response.choices[0].message.content

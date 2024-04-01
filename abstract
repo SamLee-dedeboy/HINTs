@@ -115,20 +115,16 @@ Based on the selected article, it is suggested that a balanced ratio of text and
 
 
 script for video:
-Hi, we introduce HyperMap, a visual analytic system for making sense of large collections of documents.
+Hi, we introduce HINTs, a visual analytic system for making sense of large collections of documents with hypergraph visualization and intelligent agents.
 Analysts from all disciplines, from journalists to researchers, need to deal with large collections of documents every day.
-They explore and filter the documents to find a target of interest, and analyze the target to generate insights.
-HyperMap facilitates this process by supporting the manipulation of topics and characters, two main analysis units in text documents.
-During the analysis, users can reorganize the corpus by adjusting the topics and characters to focus on their target of interest.
-% The system also integrates a chatbot to answer questions about a selection of documents in real-time.
+They explore and filter the documents to find a target of interest, and make sense of the target to generate insights.
+HINTs facilitates this process by supporting the manipulation and understanding of topics and keywords by combining Large Language models and interactive hypergraph visualization.
 
-HyperMap is developed by combining Large Language Models (LLMs) and hypergraphs.
-In data preparation stage, Large Language Models are used to extract topics and characters from the corpus.
+In data preparation stage, Large Language Models are used to extract structured data from the corpus.
 Then the corpus is organized into a hypergraph and hierarchically clustered.
-We use a scalable space-filling curve-based layout to visualize the hierarchy.
-This way, user interactions can be transformed into efficient hypergraph operations to support reorganization on a large corpus.
-
-Next, we present an example of how a journalist can use the HyperMap system to investigate a dataset of news articles.
+We use a scalable space-filling curve-based layout to visualize the hierarchy and support rich interactions.
+We further integrate a chatbot to assist users in making sense of the corpus.
+Next, we present an example of how a journalist can use the HINTs system to investigate a dataset of news articles.
 Alice is a journalist working on a story about US presidential election. 
 She wants to collect materials about the election in 2016.
 She collects a large dataset of news articles published in 2016 and uses HyperMap to investigate the dataset.
@@ -145,9 +141,6 @@ After some investigation, she decides to remove `Security Threats in the Middle 
 
 She clicks `Filter Search', and the system removes irrelevant articles and reorganizes the layout.
 Without irrelevant articles, Alice can start to explore the topics in more detail.
-% She expands the topic `Controversies and Challanges' to see what it contains.
-% She finds two small topics: `Criminal Justice' and `Political Protests against Trump'.
-% Quickly browsing through the articles, they are indeed interesting events happened during the election so she marks them down.
 She expands the large light green topic `Concerns and Controversies in the United States' for more detail.
 From there, the labels are quite specific and self-explanatory.
 She finds the topic `2016 US Presidential Election and Contorversies', which is exactly what she is looking for.
@@ -157,9 +150,9 @@ For undirectly related topics, she can use the chatbot to help her find connecti
 For example, she asks the chatbot to summarize Donald Trump's and Hilaries Clinton's gun control policy based on the selected articles.
 The chatbot responds accordingly instead of relying on common sense knowledge.
 
-This is an example of how the HyperMap system can assist in sensemaking on large collections of documents.
-With highly interpretable visualization results, users can easily explore and reorganize the corpus for their purposes.
-This is the introduction video of HyperMap, thank you for listening.
+This is an example of how the HINTs system can assist in sensemaking on large collections of documents.
+With highly interpretable visualization results and intelligent agent assistence, users can easily explore and reorganize the corpus for their purposes.
+This is the introduction video of HINTs, thank you for listening.
 
 
 
@@ -170,3 +163,9 @@ This is the introduction video of HyperMap, thank you for listening.
 
 
 
+1. Interactive Visual Analytics Design 1.1. Exploration for Real-Time Data and Big Data: Advancing the capabilities of interactive visual analytics systems to handle real-time data streams and support dynamic, on-the-fly data exploration and analysis.  Exploring approaches to enable interactivity in visual analytics systems for big data, including scalable visualizations, efficient computation, and interactive response times for large and high-dimensional datasets.  1.2. Collaborative and Distributed Visualization Exploring collaborative and distributed interactive visualization approaches to support teamwork, knowledge sharing, and decision-making in complex data analysis tasks.  2. Visual Analysis of Relational and Multivariate Data 2.1. Dynamic Networks Visualization With the growing interest in social networks, information propagation, and community response analysis, the visualization of dynamic networks has gained popularity. Understanding spatiotemporal processes and community responses in dynamic networks is a key area of focus.  2.2. Feature Selection and Ranking Developing visual techniques for feature selection and ranking in multivariate datasets, allowing users to identify and focus on the most important variables or dimensions for visualization and analysis.  2.3. Clustering and Pattern Recognition
+Researching visualization techniques for clustering and pattern recognition in multivariate data, enabling users to identify clusters, trends, and patterns within complex datasets.
+2.4. Dimensionality Reduction Techniques
+Exploring and advancing dimensionality reduction methods such as t-SNE (t-distributed stochastic neighbor embedding), PCA (principal component analysis), and UMAP (uniform manifold approximation and projection) to visualize high-dimensional data in lower-dimensional spaces while preserving important data relationships.
+3. Uncertainty Visualization
+Uncertainty in complex datasets refers to the presence of ambiguity, variability, and imprecision within the data, often stemming from factors such as measurement errors, incomplete information, and probabilistic nature of certain data elements. Visualizing uncertainty in complex datasets is crucial for aiding 

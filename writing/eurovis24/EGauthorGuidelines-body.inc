@@ -60,16 +60,16 @@
 \maketitle
 %-------------------------------------------------------------------------
 \begin{abstract}
-   The ABSTRACT is to be in fully-justified italicized text, 
-   between two horizontal lines,
-   in one-column format, 
-   below the author and affiliation information. 
-   Use the word ``Abstract'' as the title, in 9-point Times, boldface type, 
-   left-aligned to the text, initially capitalized. 
-   The abstract is to be in 9-point, single-spaced type.
-   The abstract may be up to 3 inches (7.62 cm) long. \\
-   Leave one blank line after the abstract, 
-   then add the subject categories according to the ACM Classification Index 
+Sense-making on a large collections of unstructured documents (corpus) is a challenging task that analysts often have to perform.
+Previous works approach this problem either from a topic- or entity-based perspective, but they lack interpretability and trust or support for 
+   Sensemaking on large collections of documents (corpus) is a challenging task that analysts often have to perform.
+   Previous works approach this problem either from a topic- or entity-based perspective, but they lack interpretability and trust due to poor model alignment.
+   In this paper, we propose HyperMap, a visual analytics approach that combines topic- and entity-based techniques seamlessly.
+   By leveraging the capability of Large Language Models (LLMs), we model the corpus as a hypergraph that matches the user's mental model when analyzing a corpus.
+   The hypergraph is then hierarchically clustered with an agglomerative clustering algorithm by combining semantic and connectivity similarity.
+   The system is designed to emphasize Model Alignment to foster interpretability and trust.
+   To demonstrate the generalizability and effectiveness of the HyperMap system, we present two case studies on two different datasets: a news article dataset and a visualization publication dataset.
+   We discuss limitations and future work of combining visualization and LLMs to enhance analysts' ability to analyze a corpus.
 %-------------------------------------------------------------------------
 %  ACM CCS 1998
 %  (see https://www.acm.org/publications/computing-classification-system/1998)

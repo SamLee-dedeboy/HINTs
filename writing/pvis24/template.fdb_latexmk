@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex template"] 1700115315 "template.aux" "template.bbl" "template" 1700115318
+["bibtex template"] 1706926631 "template.aux" "template.bbl" "template" 1706926633
   "./abbrv-doi.bst" 1692142219 27244 4c23ed8d63be63dc39b9aab722083c7e ""
-  "template.aux" 1700115318 18725 48a58cd800e6fbc4bd31200668761fc0 "pdflatex"
+  "template.aux" 1706926633 19309 209e594cbfaa113721b188e5bda417f7 "pdflatex"
   "template.bib" 1700099088 28493 88a8840c5819d28dc9b6af572f3a5f54 ""
   (generated)
   "template.bbl"
   "template.blg"
-["pdflatex"] 1700115315 "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" "template.pdf" "template" 1700115318
-  "/Users/samytlee/Documents/projects/EventHyperGraph/writing/pvis24/template.tex" 1696210644 10276 73890529a7b46679df02518a5022be84 ""
+["pdflatex"] 1706926631 "/Users/samytlee/Documents/projects/HyperMap/writing/pvis24/template.tex" "template.pdf" "template" 1706926633
+  "/Users/samytlee/Documents/projects/HyperMap/writing/pvis24/template.tex" 1706926626 10273 e7a5dfadfe57e2384ecbc179f3935481 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvb7t.tfm" 1136768653 2240 eb56c13537f4d8a0bd3fafc25572b1bd ""
@@ -158,15 +158,15 @@
   "sections/03_Design_Rationale.tex" 1696023629 4609 467f687763d907c6bbf127f7edce18be ""
   "sections/04_Methodology.tex" 1696138632 18845 d48d35c9bba23b62f2a7bc34ffe6b266 ""
   "sections/05_Visualization.tex" 1696138714 12380 444b150ed9b239db0abbd2fd63578773 ""
-  "sections/06_System_Design.tex" 1700115312 5991 349a9577239025f3f026f333fb5208b4 ""
+  "sections/06_System_Design.tex" 1700115432 5990 39eedc8db34030d9f6bc109e75e6e545 ""
   "sections/07_Evaluation.tex" 1696138977 9486 8d76f4062cc94f1ccd80e8f1e7f56a91 ""
-  "sections/08_Limitations_and_Future_Work.tex" 1700115301 2899 4efba39fc73ec6374e172bfbaf66d4a8 ""
+  "sections/08_Limitations_and_Future_Work.tex" 1700115432 2876 afd192397fcf3d93807444e325505940 ""
   "sections/09_Conclusion.tex" 1696189239 1198 9eeafc5c2ecc6b09c33a01f59922b7f8 ""
-  "sections/Prompts.tex" 1696033003 19177 8cce20af2d8d3e54f958adbb426e7ba3 ""
-  "template.aux" 1700115318 18725 48a58cd800e6fbc4bd31200668761fc0 "pdflatex"
-  "template.bbl" 1700115315 16643 3c08f7b690d7a1d54eedd6d9b525a3c5 "bibtex template"
-  "template.out" 1700115318 5154 f7689f8dba5a46b572e842b1a6040c94 "pdflatex"
-  "template.tex" 1696210644 10276 73890529a7b46679df02518a5022be84 ""
+  "sections/Prompts.tex" 1706926468 20464 eaf0f92f97f33c6cb97ae7a65e272359 ""
+  "template.aux" 1706926633 19309 209e594cbfaa113721b188e5bda417f7 "pdflatex"
+  "template.bbl" 1706926631 16643 3c08f7b690d7a1d54eedd6d9b525a3c5 "bibtex template"
+  "template.out" 1706926633 5322 175fc56b935371a6b3baad4d82963580 "pdflatex"
+  "template.tex" 1706926626 10273 e7a5dfadfe57e2384ecbc179f3935481 ""
   "vgtc.cls" 1692142219 35095 91517982a783a504db257b8ff9ade447 ""
   (generated)
   "template.aux"

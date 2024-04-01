@@ -23,11 +23,21 @@ const tags: any = {
       console.log(centerArea.node(), tags)
       const zoom = d3.zoomTransform(centerArea.node() as Element)
       // cluster label
+      const total_points = article_graph.article_nodes.length
+      const avg_cluster_size = total_points / cluster_borders.length
       centerArea.selectAll("g.article-border-tag-group")
         .data(cluster_borders, (d: any) => d.cluster_label)
         .join("g")
         .attr("class", "article-border-tag-group")
-        .attr("opacity", showArticleClusterLabelDefault ? 1 : 0)
+        .attr("opacity", (d) => {
+          d.tag_opacity = d.points.length >= avg_cluster_size/2? 1:0
+          if(!showArticleClusterLabelDefault) return 0
+          return d.tag_opacity 
+        })
+        .attr(
+          "pointer-events",
+          (d) => showArticleClusterLabelDefault ? (d.tag_opacity==0?"none":"auto") : "none"
+        )
         .each(function(d: any) {
           d3.select(this).select("g.cluster-label-group").remove()
           const group = d3.select(this).append("g").attr("class", "cluster-label-group")
@@ -154,10 +164,10 @@ const tags: any = {
       const centerArea = d3.select('#' + tags.svgId).select("g.margin").select("g.center-area")
       const target_border_group = centerArea.selectAll("g.article-border-tag-group")
         .select("g.cluster-label-group")
-        .attr("transform", (d: any) => { return d.center_zoom_translate || "translate(0,0)"})
+        .attr("transform", (d: any) => { d.lifted = false; return d.center_zoom_translate || "translate(0,0)"})
       target_border_group.select("rect.cluster-label-border")
         .attr("opacity", 0.5)
-      centerArea.select("line.cluster-label-border-connector").remove()
+      centerArea.selectAll("line.cluster-label-border-connector").remove()
     },
 
     updateArticleSubClusterLabels(
@@ -176,8 +186,12 @@ const tags: any = {
         const parent_cluster_group = centerArea.selectAll("g.article-border-tag-group")
           .filter((filter_data: any) => cluster_label === filter_data.cluster_label)
         const zoom = (parent_cluster_group?.datum() as any).zoom || d3.zoomIdentity
+        const total_points = cluster_nodes.filter(node => sub_cluster_labels.includes(node.sub_cluster_label)).length
+        const avg_points = total_points / sub_cluster_labels.length
+
         sub_cluster_labels.forEach(sub_cluster_label => {
             const sub_cluster_node_data = cluster_nodes.filter(node => node.sub_cluster_label === sub_cluster_label)
+            if (sub_cluster_node_data.length < avg_points/2) return
             // if(sub_cluster_node_data.length <= 5) return
             const points = sub_cluster_node_data.map(node => [node.x, node.y])
             const { polygon, centroid } = borders.generate_polygon(points, concavity)
@@ -434,7 +448,7 @@ const tags: any = {
             .attr("class", "entity-cluster-label-border")
             .attr("x", start_x - padding_x)
             .attr("y", d.y = start_y - padding_y)
-            .attr("width", rect_outer_width)
+            .attr("width", rect_outer_width, )
             .attr("height", rect_outer_height)
             // .attr("pointer-events", "none")
             .attr("fill", "white")
@@ -591,7 +605,7 @@ const tags: any = {
         .attr("class", "highlighted-entity-label-border")
         .attr("x", start_x - padding_x)
         .attr("y", start_y - padding_y)
-        .attr("width", rect_outer_width)
+        .attr("width", Math.min(800, rect_outer_width))
         .attr("height", rect_outer_height)
         .attr("pointer-events", "none")
         .attr("fill", "white")

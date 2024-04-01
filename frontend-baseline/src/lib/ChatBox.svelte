@@ -6,7 +6,10 @@
   let searchLoading = false;
   //   let useRAG = true;
   let usePrefix = false;
+  // let display_messages: any[] = [
   let display_messages: any[] = [];
+  //   { role: "user", content: "abc\n\n abcd \n\n adbcece" },
+  // ];
   let query_messages: any[] = [
     {
       role: "system",
@@ -34,7 +37,7 @@
       body: JSON.stringify({ user_input, hyde }),
     });
     let res: any[] = await response.json();
-    res = res.slice(0, 5);
+    // res = res.slice(0, 5);
     return res;
   }
 
@@ -46,31 +49,40 @@
         ...display_messages,
         { role: "user", content: user_input },
       ];
+      searchLoading = true;
+      if (inputBox) inputBox.textContent = "";
       if (docs.length === 0) {
         // RAG first
         docs = await RAG(user_input);
         console.log({ docs });
+        query_messages = [
+          ...query_messages,
+          {
+            role: "user",
+            content:
+              user_input +
+              // "\n\n\nUse the following articles as context:\n" +
+              "\n" +
+              docs
+                .map((doc, index) => `${doc.summary}`)
+                // .map((doc, index) => `Article ${index}: ${doc.summary}`)
+                .join("\n"),
+          },
+        ];
+      } else {
+        query_messages = [
+          ...query_messages,
+          {
+            role: "user",
+            content: user_input,
+          },
+        ];
       }
-      queryChatbot(docs, user_input);
-      if (inputBox) inputBox.textContent = "";
-      searchLoading = true;
+      queryChatbot();
     }
   }
 
-  function queryChatbot(docs, user_input) {
-    query_messages = [
-      ...query_messages,
-      {
-        role: "user",
-        content:
-          user_input +
-          "\n\n\nUse the following articles to answer the question:\n" +
-          docs
-            .map((doc, index) => `Article ${index}: ${doc.summary}`)
-            .join("\n"),
-      },
-    ];
-    const useQueryDocs = usePrefix;
+  function queryChatbot() {
     fetch(`${server_address}/static/baseline_chat`, {
       method: "POST",
       headers: {
@@ -91,14 +103,15 @@
         searchLoading = false;
         query_messages = [...query_messages, new_message];
         display_messages = [...display_messages, new_message];
-        console.log(display_messages);
+        // console.log(display_messages);
+        console.log(query_messages);
       });
   }
 </script>
 
 <div class="chatbox-container flex flex-col w-full h-full justify-between">
   <div
-    class="chatbox-content basis-[70%] shrink overflow-y-auto"
+    class="chatbox-content basis-[70%] grow overflow-y-auto"
     bind:this={chatboxContent}
   >
     <div class="chatbox-messages flex flex-col py-2">
@@ -123,7 +136,10 @@
                 <img class="icon" src="user.svg" alt="user" />
               {/if}
             </div>
-            <div class="inline ml-2 border grow w-fit rounded p-2">
+            <div
+              class="inline ml-2 border border-gray-400 grow w-fit rounded p-2 whitespace-pre-line"
+              markdown="1"
+            >
               {message.content}
             </div>
           </div>
@@ -137,29 +153,17 @@
             <img class="icon" src="bot.svg" alt="bot" />
           </div>
           <div class="inline ml-2 border rounded p-2">
-            <span class="animate-[flash_2s_infinite]">...</span>
+            <span class="animate-[flash_2s_infinite]">analyzing...</span>
           </div>
         </div>
       {/if}
     </div>
   </div>
   <div
-    class="lower-section basis-[30%] shrink-0 flex flex-col shadow-inner border-solid rounded"
+    class="lower-section basis-[5%] shrink-0 flex flex-col shadow-inner border-solid rounded relative"
   >
-    <div class={`text-left mx-2 ${usePrefix ? "" : "line-through"} w-full`}>
-      Given the selected documents,
-      <!-- <Checkbox checked={usePrefix} onChange={(e) => usePrefix = e.target.checked}></Checkbox> -->
-      <input
-        checked={selectedDocs.length == 9}
-        on:change={() => (usePrefix = !usePrefix)}
-        id="checked-checkbox"
-        type="checkbox"
-        value=""
-        class="cursor-pointer w-4 h-4 inline text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-      />
-    </div>
     <div
-      class="input-container grow shrink-0 border-[1px] border-solid rounded overflow-y-auto mx-2 p-2 outline-none"
+      class="input-container grow shrink-0 border-[1px] border-solid border-gray-400 rounded overflow-y-auto mx-2 p-2 outline-none relative flex items-center"
     >
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
@@ -168,6 +172,7 @@
             text-region
             break-all
             h-full
+            w-full
             outline-none
             text-left"
         bind:this={inputBox}
@@ -178,6 +183,9 @@
           if (e.code === "Enter") e.preventDefault();
         }}
       />
+      <div class="inline text-2xl h-fit w-fit">
+        <img class="icon" src="arrow.svg" alt="arrow" />
+      </div>
     </div>
     <!-- <div class={`text-left mx-2 ${useRAG ? "" : "line-through"} w-full`}>
       RAG
@@ -190,7 +198,7 @@
         class="cursor-pointer w-4 h-4 inline text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
       />
     </div> -->
-    <div class="controller-container grow shrink-0 m-2 flex flex-col">
+    <!-- <div class="controller-container grow shrink-0 m-2 flex flex-col">
       <div
         class="query-doc-list grow flex flex-col content-between justify-between"
       >
@@ -205,13 +213,7 @@
           </div>
         </div>
       </div>
-      <!-- <div class="flex items-center justify-between">
-                <div class='w-fit basis-[70%] mt-1 inline-block font-serit'>
-                    <UseSummaryRadio bind:useSummary={useSummary} />
-                </div>
-                <button class={"clear-chat btn ml-1 mt-1 px-2 h-full py-0 h-[32px] inline-block text-[14px] items-center"} on:click={() => messages=[]}>Clear Chat</button>
-            </div> -->
-    </div>
+    </div> -->
   </div>
 </div>
 

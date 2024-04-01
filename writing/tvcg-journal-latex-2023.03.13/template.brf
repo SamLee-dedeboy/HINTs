@@ -1,7 +1,28 @@
-\backcite {Isenberg:2017:VMC}{{3}{3}{figure.caption.17}}
-\backcite {Max:1995:OMF,Kitware:2003}{{3}{7.4}{subsection.23}}
-\backcite {Kitware:2003}{{3}{7.4}{subsection.23}}
-\backcite {Max:1995:OMF}{{3}{7.4}{subsection.23}}
-\backcite {Lorensen:1987:MCA}{{3}{7.4}{subsection.23}}
-\backcite {Lorensen:1987:MCA}{{3}{7.4}{subsection.23}}
-\backcite {Isenberg:2017:VMC}{{4}{9}{section*.27}}
+\backcite {chuang2012interpretation}{{1}{1}{section.2}}
+\backcite {vayansky2020review}{{1}{1}{section.2}}
+\backcite {wang2023dataformulator}{{1}{1}{section.2}}
+\backcite {maddigan2023chat2vis}{{1}{1}{section.2}}
+\backcite {atzberger2023evaluatetopicmodel}{{1}{1}{section.2}}
+\backcite {beasley2021through}{{1}{1}{section.2}}
+\backcite {park2018conceptvector,cao2010facetatlas}{{1}{1}{section.2}}
+\backcite {muelder2008sfc}{{2}{1}{section.2}}
+\backcite {yang2017vistopic, cho2016vairoma, dou2013hierarchicaltopics,yan2019clfsemi,han2022hisva, alexander2014serendip, lee2012ivisclustering}{{2}{2.1}{section*.5}}
+\backcite {oelke2014topiccoin, cho2016vairoma}{{2}{2.1}{section*.5}}
+\backcite {lee2017humantopicmodel}{{2}{2.1}{section*.5}}
+\backcite {chuang2012interpretation}{{2}{2.1}{section*.5}}
+\backcite {Stasko2007jigasw}{{2}{2.1}{section*.6}}
+\backcite {cao2010facetatlas}{{2}{2.1}{section*.6}}
+\backcite {park2018conceptvector}{{2}{2.1}{section*.6}}
+\backcite {chuang2012interpretation}{{2}{2.1}{section*.6}}
+\backcite {park2018conceptvector}{{2}{2.1}{section*.6}}
+\backcite {steinbach2000doccluster}{{2}{2.1}{section*.7}}
+\backcite {choo2013utopian,sherkat2018interactive}{{2}{2.1}{section*.7}}
+\backcite {devlin2018bert}{{2}{2.1}{section*.7}}
+\backcite {narechania2022vitality,tu2023sdrquerier,qiu2022docflow}{{2}{2.1}{section*.7}}
+\backcite {karpukhin-etal-2020-dense, izacard2022unsupervised}{{2}{2.1}{section*.7}}
+\backcite {raval2023explainandtrust}{{2}{2.1}{section*.7}}
+\backcite {nasar2021named, xiang2019surveyee}{{2}{2.2}{subsection.8}}
+\backcite {zhou2023contextfaithful}{{2}{2.2}{subsection.8}}
+\backcite {bang2023multitask}{{2}{2.2}{subsection.8}}
+\backcite {li2023evaluateChatgpt}{{2}{2.2}{subsection.8}}
+\backcite {zhang2023extractive}{{2}{2.2}{subsection.8}}

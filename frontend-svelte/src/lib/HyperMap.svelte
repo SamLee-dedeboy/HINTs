@@ -1,4 +1,4 @@
-<script lang=ts context="module">
+<script lang="ts" context="module">
   import * as d3 from "d3";
   import { createEventDispatcher, onMount, tick } from "svelte";
   import borders from "./utils/BorderUtils";
@@ -6,6 +6,7 @@
   import sfc from "./utils/SFCUtils";
   import tags from "./utils/TagUtils";
   import * as DragUtils from "./utils/DragUtils";
+  import Search from "./Search.svelte";
 
   const margin = {
     left: 30,
@@ -69,8 +70,8 @@
 
   const article_node_radius = 4.5;
   const entity_node_radius = 4;
-
 </script>
+
 <script lang="ts">
   const dispatch = createEventDispatcher();
   export let svgId;
@@ -79,10 +80,10 @@
   export let filtered: boolean;
   export let searchedArticleIds: string[] | undefined;
   export let peripheral: any | undefined = undefined;
-  export let articleClusterColorDict: any | undefined ;
+  export let articleClusterColorDict: any | undefined;
   export let articleSubClusterColorDict: any | undefined;
   export let entityClusterColorDict: any;
-  export let entitySubClusterColorDict : any| undefined;
+  export let entitySubClusterColorDict: any | undefined;
   export let searchMode: boolean;
   export let showEntityClusterLabelDefault: boolean;
   export let showArticleClusterLabelDefault: boolean;
@@ -100,16 +101,16 @@
 
   // life cycles and event listeners
   onMount(() => {
-    init()
-  })
+    init();
+  });
   // $: init()
   function init() {
-    console.log("init hypermap")
+    console.log("init hypermap");
     const svg = d3
       .select("#" + svgId)
       .attr("viewBox", `0 0 ${svgSize.width} ${svgSize.height}`)
       .attr("overflow", "visible");
-    console.log(svg.node(), svgId)
+    console.log(svg.node(), svgId);
     svg.select("g.margin").remove();
     const canvas = svg
       .append("g")
@@ -172,15 +173,14 @@
     listenZoom();
     listenClick();
     // await tick()
-    console.log("init done")
+    console.log("init done");
     // setTooltipData(initialTooltipData)
   }
 
   $: sfc.initPeripheral(peripheral);
   $: sfc.initGosper(gosper);
 
-
-  $: {
+  $: ((_) => {
     if (highlightArticleIds === undefined) {
       if (!filtered) highlight_entities = undefined;
     } else {
@@ -192,9 +192,9 @@
         )
         .map((entity) => entity.id);
     }
-  }
+  })(highlightArticleIds);
 
-  $:  {
+  $: ((_) => {
     if (!searchMode) {
       const svg = d3.select("#" + svgId);
       const centerArea = svg.select("g.margin").select("g.center-area");
@@ -211,23 +211,45 @@
         .attr("opacity", (d: any) => (d.opacity = 0.5))
         .attr("fill", (d: any) => (d.color = d.cluster_color));
     }
-  }
+  })(searchMode);
 
   // article cluster label toggler
-  $: {
-    const centerArea = d3.select('#' + svgId).select("g.margin").select("g.center-area")
-    if(showArticleClusterLabelDefault) centerArea.selectAll("g.article-border-tag-group").attr("opacity", 1).attr("pointer-events", "auto")
-    if(!showArticleClusterLabelDefault)centerArea.selectAll("g.article-border-tag-group").attr("opacity", 0).attr("pointer-events", "none")
-  }
+  $: ((_) => {
+    const centerArea = d3
+      .select("#" + svgId)
+      .select("g.margin")
+      .select("g.center-area");
+    if (showArticleClusterLabelDefault)
+      centerArea
+        .selectAll("g.article-border-tag-group")
+        .attr("opacity", 0)
+        .filter((d) => d.points.length > 30)
+        .attr("opacity", 1)
+        .attr("pointer-events", "auto");
+    if (!showArticleClusterLabelDefault)
+      centerArea
+        .selectAll("g.article-border-tag-group")
+        .attr("opacity", 0)
+        .attr("pointer-events", "none");
+  })(showArticleClusterLabelDefault);
+
   // entity cluster label toggler
-  $: {
-    const canvas = d3.select('#' + svgId).select("g.margin")
-    if(showEntityClusterLabelDefault) canvas.selectAll("g.entity-tag-group").attr("opacity", 1).attr("pointer-events", "auto")
-    if(!showEntityClusterLabelDefault) canvas.selectAll("g.entity-tag-group").attr("opacity", 0).attr("pointer-events", "none")
-  }
+  $: ((_) => {
+    const canvas = d3.select("#" + svgId).select("g.margin");
+    if (showEntityClusterLabelDefault)
+      canvas
+        .selectAll("g.entity-tag-group")
+        .attr("opacity", 1)
+        .attr("pointer-events", "auto");
+    if (!showEntityClusterLabelDefault)
+      canvas
+        .selectAll("g.entity-tag-group")
+        .attr("opacity", 0)
+        .attr("pointer-events", "none");
+  })(showEntityClusterLabelDefault);
 
   $: entity_data_dict = ((nodes) => {
-    if(!nodes) return undefined;
+    if (!nodes) return undefined;
     let dict = {};
     nodes.forEach((node) => {
       dict[node.id] = node;
@@ -235,46 +257,50 @@
     return dict;
   })(entity_graph?.entity_nodes);
 
-  $: {
-    if(searchedArticleIds !== undefined) {
-      const svg = d3.select("#" + svgId);
-      const centerArea = svg.select("g.margin").select("g.center-area");
-      centerArea
-        .select("g.article-node-group")
-        .selectAll("circle.article-node")
-        .attr("opacity", (d: any) => (d.opacity = 0.2))
-        .attr("fill", (d: any) => (d.color = "grey"))
-        .filter((d: any) => searchedArticleIds!.includes(d.id))
-        .attr("opacity", (d: any) => (d.opacity = 1))
-        .attr(
-          "fill",
-          (d: any) => (d.color = d.sub_cluster_color || d.cluster_color)
-        );
-      // entities
-      const searchedEntities = entity_graph.entity_nodes
-        .filter((entity_node) =>
-          entity_node.mentions
-            .map((mention) => mention.doc_id)
-            .some((doc_id) => searchedArticleIds!.includes(doc_id))
-        )
-        .map((entity) => entity.id);
-      svg
-        .selectAll("circle.entity-node")
-        .attr("opacity", (d: any) => (d.opacity = 0.2))
-        .attr("fill", (d: any) => (d.color = "grey"))
-        .filter((d: any) => searchedEntities.includes(d.id))
-        .attr("opacity", (d: any) => (d.opacity = 1))
-        .attr("fill", (d: any) => (d.color = d.cluster_color));
-      if (highlightArticleIds) {
-        const intersectedArticleIds = searchedArticleIds!.filter((id) =>
-          highlightArticleIds?.includes(id)
-        );
-        highlightArticleIds = intersectedArticleIds;
-      } else {
-        highlightArticleIds = searchedArticleIds;
-      }
+  $: ((_) => {
+    if (searchedArticleIds !== undefined) {
+      highlightArticleIds = searchedArticleIds;
+      // const svg = d3.select("#" + svgId);
+      // const centerArea = svg.select("g.margin").select("g.center-area");
+      // centerArea
+      //   .select("g.article-node-group")
+      //   .selectAll("circle.article-node")
+      //   .attr("opacity", (d: any) => (d.opacity = 0.2))
+      //   .attr("fill", (d: any) => (d.color = "grey"))
+      //   .filter((d: any) => searchedArticleIds!.includes(d.id))
+      //   .attr("opacity", (d: any) => (d.opacity = 1))
+      //   .attr(
+      //     "fill",
+      //     (d: any) => (d.color = d.sub_cluster_color || d.cluster_color)
+      //   );
+      // // entities
+      // const searchedEntities = entity_graph.entity_nodes
+      //   .filter((entity_node) =>
+      //     entity_node.mentions
+      //       .map((mention) => mention.doc_id)
+      //       .some((doc_id) => searchedArticleIds!.includes(doc_id))
+      //   )
+      //   .map((entity) => entity.id);
+      // svg
+      //   .selectAll("circle.entity-node")
+      //   .attr("opacity", (d: any) => (d.opacity = 0.2))
+      //   .attr("fill", (d: any) => (d.color = "grey"))
+      //   .filter((d: any) => searchedEntities.includes(d.id))
+      //   .attr("opacity", (d: any) => (d.opacity = 1))
+      //   .attr("fill", (d: any) => (d.color = d.cluster_color));
+      // if (clickedCluster) {
+      //   const cluster_article_ids =
+      //     article_graph.clusters[clickedCluster] ||
+      //     article_graph.sub_clusters[clickedCluster];
+      //   const intersectedArticleIds = searchedArticleIds!.filter((id) =>
+      //     cluster_article_ids?.includes(id)
+      //   );
+      //   highlightArticleIds = intersectedArticleIds;
+      // } else {
+      //   highlightArticleIds = searchedArticleIds;
+      // }
     }
-  }
+  })(searchedArticleIds);
 
   $: update_highlight_articles(highlightArticleIds);
   $: update_highlight_entities(highlight_entities);
@@ -286,13 +312,26 @@
     if (highlightArticleIds === undefined) {
       article_node_group
         .selectAll("circle.article-node")
-        .attr("opacity", (d: any) => d.opacity);
+        .attr("opacity", (d: any) => (d.opacity = 0.5));
     } else {
-      article_node_group
-        .selectAll("circle.article-node")
-        .attr("opacity", 0.2)
-        .filter((node: any) => highlightArticleIds.includes(node.id))
-        .attr("opacity", (d: any) => (d.color === "grey" ? 0.2 : 1));
+      if (searchMode) {
+        article_node_group
+          .selectAll("circle.article-node")
+          .attr("opacity", (d) => (d.opacity = 0.2))
+          .attr("fill", (d: any) => (d.color = "grey"))
+          .filter((node: any) => highlightArticleIds.includes(node.id))
+          .attr("opacity", (d: any) => (d.opacity = 1))
+          .attr(
+            "fill",
+            (d: any) => (d.color = d.sub_cluster_color || d.cluster_color)
+          );
+      } else {
+        article_node_group
+          .selectAll("circle.article-node")
+          .attr("opacity", (d) => (d.opacity = 0.2))
+          .filter((node: any) => highlightArticleIds.includes(node.id))
+          .attr("opacity", (d: any) => (d.color === "grey" ? 0.2 : 1));
+      }
     }
   }
   function update_highlight_entities(...args) {
@@ -315,14 +354,14 @@
   }
   $: zoom.setProps(undefined, undefined, undefined, articleClusterBorderPoints);
   $: {
-    if(article_graph) update_article_cluster(article_graph);
+    if (article_graph) update_article_cluster(article_graph);
   }
-  $: { 
-    if(entity_graph) update_entity_cluster(entity_graph);
+  $: {
+    if (entity_graph) update_entity_cluster(entity_graph);
   }
 
   function update_article_cluster(article_graph) {
-    console.log("update article cluster")
+    console.log("update article cluster");
     const centerArea = d3
       .select("#" + svgId)
       .select("g.margin")
@@ -360,7 +399,9 @@
             .attr("opacity", 0)
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
-            .attr("opacity", (d: any) => (d.opacity = 0.5))
+            .attr("opacity", (d: any) =>
+              searchMode ? (d.opacity = 0.1) : (d.opacity = 0.5)
+            )
             .attr("transform", "translate(0,0)")
             .selection(),
         (update) =>
@@ -370,7 +411,9 @@
               d.color = d.cluster_color;
               return d.color;
             })
-            .attr("opacity", (d: any) => (d.opacity = 0.5))
+            .attr("opacity", (d: any) =>
+              searchMode ? (d.opacity = 0.1) : (d.opacity = 0.5)
+            )
             .transition()
             .delay((d) => {
               if (article_graph.filtered) {
@@ -383,6 +426,18 @@
             .attr("cx", (d: any) => d.x)
             .attr("cy", (d: any) => d.y)
       );
+    if (searchMode) {
+      article_node_group
+        .selectAll("circle.article-node")
+        .attr("opacity", (d: any) => (d.opacity = 0.1))
+        .attr("fill", (d: any) => (d.color = "grey"))
+        .filter((d: any) => highlightArticleIds?.includes(d.id))
+        .attr("opacity", (d: any) => (d.opacity = 1))
+        .attr(
+          "fill",
+          (d: any) => (d.color = d.sub_cluster_color || d.cluster_color)
+        );
+    }
 
     // cluster borders
     const cluster_borders = generate_cluster_borders(
@@ -604,14 +659,25 @@
       //   .attr("stroke-width", 3)
       //   .attr("opacity", 0.5)
       d3.selectAll("g.article-border-tag-group")
-        .attr("opacity", showArticleClusterLabelDefault ? 1 : 0)
-        .attr(
-          "pointer-events",
-          showArticleClusterLabelDefault ? "auto" : "none"
-        )
-        .filter(
-          (tag_data: any) => clickedCluster === tag_data.cluster_label || false
-        )
+        .attr("opacity", (d) => {
+          if (pressedKey === "224")
+            return showArticleClusterLabelDefault
+              ? d.tag_opacity
+              : d.expand_opacity;
+          return showArticleClusterLabelDefault ? d.tag_opacity : 0;
+        })
+        .attr("pointer-events", (d) => {
+          if (pressedKey === "224")
+            return d.expand_opacity == 0 ? "none" : "auto";
+          return showArticleClusterLabelDefault
+            ? d.tag_opacity == 0
+              ? "none"
+              : "auto"
+            : "none";
+        })
+        .filter((tag_data: any) => {
+          clickedCluster === tag_data.cluster_label;
+        })
         .attr("opacity", 1)
         .attr("pointer-events", "auto");
 
@@ -619,11 +685,11 @@
         "opacity",
         showArticleClusterLabelDefault ? 1 : 0
       );
-      if(!e.ctrlKey && !e.metaKey) hoveredCluster = undefined
+      if (!e.ctrlKey && !e.metaKey) hoveredCluster = undefined;
     },
 
     click: function (e, d) {
-      console.log("article clicked")
+      console.log("article clicked");
       e.stopPropagation();
       const centerArea = d3
         .select("#" + svgId)
@@ -931,6 +997,14 @@
       article_graph,
       article_event_handlers.tags.click
     );
+    centerArea
+      .selectAll("g.article-border-tag-group")
+      .attr("opacity", (d) => {
+        d.expand_opacity = 0;
+        return showArticleClusterLabelDefault ? d.tag_opacity : 0;
+      })
+      .filter((tag_data: any) => d.cluster_label === tag_data.cluster_label)
+      .attr("opacity", (d) => (d.expand_opacity = 1));
 
     // update border color
     d3.select(this)
@@ -944,13 +1018,19 @@
     // highlight nodes
     centerArea
       .selectAll("circle.article-node")
-      .attr("opacity", 0.5)
+      // .attr("opacity", d.opacity)
       .filter((node: any) => node.cluster_label === d.cluster_label)
       .attr("fill", (d: any) => {
         d.sub_cluster_color = articleSubClusterColorDict[d.sub_cluster_label];
         return d.sub_cluster_color;
       })
-      .attr("opacity", 1);
+      .attr("opacity", (node) => {
+        if (searchMode) {
+          return searchedArticleIds?.includes(node.id) ? 1 : 0.1;
+        } else {
+          return 1;
+        }
+      });
   }
 
   function hideSubClusterStructure() {
@@ -963,6 +1043,10 @@
     tags.removeSubClusterLabels();
     tags.restoreLiftedArticleClusterLabel();
 
+    centerArea.selectAll("g.article-border-tag-group").attr("opacity", (d) => {
+      d.expand_opacity = 0;
+      return showArticleClusterLabelDefault ? d.tag_opacity : 0;
+    });
     // reset hovered cluster color
     centerArea
       .selectAll("circle.article-node")
@@ -972,6 +1056,11 @@
       })
       .attr("opacity", (d: any) => {
         return d.opacity;
+        if (searchMode) {
+          return highlightArticleIds?.includes(d.id) ? 1 : 0.1;
+        } else {
+          return highlightArticleIds?.includes(d.id) ? 1 : d.opacity;
+        }
       });
   }
 
@@ -1022,11 +1111,11 @@
           article_graph.sub_clusters[clickedCluster!] ||
           highlightArticleIds;
         if (clickedEntityLabels.length === 0) {
-            dispatch('entity-label-clicked', [
-                undefined,
-                cluster_articles,
-                clickedCluster
-            ])
+          dispatch("entity-label-clicked", [
+            undefined,
+            cluster_articles,
+            clickedCluster,
+          ]);
         } else {
           const clicked_entity_ids = clickedEntityLabels.map(
             (entity_label) => entity_label[0]
@@ -1041,16 +1130,16 @@
           const mentions_in_cluster = clicked_entity_mention_doc_ids.filter(
             (doc_id) => cluster_articles.includes(doc_id)
           );
-        //   onEntityLabelClicked(
-        //     clicked_entity_titles,
-        //     mentions_in_cluster,
-        //     clickedClusterLabel
-        //   );
-            dispatch('entity-label-clicked', [
-                clicked_entity_titles,
-                mentions_in_cluster,
-                clickedCluster
-            ])
+          //   onEntityLabelClicked(
+          //     clicked_entity_titles,
+          //     mentions_in_cluster,
+          //     clickedClusterLabel
+          //   );
+          dispatch("entity-label-clicked", [
+            clicked_entity_titles,
+            mentions_in_cluster,
+            clickedCluster,
+          ]);
         }
       }
     );
@@ -1130,30 +1219,29 @@
 
   function listenKeyBoard() {
     d3.select("body").on("keydown", (e) => {
-      pressedKey = "" + e.keyCode
-      if((e.ctrlKey || e.metaKey) && hoveredCluster) {
-        showSubClusterStructure(hoveredCluster)
+      pressedKey = "" + e.keyCode;
+      if ((e.ctrlKey || e.metaKey) && hoveredCluster) {
+        showSubClusterStructure(hoveredCluster);
       }
     });
     d3.select("body").on("keyup", (e) => {
-      console.log(e.ctrlKey || e.metaKey, e.keyCode)
-      if((e.keyCode == 224 || e.keyCode == 17) && hoveredCluster) {
-        hideSubClusterStructure()
-        hoveredCluster = undefined
+      if ((e.keyCode == 224 || e.keyCode == 17) && hoveredCluster) {
+        hideSubClusterStructure();
+        hoveredCluster = undefined;
       }
-      pressedKey = ""
+      pressedKey = "";
     });
   }
 
   function bindDrag(elements) {
-    const drag: any = d3.drag()
-        .clickDistance(100)
-        .on("start", DragUtils.dragStarted)
-        .on("drag", DragUtils.dragged)
-        .on("end", DragUtils.dragEnded);
-    d3.selectAll(elements).call(drag)
+    const drag: any = d3
+      .drag()
+      .clickDistance(100)
+      .on("start", DragUtils.dragStarted)
+      .on("drag", DragUtils.dragged)
+      .on("end", DragUtils.dragEnded);
+    d3.selectAll(elements).call(drag);
   }
-
 </script>
 
 <div

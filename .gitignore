@@ -149,3 +149,10 @@ dist
 *.json
 *.key
 remove_key.sh
+*.m4a
+*.mp3
+*.icloud
+writing
+*.pdf
+*.pptx
+abstract

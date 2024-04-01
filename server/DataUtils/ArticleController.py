@@ -3,10 +3,13 @@ import json
 import numpy as np
 from numpy.linalg import norm
 from scipy import spatial
+import requests
+from openai import OpenAI
 
 class ArticleController:
     def __init__(self, data_path, api_key) -> None:
-        openai.api_key = api_key
+        self.client = OpenAI(api_key=api_key, timeout=10)
+        self.api_key = api_key
         self.embeddings_db = json.load(open(data_path + 'network/server/article_embeddings.json'))
         self.article_entity_dict = json.load(open(data_path + 'network/server/article_participant_spans.json'))
     # search function
@@ -29,20 +32,37 @@ class ArticleController:
                     "content": query
                 }
             ]
-            hyde_response = request_gpt4(messages)
+            success = False
+            while not success:
+                try:
+                    hyde_response = self.request_gpt4(messages)
+                    success = True
+                except:
+                    continue
             query = hyde_response
             print(query)
+        url = 'https://api.openai.com/v1/embeddings'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': "Bearer {}".format(self.api_key)
+        }
+        data = {
+            "input": query,
+            "model": "text-embedding-ada-002"
+        }
+        # query_embedding_response = openai.Embedding.create(
+        #     model="text-embedding-ada-002",
+        #     input=query,
+        # )
+        res = requests.post(url, headers=headers, json=data)
+        res = res.json()
+        query_embedding = res["data"][0]["embedding"]
 
-        query_embedding_response = openai.Embedding.create(
-            model="text-embedding-ada-002",
-            input=query,
-        )
         if base is None:
             search_base = self.embeddings_db
         else:
             search_base = [doc for doc in self.embeddings_db if doc['doc_id'] in base]
 
-        query_embedding = query_embedding_response["data"][0]["embedding"]
         strings_and_relatednesses = [
             (doc_data["doc_id"], doc_data["title"], relatedness_fn(query_embedding, doc_data["embedding"]), doc_data['summary'])
             for doc_data in search_base
@@ -59,11 +79,19 @@ class ArticleController:
                 'title': doc['title'],
                 'summary': doc['summary'],
                 'content': doc['content'] if includeContent else None,
-                # 'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
+                'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
             }
             for doc in self.embeddings_db if doc['doc_id'] in query_ids
         ]
         return summaries
+
+    def request_gpt4(self, messages):
+        response = self.client.chat.completions.create(
+            # model="gpt-4-1106-preview",
+            model="gpt-3.5-turbo-1106",
+            messages=messages,
+        )
+        return response.choices[0].message.content
 
 def cleanSpans(entities):
     all_spans = flatten([entity['spans'] for entity in entities])
@@ -82,10 +110,3 @@ def cleanSpans(entities):
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
-
-def request_gpt4(messages):
-    response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
-        messages=messages,
-    )
-    return response.choices[0].message.content
