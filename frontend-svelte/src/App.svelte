@@ -242,7 +242,7 @@
     return sub_cluster_color_dict;
   })(entity_graph);
 
-  const server_address = "http://localhost:5050";
+  const server_address = "http://localhost:5000";
   // mounted
   onMount(() => {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()];

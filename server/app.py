@@ -1,13 +1,14 @@
-import math
 from flask import Flask, request
 from flask_cors import CORS
 import json
 from openai import OpenAI
-from pprint import pprint
-from DataUtils import GraphController, EventHGraph, DataTransformer, Utils, ArticleController, GptUtils, pHilbert, gosper
-from collections import defaultdict
+from DataUtils import GraphController, DataTransformer, Utils, ArticleController, pHilbert, gosper
 import tiktoken
-openai_api_key = open("openai_api_key").read()
+import os
+project_dir = os.path.dirname(os.path.abspath(__file__))
+relative_path = lambda x: os.path.join(project_dir, x)
+
+openai_api_key = open(relative_path("openai_api_key")).read()
 client=OpenAI(api_key=openai_api_key, timeout=30)
 
 app = Flask(__name__)
@@ -17,11 +18,10 @@ CORS(app)
 # article_level, entity_level = 5, 5
 dataset = 'VisPub'
 article_level, entity_level = 4, 4
-graph_controller = GraphController(r'../preprocess/data/result/{}/'.format(dataset))
+graph_controller = GraphController(relative_path("data/{}/".format(dataset)))
 event_hgraph = graph_controller.static_event_hgraph
-article_controller = ArticleController(r'../preprocess/data/result/{}/'.format(dataset), openai_api_key)
+article_controller = ArticleController(relative_path('data/{}/'.format(dataset)), openai_api_key)
 data_transformer = DataTransformer()
-# example = json.load(open(r'../preprocess/data/result/AllTheNews/cluster_summary/example_article.json'))
 
 # global vars
 users = [0]
@@ -34,14 +34,9 @@ print("init done")
 
 @app.route("/user/hgraph/", methods=["POST"])
 def get_article_partition():
-    # uid = int(uid)
     uid = 0
-    # article_level = request.json['article_level']
-    # entity_level = request.json['entity_level']
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
-    # reset filtering
-    # user_hgraph.resetFiltering()
 
     ### article
     # clusters and sub clusters
@@ -207,14 +202,6 @@ def expand_article_cluster():
     ###############
     ###############
     # post-process
-    # # add cluster label to article nodes
-    # article_node_dict = Utils.addClusterLabel(user_hgraph.article_dict, clusters, sub_clusters)
-
-    # # generate cluster order
-    # cluster_order = Utils.generateClusterOrder(user_hgraph.article_nodes)
-    # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, targeted_sub_clusters.keys())
-    # # add cluster order to article nodes
-    # article_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, article_node_dict)
     expanded_cluster = {}
     expanded_cluster['parent'] = cluster_label
     expanded_cluster['sub_clusters'] = list(targeted_sub_clusters.keys())
@@ -222,15 +209,7 @@ def expand_article_cluster():
     clusters, article_node_dict, cluster_order, update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.article_dict, clusters, sub_clusters, gosper_curve_points, expanded_cluster)
     print("--------- article nodes post-process done. ----------")
 
-    # # entity
-    # entity_level = 3
-    # entity_clusters = user_hgraph.binPartitions(entity_level, type='entity')
-    # entity_sub_clusters = user_hgraph.binPartitions(entity_level - 1, type="entity") if int(entity_level) > 0 else None
-    # entity_clusters, entity_node_dict, entity_cluster_order, entity_update_cluster_order = Utils.addClusterLabelAndOrder(user_hgraph.entity_dict, entity_clusters, entity_sub_clusters, philbert_curve_points)
-    # print("--------- entity nodes post-process done. ----------")
-
     # link entities to clusters
-    # article_cluster_links = Utils.getArticleClusterLinks(user_hgraph.entity_links, user_hgraph.entity_dict, article_node_dict)
     cluster_entity_inner_links = Utils.getClusterEntityInnerLinks(article_node_dict)
     print("--------- Entity links extraction done. ----------")
 
@@ -244,7 +223,6 @@ def expand_article_cluster():
         "cluster_order": cluster_order,
         "update_cluster_order": update_cluster_order,   
         "hierarchical_topics": user_hgraph.article_hierarchical_topics,
-        # "article_cluster_links": article_cluster_links,
         "cluster_entity_inner_links": cluster_entity_inner_links,
     }
     res = {
@@ -255,7 +233,6 @@ def expand_article_cluster():
 
 @app.route("/user/expand_cluster/entity/", methods=["POST"])
 def expand_entity_cluster():
-    # uid = int(uid)
     # retain original setups
     cluster_label = request.json['cluster_label']
     entity_clusters = request.json['clusters']
@@ -289,14 +266,6 @@ def expand_entity_cluster():
     ###############
     ###############
     # post-process
-    # # add cluster label to article nodes
-    # article_node_dict = Utils.addClusterLabel(user_hgraph.article_dict, clusters, sub_clusters)
-
-    # # generate cluster order
-    # cluster_order = Utils.generateClusterOrder(user_hgraph.article_nodes)
-    # update_cluster_order = Utils.generateUpdateClusterOrder(cluster_order, targeted_sub_clusters.keys())
-    # # add cluster order to article nodes
-    # article_node_dict = Utils.addClusterOrder(clusters, cluster_order, update_cluster_order, article_node_dict)
     expanded_cluster = {}
     expanded_cluster['parent'] = cluster_label
     expanded_cluster['sub_clusters'] = list(targeted_sub_clusters.keys())
@@ -307,7 +276,6 @@ def expand_entity_cluster():
     print("--------- entity nodes post-process done. ----------")
 
     # link entities to clusters
-    # article_cluster_entities = Utils.getArticleClusterEntities(user_hgraph.entity_links, entity_node_dict, user_hgraph.article_dict)
     print("--------- Entity links extraction done. ----------")
 
     # return result
@@ -365,38 +333,6 @@ def expand_entity_cluster():
 #     return json.dumps(article_graph, default=vars)
 
 
-# @app.route("/user/storyline/<uid>", methods=["POST"])
-# def get_storyline(uid):
-#     uid = int(uid)
-#     clusters = request.json['clusters']
-#     user_hgraph = graph_controller.getUserHGraph(uid)
-#     article_node_dict = Utils.addClusterLabel(user_hgraph.article_dict, clusters)
-#     entity_node_dict = user_hgraph.entity_dict
-#     entity_links = user_hgraph.entity_links
-
-#     storyline = defaultdict(lambda :defaultdict(list))
-#     for entity_link in entity_links:
-#         source = entity_link['source']
-#         target = entity_link['target']
-#         if source in article_node_dict:
-#             article_node = article_node_dict[source]
-#             entity_node = entity_node_dict[target]
-#         else:
-#             article_node = article_node_dict[target]
-#             entity_node = entity_node_dict[source]
-
-#         # bin article nodes by cluster
-#         cluster_label = article_node['cluster_label']
-#         storyline[entity_node['id']][cluster_label].append(article_node['id'])
-#     res = {
-#         "storyline": storyline,
-#         "links": entity_links,
-#         "entity_data": entity_node_dict,
-#         "article_data": article_node_dict,
-#     }
-#     Utils.save_json(res, 'tmp_storylinedata.json')
-#     return json.dumps(res)
-
 @app.route("/static/p_hilbert/", methods=["POST"])
 def peripheral_hilbert():
     width = request.json['width']
@@ -427,8 +363,6 @@ def search():
             "relevance": relevance,
             "summary": summary
         })
-    # Utils.save_json(doc_data, 'tmp_search.json')
-    # res = { doc_id: relatedness for doc_id, relatedness in docs }
     return json.dumps({"docs": doc_data, "suggested_threshold": suggested_threshold})
 
 @app.route("/static/articles/", methods=["POST"])
@@ -454,22 +388,6 @@ def get_hierarcy():
 def chat():
     messages = request.json['query_messages']
     response = request_gpt4(messages)
-    # useQueryDocs = request.json['useQueryDocs']
-    # if useQueryDocs:
-    #     queryDocs = request.json['queryDocs']
-    #     useSummary = request.json['useSummary']
-    #     if len(queryDocs) > 50: queryDocs = queryDocs[:50]
-    #     docs = article_controller.searchByID(queryDocs, includeContent=True)
-    #     user_query = messages[-1]['content']
-    #     doc_query = ""
-    #     for index, doc in enumerate(docs):
-    #         doc_query += "Selected Article {}:".format(index)
-    #         doc_query += doc['summary'] if useSummary else doc['content']
-    #         doc_query += "\n"
-    #     messages[-1]['content'] = user_query + "\n" + doc_query
-    #     response = request_gpt4(messages)
-    # else:
-    #     response = request_gpt4(messages)
     return json.dumps(response)
 
 @app.route("/static/baseline_chat", methods=["POST"])
@@ -494,11 +412,9 @@ def rag():
     return json.dumps(doc_data)
 
 def request_gpt4(messages):
-    # enc = tiktoken.encoding_for_model("gpt-4-1106-preview")
     enc = tiktoken.encoding_for_model("gpt-3.5-turbo-1106")
     text = json.dumps(messages)
     print(len(enc.encode(text)))
-    kept_index = 0
     while len(enc.encode(text)) > 16385:
     # while len(enc.encode(text)) > 128000:
         print("truncating...")
@@ -515,7 +431,6 @@ def request_gpt4(messages):
         print(len(enc.encode(text)))
     try:
         response = client.chat.completions.create(
-            # model="gpt-4-1106-preview",
             model="gpt-3.5-turbo-1106",
             messages=messages,
         )

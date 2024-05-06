@@ -1,6 +1,6 @@
 <script lang="ts">
   // import UseSummaryRadio from "./UseSummaryRadio.svelte";
-  const server_address = "http://localhost:5050";
+  const server_address = "http://localhost:5000";
   export let docs;
   export let selectedDocs;
   let searchLoading = false;

@@ -10,8 +10,8 @@ class ArticleController:
     def __init__(self, data_path, api_key) -> None:
         self.client = OpenAI(api_key=api_key, timeout=10)
         self.api_key = api_key
-        self.embeddings_db = json.load(open(data_path + 'network/server/article_embeddings.json'))
-        self.article_entity_dict = json.load(open(data_path + 'network/server/article_participant_spans.json'))
+        self.embeddings_db = json.load(open(data_path + 'article_embeddings.json'))
+        self.article_entity_dict = json.load(open(data_path + 'article_participant_spans.json'))
     # search function
     def search(
         self,
@@ -50,10 +50,6 @@ class ArticleController:
             "input": query,
             "model": "text-embedding-ada-002"
         }
-        # query_embedding_response = openai.Embedding.create(
-        #     model="text-embedding-ada-002",
-        #     input=query,
-        # )
         res = requests.post(url, headers=headers, json=data)
         res = res.json()
         query_embedding = res["data"][0]["embedding"]
@@ -68,8 +64,6 @@ class ArticleController:
             for doc_data in search_base
         ]
         strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
-        # strings, relatednesses = zip(*strings_and_relatednesses)
-        # return strings_and_relatednesses[:top_n]
         return strings_and_relatednesses
 
     def searchByID(self, query_ids: list[str], includeContent: bool = False):
