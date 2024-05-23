@@ -169,9 +169,9 @@
     // sfc.initPeripheral(peripheral);
     // sfc.initGosper(gosper);
     tags.init(svgId, centerAreaOffset, canvasSize);
-    listenKeyBoard();
-    listenZoom();
-    listenClick();
+    // listenKeyBoard();
+    // listenZoom();
+    // listenClick();
     // await tick()
     console.log("init done");
     // setTooltipData(initialTooltipData)

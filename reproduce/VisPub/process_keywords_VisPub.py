@@ -205,9 +205,12 @@ def main():
     article_contents = [article['Abstract'] for article in articles]
     article_content_embeddings = multithread_embeddings(client, article_contents)
     for index, article in enumerate(articles):
-        article_embeddings[index] = {
-            "doc_id": article['id'],
+        article_id = "vis_" + str(article['id'])
+        article_embeddings[article_id] = {
+            "doc_id": "vis_" + str(article['id']),
             "content": article['Abstract'],
+            "summary": article['Abstract'],
+            "title": article['Title'],
             "embedding": article_content_embeddings[index]
         }
     print("saving article abstract embedding to: data/result/server/article_embeddings.json")

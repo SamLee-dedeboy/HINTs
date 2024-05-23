@@ -82,23 +82,21 @@ class ArticleController:
                 'title': doc['title'],
                 'summary': doc['summary'],
                 'content': doc['content'] if includeContent else None,
-                'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']])
+                'entity_spans': cleanSpans(self.article_entity_dict[doc['doc_id']]) if doc['doc_id'] in self.article_entity_dict else []
             }
-            for doc in self.embeddings_db if doc['doc_id'] in query_ids
+            for doc in self.embeddings_db if str(doc['doc_id']) in query_ids
         ]
         return summaries
 
     def request_gpt4(self, messages):
         response = self.client.chat.completions.create(
             # model="gpt-4-1106-preview",
-            model="gpt-3.5-turbo-1106",
+            model="gpt-3.5-turbo",
             messages=messages,
         )
         return response.choices[0].message.content
 
 def cleanSpans(entities):
-    if not entities:
-        return []
     all_spans = flatten([entity['spans'] for entity in entities])
     all_spans.sort(key=lambda x: x[0])
     cleaned_spans = []

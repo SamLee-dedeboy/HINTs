@@ -7,6 +7,7 @@
   import Switch from "./lib/Switch.svelte";
   import { onMount } from "svelte";
 
+  const server_address = "http://localhost:5000";
   // data from server
   let HGraphLoaded = false;
   let fetchingSubCluster = false;
@@ -242,7 +243,6 @@
     return sub_cluster_color_dict;
   })(entity_graph);
 
-  const server_address = "http://localhost:5000";
   // mounted
   onMount(() => {
     const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()];
@@ -432,6 +432,7 @@
     doc_ids,
     cluster_label: string | undefined = undefined
   ) {
+    console.log({ doc_ids });
     return new Promise((resolve) => {
       fetch(`${server_address}/static/articles/`, {
         method: "POST",
@@ -443,6 +444,7 @@
       })
         .then((res) => res.json())
         .then((articles) => {
+          console.log({ articles });
           articles.forEach((article) => {
             if (cluster_label === undefined) {
               const article_cluster_label = article_clusters[article.id];

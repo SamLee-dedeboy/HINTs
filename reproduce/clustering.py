@@ -313,10 +313,7 @@ def read_embeddings(dataset, data_type):
         return entity_embeddings
     elif data_type == 'article':
         article_data = json.load(open(f'{dataset}/data/result/server/article_embeddings.json'))
-        if dataset == 'VisPub':
-            article_embeddings = {"vis_" + str(article['doc_id']): article['embedding'] for article_id, article in article_data.items()}
-        else:
-            article_embeddings = {str(article['doc_id']): article['embedding'] for article_id, article in article_data.items()}
+        article_embeddings = {str(article['doc_id']): article['embedding'] for _, article in article_data.items()}
         return article_embeddings
 
 def main():
