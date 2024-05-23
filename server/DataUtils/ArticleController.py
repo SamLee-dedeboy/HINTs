@@ -11,7 +11,16 @@ class ArticleController:
         self.client = OpenAI(api_key=api_key, timeout=10)
         self.api_key = api_key
         self.embeddings_db = json.load(open(data_path + 'article_embeddings.json'))
-        self.article_entity_dict = json.load(open(data_path + 'article_participant_spans.json'))
+        self.article_entity_dict = {}
+        try:
+            self.article_entity_dict = json.load(open(data_path + 'article_participant_spans.json'))
+        except:
+            self.article_entity_dict = {}
+        if isinstance(self.embeddings_db, dict):
+            self.embeddings_db = list(self.embeddings_db.values())
+        content_lengths = [len(article['content'].split()) for article in self.embeddings_db]
+        avg_content_length = np.mean(content_lengths)
+        print(f"Average content length: {avg_content_length:.2f} words")
     # search function
     def search(
         self,
@@ -88,6 +97,8 @@ class ArticleController:
         return response.choices[0].message.content
 
 def cleanSpans(entities):
+    if not entities:
+        return []
     all_spans = flatten([entity['spans'] for entity in entities])
     all_spans.sort(key=lambda x: x[0])
     cleaned_spans = []

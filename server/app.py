@@ -17,10 +17,12 @@ CORS(app)
 # dataset = 'AllTheNews'
 # article_level, entity_level = 5, 5
 dataset = 'VisPub'
-article_level, entity_level = 4, 4
-graph_controller = GraphController(relative_path("data/{}/".format(dataset)))
+# article_level, entity_level = 3, 4
+graph_controller = GraphController(relative_path("../reproduce/VisPub/data/result/server/"))
+# graph_controller = GraphController(relative_path("data/{}/".format(dataset)))
 event_hgraph = graph_controller.static_event_hgraph
-article_controller = ArticleController(relative_path('data/{}/'.format(dataset)), openai_api_key)
+article_controller = ArticleController(relative_path('../reproduce/VisPub/data/result/server/'.format(dataset)), openai_api_key)
+# article_controller = ArticleController(relative_path('data/{}/'.format(dataset)), openai_api_key)
 data_transformer = DataTransformer()
 
 # global vars
@@ -37,7 +39,8 @@ def get_article_partition():
     uid = 0
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
-
+    article_level = user_hgraph.get_highest_level('article')
+    entity_level = user_hgraph.get_highest_level('entity')
     ### article
     # clusters and sub clusters
     clusters = user_hgraph.binPartitions(article_level, cluster_type='article')

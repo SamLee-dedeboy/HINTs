@@ -1,0 +1,4 @@
+https://github.com/amazon-science/ReFinED/archive/refs/tags/V1.zip
+networkx
+hypernetx
+igraph

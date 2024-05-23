@@ -50,7 +50,7 @@ class EventHGraph:
         self.entity_dict, \
         self.entity_links, \
          = prepare_data(nodes, self.links)
-
+        print("Data prepared", len(self.article_nodes), len(self.entity_nodes))
         #################
         #################
         # prepare for frontend
@@ -65,7 +65,11 @@ class EventHGraph:
         )
 
         self.filtered = False
-    
+    def get_highest_level(self, cluster_type):
+        if cluster_type == 'article':
+            return len(self.partitions_article) - 2
+        elif cluster_type == 'entity':
+            return len(self.partitions_entity) - 3 
     def save_states(self):
         return {
             "article_nodes": [article_node['id'] for article_node in self.article_nodes],
@@ -119,7 +123,7 @@ class EventHGraph:
         res = {}
         for cluster_label, node_ids in clusters.items():
             cluster_size = len(node_ids)
-            if cluster_size > 3*avg_cluster_size:
+            if cluster_size > 3*avg_cluster_size or cluster_size > 0.7*total_volume:
                 # expand this cluster
                 sub_clusters, _ = self.getSubClusters(cluster_label, cluster_type=cluster_type, isList=False)
                 for sub_cluster_label, sub_cluster_article_node_ids in sub_clusters.items():
