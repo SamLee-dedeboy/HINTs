@@ -147,6 +147,9 @@ dist
 *.mov
 *.mp4
 *.json
+!package-lock.json
+!package.json
+!tsconfig.node.json
 *.key
 remove_key.sh
 *.m4a
@@ -157,3 +160,4 @@ writing
 *.pptx
 abstract
 trash
+delete_before_release

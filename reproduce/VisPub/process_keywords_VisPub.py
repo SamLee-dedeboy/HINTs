@@ -155,7 +155,7 @@ def transform_vispub(articles):
 
 def main():
     start_time = time.time()
-    api_key = open("../VisPub_api_key").read()
+    api_key = open("../openai_api_key").read()
     client=OpenAI(api_key=api_key, timeout=30)
     parser = argparse.ArgumentParser(description='Disambiguate AuthorKeywords in VisPub dataset.')
     parser.add_argument("--spans", action="store_true", help="Also extract the mention spans in Abstract (optional)")

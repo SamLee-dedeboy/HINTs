@@ -16,6 +16,7 @@
   let user_hgraph: any = undefined;
   let article_graph: any = undefined;
   let entity_graph: any = undefined;
+  let dataLoaded = false;
 
   // flags
   let searchMode = false;
@@ -244,88 +245,85 @@
   })(entity_graph);
 
   // mounted
-  onMount(() => {
-    const promises = [fetchPHilbert(), fetchGosper(), fetchPartitionArticle()];
-    Promise.all(promises).then(() => {
-      console.log("all data loaded");
-    });
+  onMount(async () => {
+    // const promises = [fetchPHilbert(), fetchGosper()];
+    await fetchPHilbert();
+    await fetchGosper();
+    await fetchPartitionArticle();
+    console.log("all data loaded");
+    HGraphLoaded = true;
+    // Promise.all(promises).then(() => {
+    //   console.log("all data loaded");
+    // });
   });
-  function fetchPHilbert() {
-    return new Promise((resolve) => {
-      const width = 128;
-      const height = 20;
-      fetch(`${server_address}/static/p_hilbert/`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ width, height }),
-      })
-        .then((res) => res.json())
-        .then((p_hilbert) => {
-          console.log({ p_hilbert });
-          hilbert = {
-            points: p_hilbert,
-            width: width,
-            height: height,
-          };
-          // setHilbert({
-          //   points: p_hilbert,
-          //   width: width,
-          //   height: height
-          // })
-          resolve("success");
-        });
-    });
+  async function fetchPHilbert() {
+    const width = 128;
+    const height = 20;
+    await fetch(`${server_address}/static/p_hilbert/`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ width, height }),
+    })
+      .then((res) => res.json())
+      .then((p_hilbert) => {
+        console.log({ p_hilbert });
+        hilbert = {
+          points: p_hilbert,
+          width: width,
+          height: height,
+        };
+        // setHilbert({
+        //   points: p_hilbert,
+        //   width: width,
+        //   height: height
+        // })
+      });
   }
 
-  function fetchGosper() {
-    return new Promise((resolve) => {
-      const level = 5;
-      fetch(`${server_address}/static/gosper/`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ level }),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          console.log({ res });
-          // setGosper(gosper)
-          gosper = res;
-          resolve("success");
-        });
-    });
+  async function fetchGosper() {
+    // const level = 4;
+    await fetch(`${server_address}/static/gosper/`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log({ res });
+        // setGosper(gosper)
+        gosper = res;
+      });
   }
 
-  function fetchPartitionArticle() {
-    return new Promise((resolve) => {
-      console.log("fetching article with partition");
-      fetch(`${server_address}/user/hgraph/`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ article_level: 4, entity_level: 4 }),
-        // body: JSON.stringify({ article_level: 5, entity_level: 5})
-      })
-        .then((res) => res.json())
-        .then(async (hgraph: any) => {
-          console.log({ hgraph });
-          // user_hgraph_ref.current = hgraph.user_hgraph
-          user_hgraph = hgraph.user_hgraph;
-          article_graph = hgraph.article_graph;
-          entity_graph = hgraph.entity_graph;
-          HGraphLoaded = true;
-          // await setArticleGraph(hgraph.article_graph)
-          // await setEntityGraph(hgraph.entity_graph)
-          resolve("success");
-        });
-    });
+  async function fetchPartitionArticle() {
+    console.log("fetching article with partition");
+    await fetch(`${server_address}/user/hgraph/`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        gosper_curve_points: gosper,
+        philbert_curve_points: hilbert.points,
+      }),
+      // body: JSON.stringify({ article_level: 5, entity_level: 5})
+    })
+      .then((res) => res.json())
+      .then(async (hgraph: any) => {
+        console.log({ hgraph });
+        // user_hgraph_ref.current = hgraph.user_hgraph
+        user_hgraph = hgraph.user_hgraph;
+        article_graph = hgraph.article_graph;
+        entity_graph = hgraph.entity_graph;
+        // await setArticleGraph(hgraph.article_graph)
+        // await setEntityGraph(hgraph.entity_graph)
+      });
   }
 
   // event  handlers
@@ -348,6 +346,8 @@
           cluster_label,
           clusters: clusters,
           user_hgraph,
+          gosper_curve_points: gosper,
+          philbert_curve_points: hilbert.points,
         }),
       })
         .then((res) => res.json())
@@ -375,7 +375,13 @@
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ cluster_label, clusters, user_hgraph }),
+        body: JSON.stringify({
+          cluster_label,
+          clusters,
+          user_hgraph,
+          gosper_curve_points: gosper,
+          philbert_curve_points: hilbert.points,
+        }),
       })
         .then((res) => res.json())
         .then((expanded_graph) => {
@@ -528,6 +534,8 @@
           clusters,
           entity_clusters,
           user_hgraph,
+          gosper_curve_points: gosper,
+          philbert_curve_points: hilbert.points,
         }),
       })
         .then((res) => res.json())

@@ -7,7 +7,7 @@ from json import JSONDecodeError
 import argparse
 import random 
 import tiktoken
-api_key = open("api_key").read()
+api_key = open("openai_api_key").read()
 client=OpenAI(api_key=api_key, timeout=10)
 
 def save_json(data, filepath=r'new_data.json'):
@@ -127,6 +127,8 @@ def query_leaf_topic(nodes, node_type, dataset):
                         "role": "user", "content": """ Keywords: {} \n """.format(", ".join(nodes))
                     }
                 ]
+                if not within_token_length("gpt-3.5-turbo", messages[1]['content']):
+                    messages[1]['content'] = messages[1]['content'][:16385]
             if dataset == "VisPub":
                 res_key = "categories"
                 messages = [

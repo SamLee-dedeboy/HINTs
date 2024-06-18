@@ -331,8 +331,10 @@ def main():
     embeddings = read_embeddings(args['dataset'], args['data_type'])
 
     G_ccs = convert_to_graph(H)
+    print("conversion done")
     attr_dict = {v.index: embeddings[v['name']] for v in G_ccs.vs}
     mid_time = time.time()
+    print("precomputing semantic distance matrix...")
     D = distance_matrix(G_ccs, attr_dict)
     levels = ravasz(G_ccs, attr_dict, D)
 

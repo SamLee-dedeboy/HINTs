@@ -4,7 +4,9 @@ from pprint import pprint
 import numpy as np
 import copy
 import itertools
-
+def save_json(data, path="data.json"):
+    with open(path, 'w') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 class EventHGraph:
     def __init__(self, data_path, init=True) -> None:
         if not init:
@@ -40,8 +42,8 @@ class EventHGraph:
         self.partitions_article = gpt_partitions_article
         self.partitions_entity = gpt_partitions_entity
 
-        self.hierarchy_article = gpt_hierarchy_article
-        self.hierarchy_entity = gpt_hierarchy_entity
+        # self.hierarchy_article = gpt_hierarchy_article
+        # self.hierarchy_entity = gpt_hierarchy_entity
 
         self.article_nodes, \
         self.article_dict, \
@@ -63,13 +65,14 @@ class EventHGraph:
             self.hierarchy_article, self.partitions_article, self.article_dict, 
             self.hierarchy_entity, self.partitions_entity, self.entity_dict, 
         )
+        save_json(self.hierarchy_flattened_article, 'debug_hierarchy_flattened_article.json')
 
         self.filtered = False
     def get_highest_level(self, cluster_type):
         if cluster_type == 'article':
-            return len(self.partitions_article) - 2
+            return len(self.partitions_article)
         elif cluster_type == 'entity':
-            return len(self.partitions_entity) - 3 
+            return len(self.partitions_entity)
     def save_states(self):
         return {
             "article_nodes": [article_node['id'] for article_node in self.article_nodes],

@@ -14,33 +14,40 @@ client=OpenAI(api_key=openai_api_key, timeout=30)
 app = Flask(__name__)
 CORS(app)
 # 
-# dataset = 'AllTheNews'
-# article_level, entity_level = 5, 5
-dataset = 'VisPub'
+dataset = 'AllTheNews'
+article_level, entity_level = 5, 5
+# dataset = 'VisPub'
 # article_level, entity_level = 3, 4
-graph_controller = GraphController(relative_path("../reproduce/VisPub/data/result/server/"))
-# graph_controller = GraphController(relative_path("data/{}/".format(dataset)))
+# graph_controller = GraphController(relative_path("../reproduce/VisPub/data/result/server/"))
+graph_controller = GraphController(relative_path("data/{}/".format(dataset)))
 event_hgraph = graph_controller.static_event_hgraph
-article_controller = ArticleController(relative_path('../reproduce/VisPub/data/result/server/'.format(dataset)), openai_api_key)
-# article_controller = ArticleController(relative_path('data/{}/'.format(dataset)), openai_api_key)
+# article_controller = ArticleController(relative_path('../reproduce/VisPub/data/result/server/'.format(dataset)), openai_api_key)
+article_controller = ArticleController(relative_path('data/{}/'.format(dataset)), openai_api_key)
 data_transformer = DataTransformer()
 
 # global vars
 users = [0]
 for uid in users:
     graph_controller.create_user_hgraph(uid)
+user_hgraph = graph_controller.getUserHGraph(0)
+# article_level = user_hgraph.get_highest_level('article')
+# entity_level = user_hgraph.get_highest_level('entity')
+print("article level: ", article_level)
+print("entity level: ", entity_level)
 
-gosper_curve_points, gosper_point_to_distance = gosper.plot_level(5)
-philbert_curve_points, philbert_point_to_distance = pHilbert.peripheral_hilbert(128, 20)
+# gosper_curve_points, gosper_point_to_distance = gosper.plot_level(article_level)
+# philbert_curve_points, philbert_point_to_distance = pHilbert.peripheral_hilbert(128, 20)
 print("init done")
 
 @app.route("/user/hgraph/", methods=["POST"])
 def get_article_partition():
+    gosper_curve_points = request.json['gosper_curve_points']
+    philbert_curve_points = request.json['philbert_curve_points']
     uid = 0
     # get candidate entity nodes
     user_hgraph = graph_controller.getUserHGraph(uid)
-    article_level = user_hgraph.get_highest_level('article')
-    entity_level = user_hgraph.get_highest_level('entity')
+    # article_level = user_hgraph.get_highest_level('article')
+    # entity_level = user_hgraph.get_highest_level('entity')
     ### article
     # clusters and sub clusters
     clusters = user_hgraph.binPartitions(article_level, cluster_type='article')
@@ -96,6 +103,8 @@ def filter_hgraph():
     article_node_ids = request.json['article_ids']
     clusters = request.json['clusters']
     entity_clusters = request.json['entity_clusters']
+    gosper_curve_points = request.json['gosper_curve_points']
+    philbert_curve_points = request.json['philbert_curve_points']
     user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
     # user_hgraph = graph_controller.getUserHGraph(uid)
 
@@ -167,6 +176,8 @@ def expand_article_cluster():
     # retain original setups
     cluster_label = request.json['cluster_label']
     clusters = request.json['clusters']
+    gosper_curve_points = request.json['gosper_curve_points']
+    philbert_curve_points = request.json['philbert_curve_points']
     print("loading user hgraph")
     user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
     print("loading done")
@@ -239,6 +250,8 @@ def expand_entity_cluster():
     # retain original setups
     cluster_label = request.json['cluster_label']
     entity_clusters = request.json['clusters']
+    gosper_curve_points = request.json['gosper_curve_points']
+    philbert_curve_points = request.json['philbert_curve_points']
     user_hgraph = graph_controller.load_user_hgraph(request.json['user_hgraph'])
     entity_node_ids = list(map(lambda node: node['id'], user_hgraph.entity_nodes)) 
     # user_hgraph = graph_controller.getUserHGraph(uid)
@@ -345,7 +358,8 @@ def peripheral_hilbert():
 
 @app.route("/static/gosper/", methods=["POST"])
 def gosper_curve():
-    level = request.json['level']
+    # level = request.json['level']
+    level = article_level
     coords, _ = gosper.plot_level(level)
     return json.dumps(coords)
 
