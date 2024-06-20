@@ -52,7 +52,7 @@ class EventHGraph:
         self.entity_dict, \
         self.entity_links, \
          = prepare_data(nodes, self.links)
-        print("Data prepared", len(self.article_nodes), len(self.entity_nodes))
+        # print("Data prepared", len(self.article_nodes), len(self.entity_nodes))
         #################
         #################
         # prepare for frontend

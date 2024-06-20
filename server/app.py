@@ -14,10 +14,8 @@ client=OpenAI(api_key=openai_api_key, timeout=30)
 app = Flask(__name__)
 CORS(app)
 # 
-dataset = 'AllTheNews'
-article_level, entity_level = 5, 5
-# dataset = 'VisPub'
-# article_level, entity_level = 3, 4
+# dataset, article_level, entity_level = 'AllTheNews', 5, 5
+dataset, article_level, entity_level = 'VisPub', 4, 4
 # graph_controller = GraphController(relative_path("../reproduce/VisPub/data/result/server/"))
 graph_controller = GraphController(relative_path("data/{}/".format(dataset)))
 event_hgraph = graph_controller.static_event_hgraph
@@ -358,8 +356,7 @@ def peripheral_hilbert():
 
 @app.route("/static/gosper/", methods=["POST"])
 def gosper_curve():
-    # level = request.json['level']
-    level = article_level
+    level = 5
     coords, _ = gosper.plot_level(level)
     return json.dumps(coords)
 

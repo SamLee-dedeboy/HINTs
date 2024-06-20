@@ -60,7 +60,7 @@ Follow these steps to reproduce (using VisPub as an example):
 <a href="https://drive.google.com/drive/folders/1rEYbapjp4Yk1xKaiMnrZ_Re_EsQ1nCMg?usp=sharing" target="_blank">link</a>
 
 2. Decompress and put The raw datasets for `VisPub` should be put under `reproduce`: you should see `reproduce/VisPub/data/raw/`. (or `reproduce/AllTheNews/data/` for `AllTheNews`)
-3. The data processing needs an [OpenAI api key](https://platform.openai.com/api-keys). Request one from OpenAI, create a file called `openai_api_key` under `reproduce` and copy and past the key from OpenAI's website.
+3. The data processing needs an [OpenAI api key](https://platform.openai.com/api-keys). Request one from OpenAI, create a file called `openai_api_key` under `reproduce` and copy and paste the key from OpenAI's website.
 3. Navigate to `reproduce/VisPub/`, and run `bash execute_pipeline.sh`. 
 4. Once finished, copy the files under `reproduce/VisPub/data/result/server/` to `server/data/VisPub/`
 5. Then navigate back to `reproduce` for clustering and hierarchical topic generation.
