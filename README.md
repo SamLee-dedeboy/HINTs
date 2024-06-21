@@ -13,6 +13,11 @@ Overview of the HINTs system.
 
 (d) The Chatbot View provides a chatbot interface to answer user questions with the option to insert selected documents in the prompt.
 
+### Interactions
+1. `Click`: left click on a cluster to expand it
+2. `Cmd` (mac) or `Ctrl` (windows): Hover over a cluster, then hold `Cmd` or `Ctrl` to temporarily expand a cluster to see its sub clusters
+3. `Zoom`: Default by mouse wheels or gestures on trackpads
+4. `Pan`: Drag on empty spaces in the layout to pan
 
 # Reproduce
 The reproducing step can be divided into `data processing` and `launching the server`. 
