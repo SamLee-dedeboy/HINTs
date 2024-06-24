@@ -21,7 +21,7 @@ Overview of the HINTs system.
 
 # Reproduce
 The reproducing step can be divided into `data processing` and `launching the server`. 
-We provide preprocessed data so that interested individuals can skip the `data processing` step, which can be downloaded via this [Link](https://drive.google.com/drive/folders/1WWzuq3KAffNUbqLNxjEzUeVd-RVvLTCd?usp=sharing).
+We provide preprocessed data so that interested individuals can skip the `data processing` step. Data can be downloaded via this [Link](https://drive.google.com/drive/folders/1WWzuq3KAffNUbqLNxjEzUeVd-RVvLTCd?usp=sharing).
 ## Where to put the data
 After downloading, decompress and put the data under the `server` directory. You should see `server/data/VisPub` and `server/data/AllTheNews`
 
@@ -40,7 +40,7 @@ pip install -r requirements.txt
 # or sometimes on Mac
 python3 -m pip install -r requirements.txt
 ```
-4. Make sure the data files are present (see Where to put the data (link))
+4. Make sure the data files are present (see [Where to put the data](#where-to-put-the-data))
 5. run `flask run`
 6. The server should be up and listening to `localhost:5000`. It might take 3-5 minutes to start the server.
 
@@ -52,6 +52,7 @@ npm i
 npm run dev
 ```
 The frontend should be up and listening to `localhost:5173`.
+Note that `frontend-baseline` is the interface for the ChatGPT control group in our user study. `frontend-deprecated` is a deprecated folder and can be ignored.
 
 
 ## Reproducing the data processing stage
