@@ -1,9 +1,0 @@
-*.json
-
-/test.ipynb
-/test2.ipynb
-/dev.jsonlines
-/query.ipynb
-
-IEEE_papers/Raw_data/
-AllTheNews/data/
