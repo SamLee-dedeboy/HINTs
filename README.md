@@ -1,5 +1,5 @@
 # HINTs 
-This is the open source repository for paper `HINTs: Sensemaking on large collections of documents with Hypergraph visualization and INTelligent agents`: https://arxiv.org/abs/2403.02752
+This is the open source repository for paper `HINTs: Sensemaking on large collections of documents with Hypergraph visualization and INTelligent agents`: [https://doi.org/10.1109/TVCG.2024.3459961](https://doi.org/10.1109/TVCG.2024.3459961)
 
 ## Overview
 <img src="./docs/overview.png"/>
